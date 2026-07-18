@@ -15,6 +15,7 @@ catalyst-debug.log
 
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
+.claude/launch.json
 
 # OS / editor noise
 .DS_Store
