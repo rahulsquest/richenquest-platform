@@ -1,0 +1,23 @@
+<!-- component: header — sitewide masthead + primary navigation.
+     Nav items live HERE (single source; v1 engine has no loops — ADR-002).
+     M1 will add items as their pages ship. JS hook: data-nav-toggle (modules/nav.js). -->
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__brand" href="/" aria-label="{{ site.name }} — home">{{ site.name }}</a>
+    <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+      <span class="visually-hidden">Menu</span>
+      <span class="site-header__toggle-bar" aria-hidden="true"></span>
+      <span class="site-header__toggle-bar" aria-hidden="true"></span>
+      <span class="site-header__toggle-bar" aria-hidden="true"></span>
+    </button>
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <ul class="site-nav__list">
+        <li class="site-nav__item"><a class="site-nav__link" href="/">Home</a></li>
+        <!-- M1: About · Services · Destinations · Partner With Us · Contact -->
+        <li class="site-nav__item">
+          <a class="btn btn--primary site-nav__cta" href="mailto:{{ site.email }}">Contact us</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>

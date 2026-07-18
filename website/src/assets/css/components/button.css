@@ -1,0 +1,43 @@
+/* component: button — .btn + variants. Used by header, cta-band, and future forms. */
+.btn {
+  display: inline-block;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.btn--primary {
+  background: var(--color-brand);
+  color: var(--color-inverse-ink);
+}
+
+.btn--primary:hover {
+  background: var(--color-brand-strong);
+  color: var(--color-inverse-ink);
+}
+
+.btn--ghost {
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+  background: transparent;
+}
+
+.btn--ghost:hover {
+  background: var(--color-surface-alt);
+}
+
+.btn--inverse {
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.btn--inverse:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-ink);
+}

@@ -1,0 +1,17 @@
+/* component: cta-band — sitewide conversion band. */
+.cta-band {
+  margin-top: var(--space-12);
+  background: var(--color-brand-strong);
+  color: var(--color-inverse-ink);
+}
+
+.cta-band__inner {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding-block: var(--space-10);
+}
+
+.cta-band__text {
+  font-size: var(--text-lg);
+}

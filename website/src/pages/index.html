@@ -1,0 +1,34 @@
+<!--meta
+title: RichenQuest — Study Abroad Counseling for India & Nepal
+description: RichenQuest Private Limited is an education consultancy in Patna, India, guiding students from India and Nepal through counseling, admissions, documentation, and visa support. Full website launching soon.
+-->
+<!-- M0 PLACEHOLDER PAGE — proves the build pipeline; replaced by the real homepage in M1.
+     All facts sourced from data/claims.json (File 10 §7). -->
+<section class="hero">
+  <div class="container hero__inner">
+    <p class="hero__kicker">{{ claims.company.hq }}</p>
+    <h1>Study abroad with honest, verified guidance.</h1>
+    <p class="hero__lede">
+      {{ claims.company.brand }} guides students from {{ claims.reach }} toward universities
+      abroad — counseling, admissions, documentation, and visa support, end to end.
+    </p>
+    <p class="hero__lede">{{ claims.phrasings.verifiable }}</p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="mailto:{{ site.email }}">Email {{ site.email }}</a>
+    </div>
+    <p class="hero__note">Our full website is under construction and launching soon.</p>
+  </div>
+</section>
+
+<section class="container section">
+  <h2>What we do</h2>
+  <p>{{ claims.services_line }}</p>
+  <p>
+    Our team has been active in study-abroad counseling since
+    {{ claims.company.team_active_since }}, and {{ claims.company.legal_name }} was incorporated
+    in {{ claims.company.incorporated }} to build a systematic, compliance-first operation.
+  </p>
+  <p>{{ claims.phrasings.records }}</p>
+</section>
+
+<!-- @include components/cta-band.html -->

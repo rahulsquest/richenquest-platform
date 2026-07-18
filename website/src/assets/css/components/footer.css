@@ -1,0 +1,38 @@
+/* component: footer */
+.site-footer {
+  margin-top: var(--space-12);
+  background: var(--color-inverse-surface);
+  color: var(--color-inverse-ink);
+}
+
+.site-footer__inner {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-8);
+}
+
+.site-footer__name {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+}
+
+.site-footer__tagline {
+  color: #c4cede; /* token exception: inverse-soft — promote to tokens.css when reused */
+  margin-top: var(--space-2);
+}
+
+.site-footer a {
+  color: var(--color-inverse-ink);
+}
+
+.site-footer__legal {
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+  padding-block: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 40em) {
+  .site-footer__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}

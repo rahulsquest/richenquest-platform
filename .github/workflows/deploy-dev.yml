@@ -1,0 +1,35 @@
+# Deploys website/dist to the Zoho Catalyst DEVELOPMENT environment.
+#
+# STATUS: scaffold — activates during Milestone M0's Catalyst spike (File 09 §5), once the
+# Catalyst project exists and CATALYST_TOKEN is set in GitHub Actions secrets. Until then this
+# workflow only runs manually and stops at the guard step.
+name: Deploy (Development)
+
+on:
+  workflow_dispatch:
+  # After the Catalyst spike, enable auto-deploy:
+  # push:
+  #   branches: [main]
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build site
+        run: node website/build.mjs
+
+      - name: Claims guard
+        run: node scripts/claims-guard.mjs
+
+      - name: Catalyst deploy (pending project setup)
+        run: |
+          echo "::warning::Catalyst project not configured yet (Milestone M0 spike)."
+          echo "Once ready: install zcatalyst-cli, authenticate with CATALYST_TOKEN secret,"
+          echo "and run 'catalyst deploy' targeting the Development environment."
+          exit 0

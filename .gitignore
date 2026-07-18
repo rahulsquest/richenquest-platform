@@ -1,0 +1,25 @@
+# Build output
+website/dist/
+
+# Dependencies (none expected — the build is zero-dependency; guard anyway)
+node_modules/
+
+# Environment & secrets — never commit credentials
+.env
+.env.*
+*.pem
+
+# Zoho Catalyst local artifacts
+.catalyst/
+catalyst-debug.log
+
+# Local Claude Code settings (machine-specific)
+.claude/settings.local.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json

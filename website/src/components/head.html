@@ -1,0 +1,14 @@
+<!-- component: head — document <head> shared by every layout.
+     expects: page.title, page.description, page.url (set by build), site.*, build.hash -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title }}</title>
+<meta name="description" content="{{ page.description }}">
+<link rel="canonical" href="{{ site.url }}{{ page.url }}">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta property="og:title" content="{{ page.title }}">
+<meta property="og:description" content="{{ page.description }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta name="theme-color" content="#16233a">
+<link rel="stylesheet" href="/assets/css/site.css?v={{ build.hash }}">

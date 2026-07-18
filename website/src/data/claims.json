@@ -1,0 +1,36 @@
+{
+  "_rules": "MACHINE-READABLE MIRROR of docs/08-fact-audit-and-claims-library.md Part B — the ONLY permitted source of company facts in templates (File 10 §7, ADR-005). Changing ANY value requires founder sign-off FIRST, then updating docs/08, then this file. scripts/claims-guard.mjs enforces the bans at build time.",
+  "company": {
+    "legal_name": "RichenQuest Private Limited",
+    "brand": "RichenQuest",
+    "hq": "Patna, Bihar, India",
+    "team_active_since": "2023",
+    "incorporated": "January 2026",
+    "website": "https://richenquest.com",
+    "email": "official@richenquest.com"
+  },
+  "reach": "India (Bihar, Jharkhand, eastern Uttar Pradesh) and Nepal",
+  "team": {
+    "core_full_time": "5",
+    "extended_network": "20–25 collaborators, interns, and freelancers engaged as needed"
+  },
+  "students": {
+    "verified_placements": "15",
+    "_note": "Use this figure only where a number is required (docs/08 open item ①); prefer approved phrasings."
+  },
+  "services_line": "Study-abroad counseling · university admissions · scholarships · documentation & application support · interview preparation · student, work, business, and tourist visa assistance · accommodation & pre-departure guidance",
+  "package": {
+    "standard_fee": "₹1,80,000",
+    "note": "varies by destination and scope"
+  },
+  "partnerships": {
+    "signed": [],
+    "status_line": "First direct partnership applications in progress."
+  },
+  "phrasings": {
+    "supported": "We have supported students through personalized counseling and admissions guidance.",
+    "database": "We are building our verified placement database as the company scales.",
+    "verifiable": "We only make publicly verifiable claims.",
+    "records": "Verified records available on request."
+  }
+}

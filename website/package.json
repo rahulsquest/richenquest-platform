@@ -1,0 +1,15 @@
+{
+  "name": "richenquest-website",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RichenQuest public website — static HTML5/CSS3/vanilla JS, zero dependencies (ADR-001/002)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node serve.mjs",
+    "guard": "node ../scripts/claims-guard.mjs"
+  }
+}
