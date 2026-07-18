@@ -4,6 +4,12 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — Master plan (2026-07-19)
+- Final Master Implementation Plan (`docs/11-master-implementation-plan.md`, PROPOSED):
+  merges `/docs` business systems, the 2026-07-17 website strategy document, and the approved
+  architecture into one roadmap with a conflict register (C1–C7), merged sitemap, component
+  inventory, UX design contract, milestones M1–M6, testing and deployment strategy.
+
 ### Added — Milestone M0 foundation (2026-07-19)
 - Approved technical architecture (`docs/09-technical-architecture.md`, v1.1) and five
   Architecture Decision Records (`docs/adr/ADR-001`…`ADR-005`).
