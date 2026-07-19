@@ -10,11 +10,12 @@
       <h2 class="site-footer__heading">Explore</h2>
       <ul class="site-footer__links">
         <li><a href="/#destinations">Study destinations</a></li>
-        <li><a href="/#services">Services</a></li>
-        <li><a href="/#journey">How it works</a></li>
+        <li><a href="/services/">Services</a></li>
+        <li><a href="/about/">About &amp; Vision</a></li>
+        <li><a href="/success-stories/">Success stories</a></li>
+        <li><a href="/contact/">Contact</a></li>
         <li><a href="/#scholarships">Scholarships</a></li>
         <li><a href="/#faq">FAQ</a></li>
-        <!-- M2: /services/ · /about/ · /contact/ · legal pages -->
       </ul>
     </nav>
     <div>
@@ -46,6 +47,10 @@
   <div class="container site-footer__legal">
     <p>© {{ build.year }} {{ site.legal_name }}. All rights reserved.</p>
     <p>Operating since {{ claims.company.team_active_since }} · Incorporated {{ claims.company.incorporated }}</p>
-    <!-- M2: CIN · registered office · Privacy · Terms · Refund Policy -->
+    <p>
+      <a href="/legal/privacy/">Privacy</a> · <a href="/legal/terms/">Terms</a> ·
+      <a href="/legal/refund/">Refunds</a>
+    </p>
+    <!-- CIN + registered office added when founder provides them (File 12 ledger) -->
   </div>
 </footer>

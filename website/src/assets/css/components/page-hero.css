@@ -1,0 +1,40 @@
+/* component: page-hero — slim dark header for interior pages.
+   Carries the brand gradient from the homepage hero at reduced height,
+   keeping every page unmistakably RichenQuest. */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--gradient-hero);
+  color: var(--color-inverse-ink);
+}
+
+.page-hero::before {
+  content: "";
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  right: -12rem;
+  top: -20rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(147 180 248 / 0.18), transparent 65%);
+  pointer-events: none;
+}
+
+.page-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding-block: var(--space-8) var(--space-10);
+}
+
+.page-hero .kicker {
+  color: var(--color-hero-accent);
+}
+
+.page-hero__lede {
+  font-size: var(--text-lg);
+  color: var(--color-inverse-ink-soft);
+  max-width: 58ch;
+}

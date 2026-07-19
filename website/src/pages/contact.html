@@ -1,0 +1,113 @@
+<!--meta
+title: Contact — Book a Free Consultation | RichenQuest
+description: Talk to a RichenQuest counselor — WhatsApp, phone (India & Italy) or email. Free 30-minute study abroad consultation with a written summary. Office hours 10:00–19:00 IST, Monday–Saturday.
+-->
+<!-- M2 Contact/Book. Real workflows only (decision 8): WhatsApp, tel, mailto.
+     The Zoho Bookings embed replaces the booking card CTA at M4 — single edit,
+     no fake forms in the meantime. -->
+
+<section class="page-hero">
+  <div class="container page-hero__inner">
+    <p class="kicker">Contact</p>
+    <h1>Talk to a counselor</h1>
+    <p class="page-hero__lede">Free 30-minute consultation — honest answers, a realistic shortlist, and a written summary that's yours to keep either way.</p>
+  </div>
+</section>
+
+<section class="container section" id="channels">
+  <div class="grid--4">
+    <article class="card card--interactive" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-chat"></use></svg></span>
+      <h2 class="card__title"><a class="card__link" href="{{ site.whatsapp_href }}">WhatsApp</a></h2>
+      <p class="card__body">The fastest way to reach us. Counselors reply during office hours.</p>
+      <p class="card__meta">Start the chat →</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-phone"></use></svg></span>
+      <h2 class="card__title"><a class="card__link" href="{{ site.phone_in_href }}">Call — India</a></h2>
+      <p class="card__body">{{ site.phone_in }}</p>
+      <p class="card__meta">10:00–19:00 IST · Mon–Sat</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-phone"></use></svg></span>
+      <h2 class="card__title"><a class="card__link" href="{{ site.phone_it_href }}">Call — Italy</a></h2>
+      <p class="card__body">{{ site.phone_it }}</p>
+      <p class="card__meta">European hours (CET)</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-mail"></use></svg></span>
+      <h2 class="card__title"><a class="card__link" href="mailto:{{ site.email }}">Email</a></h2>
+      <p class="card__body">{{ site.email }}</p>
+      <p class="card__meta">For documents &amp; formal queries</p>
+    </article>
+  </div>
+</section>
+
+<section class="section section--alt" id="how-it-goes">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker">What happens next</p>
+      <h2>Three steps, no pressure</h2>
+    </div>
+    <div class="grid--3">
+      <div class="step" data-reveal>
+        <span class="step__badge" aria-hidden="true">1</span>
+        <h3 class="step__title">Message us</h3>
+        <p class="step__text">WhatsApp, call or email — whatever suits you. Tell us where you are in your journey.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__badge" aria-hidden="true">2</span>
+        <h3 class="step__title">We schedule your session</h3>
+        <p class="step__text">A counselor confirms a time for your free 30-minute consultation, in your time zone.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__badge" aria-hidden="true">3</span>
+        <h3 class="step__title">You get a written summary</h3>
+        <p class="step__text">Goals, budget, realistic options and next steps — documented and yours to keep, whether or not you continue with us.</p>
+      </div>
+    </div>
+    <!-- M4: Zoho Bookings embed replaces this note (decision 8 — no fake forms until then) -->
+    <p class="section__cta text-soft">Online self-serve booking is coming soon — until then, WhatsApp is the fastest way to schedule.</p>
+  </div>
+</section>
+
+<section class="container section" id="locations">
+  <div class="section__head">
+    <p class="kicker">Where we are</p>
+    <h2>Two countries, one team</h2>
+  </div>
+  <div class="grid--2">
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg></span>
+      <h3 class="card__title">India — headquarters</h3>
+      <p class="card__body">{{ claims.company.legal_name }}<br>{{ claims.company.hq }}</p>
+      <p class="card__meta">Serving students across {{ claims.reach }}</p>
+    </article>
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg></span>
+      <h3 class="card__title">Italy — on the ground</h3>
+      <p class="card__body">Counselor presence in Italy for scholarship filings, university liaison and student support inside Europe.</p>
+      <p class="card__meta">European time zone covered</p>
+    </article>
+  </div>
+</section>
+
+<!-- @include components/cta-band.html -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact RichenQuest",
+  "url": "{{ site.url }}/contact/",
+  "mainEntity": {
+    "@type": "EducationalOrganization",
+    "name": "{{ site.name }}",
+    "email": "{{ site.email }}",
+    "contactPoint": [
+      { "@type": "ContactPoint", "contactType": "customer service", "telephone": "{{ site.phone_in }}", "areaServed": "IN", "availableLanguage": ["en", "hi"] },
+      { "@type": "ContactPoint", "contactType": "customer service", "telephone": "{{ site.phone_it }}", "areaServed": ["IT", "EU"], "availableLanguage": ["en"] }
+    ]
+  }
+}
+</script>

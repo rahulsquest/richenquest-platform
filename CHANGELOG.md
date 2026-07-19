@@ -4,6 +4,18 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — M2: core pages + legal (2026-07-19)
+- New pages on the design system: /services/ (featured journey, package transparency —
+  written quote, no price matrix), /about/ (story with 2024-operations vs 2026-incorporation
+  distinction, team structure without names pending consent, founder, honest one-section
+  vision, For Universities), /contact/ (real channels only: WhatsApp/phones/email, 3-step
+  expectations, locations, ContactPage JSON-LD), /success-stories/ (consent-first policy,
+  anonymized snapshots from verified records), /legal/privacy|terms|refund (drafts pending
+  founder/legal review — refund page is process-based, no invented percentages).
+- New shared component: page-hero (slim brand-gradient interior header).
+- Header/footer navigation updated to real pages; footer legal strip links legal pages.
+- 10 pages total; claims-guard clean sitewide; zero broken internal links; M1 untouched.
+
 ### Added — M1: production homepage (2026-07-19)
 - Premium homepage on the design system: dark gradient hero with serif display accent
   (legacy visual language preserved per File 12), claims-safe proof strip (1,000+ guided ·
