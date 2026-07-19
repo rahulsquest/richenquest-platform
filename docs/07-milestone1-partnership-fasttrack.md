@@ -10,7 +10,7 @@ Remaining fill-ins: [FOUNDER NAME], [PHONE], [CIN], [OFFICE ADDRESS].
 
 Dear IU Partnerships Team,
 
-I'm [FOUNDER NAME], founder of RichenQuest Private Limited, an education consultancy headquartered in Patna, India. Our team began counseling study-abroad aspirants in 2023, and we incorporated in January 2026 to build a systematic, compliance-first recruitment operation. We'd like to apply to join IU's agent network.
+I'm [FOUNDER NAME], founder of RichenQuest Private Limited, an education consultancy headquartered in Patna, India. Our team has been active in international education since 2024 under earlier business operations, and we incorporated in January 2026 to build a systematic, compliance-first recruitment operation. We'd like to apply to join IU's agent network.
 
 Why our territory matters for IU: Bihar and neighboring Nepal are among South Asia's fastest-growing study-abroad source markets, yet remain underserved by the established agencies concentrated in metro cities. We operate with a 5-member full-time core team across counseling, documentation, and operations, supported by a trained network of 20+ collaborators across eastern India and Nepal.
 
@@ -29,14 +29,14 @@ Patna, India · richenquest.com · official@richenquest.com · [PHONE/WhatsApp]
 
 **Legal company name:** RichenQuest Private Limited
 **Trading name:** RichenQuest
-**Established:** Team active since 2023; incorporated January 2026
+**Established:** Team active since 2024 (earlier business operations); incorporated January 2026
 **Company registration no. (CIN):** [CIN]
 **Head office:** [OFFICE ADDRESS], Patna, Bihar, India
 **Website:** https://richenquest.com
 **Primary contact:** [FOUNDER NAME], Founder & CEO · official@richenquest.com · [PHONE]
 **Recruitment markets:** India (Bihar, Jharkhand, eastern UP) and Nepal
 **Team size:** 5 full-time core team members (counseling, documentation, operations, marketing, technology), supported by an extended network of 20–25 trained collaborators, interns, and freelance specialists engaged as needed
-**Experience:** Team members have counseled and guided study-abroad students since 2023 in various capacities; RichenQuest Private Limited now consolidates this work under one compliance-first company. Verified placement records are maintained for every student placed under the company and are available on request. [If the form REQUIRES a number: "Verified records currently cover 15 students; the database grows with each intake." — see open item ①]
+**Experience:** Team members have counseled and guided study-abroad students since 2024 in various capacities under earlier business operations; RichenQuest Private Limited now consolidates this work under one compliance-first company. Verified placement records are maintained for every student placed under the company and are available on request. [If the form REQUIRES a number: "Verified records currently cover 15 students; the database grows with each intake." — see open item ①]
 **Destinations of interest:** Germany first (Gisma, BSBI, University of Europe), then Ireland, Canada, and the UK through the GUS network
 **Projected annual placements:** [PENDING YOUR CONFIRMATION — my recommendation: "20–40 students in the first 12 months (projection based on current inquiry pipeline)" — see open item ②]
 **Services:** counseling · university admissions · scholarships · documentation & application support · interview preparation · student/work/business/tourist visa assistance · accommodation & pre-departure guidance
@@ -52,7 +52,7 @@ Patna, India · richenquest.com · official@richenquest.com · [PHONE/WhatsApp]
 **RICHENQUEST PRIVATE LIMITED**
 *Education and immigration services · Patna, India*
 
-**Who we are.** RichenQuest is an education and immigration consultancy headquartered in Patna, Bihar — the heart of one of South Asia's fastest-growing and most underserved study-abroad markets. Our team has counseled and guided students since 2023, and in January 2026 we incorporated RichenQuest Private Limited to consolidate that work into a systematic, compliance-first company. We operate with a 5-member full-time core team supported by a trained network of 20–25 collaborators across eastern India and Nepal.
+**Who we are.** RichenQuest is an education and immigration consultancy headquartered in Patna, Bihar — the heart of one of South Asia's fastest-growing and most underserved study-abroad markets. Our team has counseled and guided students since 2024 under earlier business operations, and in January 2026 we incorporated RichenQuest Private Limited to consolidate that work into a systematic, compliance-first company. We operate with a 5-member full-time core team supported by a trained network of 20–25 collaborators across eastern India and Nepal.
 
 **What we do.** Study-abroad counseling · university admissions and scholarships · documentation and application support · interview preparation · student, work, business, and tourist visa assistance · accommodation and pre-departure guidance.
 

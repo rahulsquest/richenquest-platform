@@ -25,7 +25,8 @@ Clean on audit (no factual company claims): Files 01, 03, 05, 06.
 
 ### ✅ Approved claims
 1. RichenQuest Private Limited, headquartered in Patna, Bihar, India.
-2. Team active in study-abroad counseling since 2023; company incorporated January 2026.
+2. Team active in international education since **2024, under earlier business operations**; RichenQuest Private Limited incorporated **January 2026**. Public messaging must always distinguish operational experience (2024) from company incorporation (2026), and must never present pre-2026 achievements as company-incorporation achievements. *(Corrected from "since 2023" by founder direction, 2026-07-19.)*
+2a. Approved sentence: "Helping students achieve their global education goals since 2024."
 3. Recruitment reach: India (Bihar, Jharkhand, eastern UP) and Nepal, via core team + collaborator network.
 4. Team structure: **5 full-time core members**; extended network of **20–25 collaborators, interns, and freelancers** engaged as needed (always distinguished from employees).
 5. Verified placement records maintained for every student placed under the company (currently 15 students; use the number only where a figure is required — see open item ①).
@@ -37,8 +38,9 @@ Clean on audit (no factual company claims): Files 01, 03, 05, 06.
 
 ### ❌ Banned until verified data exists (founder unlock required)
 - Any student count other than the verified figure ("hundreds", "1000+", "many students placed")
-- Any visa success rate or percentage
-- "Partner of [institution]" before a signed agreement
+- Any visa success rate or percentage — **including scholarship-success percentages**
+- "Partner of [institution]" or "**partner university/universities**" before a signed agreement. Approved alternatives (founder direction 2026-07-19): "universities we work with", "universities our students apply to", "destination universities".
+- **Verb discipline (founder direction 2026-07-19):** "placed" only where verified placement records exist; otherwise use "guided", "supported", or "assisted".
 - Revenue, growth-rate, or ranking claims
 - "AI-powered platform" in present tense until the CRM+automation stack is live (then: describe specifically what it does)
 - Testimonials or references without the named person's permission

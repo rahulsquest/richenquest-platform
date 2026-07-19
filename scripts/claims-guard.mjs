@@ -25,6 +25,15 @@ if (!existsSync(DIST)) {
 const claims = JSON.parse(await readFile(CLAIMS_FILE, "utf8"));
 const VERIFIED_COUNT = String(claims.students.verified_placements);
 const SIGNED_PARTNERS = (claims.partnerships.signed ?? []).map((p) => p.toLowerCase());
+/** Founder-approved public counts, e.g. "1000+" — exact match after stripping commas/spaces. */
+const APPROVED_COUNTS = (claims.students.approved_public_counts ?? []).map((s) =>
+  String(s).replace(/[\s,]/g, "")
+);
+
+const countOk = (num, plus) => {
+  if (APPROVED_COUNTS.includes(num + (plus ? "+" : ""))) return true;
+  return !plus && num === VERIFIED_COUNT;
+};
 
 /** Static banned-pattern rules (File 08 Part B, banned list). */
 const RULES = [
@@ -45,11 +54,25 @@ const RULES = [
   },
 ];
 
-/** Placement-count phrases must state exactly the verified figure, with no inflating "+". */
+/** Student-count phrases must state a founder-approved figure (File 08: exact verified
+ *  figure, no inflating "+", unless explicitly approved in approved_public_counts). */
+const COUNT_VERBS = "placed|counsel\\w*|served|helped|guided|supported|assisted|trained";
 const COUNT_RES = [
-  /\b(\d[\d,]*)\s*(\+?)\s*students?\s+(?:placed|counsel\w*|served|helped)/gi,
-  /\b(?:placed|counseled|counselled|served|helped)\s+(?:over\s+|more\s+than\s+)?(\d[\d,]*)\s*(\+?)\s*students?/gi,
+  new RegExp(`\\b(\\d[\\d,]*)\\s*(\\+?)\\s*students?\\s+(?:${COUNT_VERBS})`, "gi"),
+  new RegExp(
+    `\\b(?:${COUNT_VERBS.replace("counsel\\w*", "counsell?ed")})\\s+(?:over\\s+|more\\s+than\\s+)?(\\d[\\d,]*)\\s*(\\+?)\\s*students?`,
+    "gi"
+  ),
 ];
+
+/** Any bare "N+" count of students/universities/partners is an inflation claim
+ *  unless founder-approved (File 08 + founder direction 2026-07-19). */
+const BARE_PLUS_RE = /\b(\d[\d,]*)\s*(\+)\s*(?:students?|universit(?:y|ies)|partners?)\b/gi;
+
+/** "partner university/institution/college" wording is banned while no agreements are
+ *  signed — approved alternatives: "universities we work with", "universities our
+ *  students apply to", "destination universities" (founder direction 2026-07-19). */
+const PARTNER_UNI_RE = /\bpartner(?:ed|ship)?s?\s+(?:universit|institution|college)/gi;
 
 /** "partner of/with <Institution>" requires that institution in the signed allowlist. */
 const PARTNER_RE = /\bpartner(?:ed|ship)?\s+(?:of|with)\s+(?!us\b|you\b|your\b|richenquest\b)([A-Z][A-Za-z&.\- ]{2,50})/g;
@@ -84,14 +107,37 @@ for (const file of files) {
   for (const re of COUNT_RES) {
     for (const m of html.matchAll(re)) {
       const num = m[1].replaceAll(",", "");
-      if (num !== VERIFIED_COUNT || m[2] === "+") {
+      if (!countOk(num, m[2] === "+")) {
         violations.push({
           rel,
           id: "unverified-count",
-          why: `Placement claims must state exactly the verified figure (${VERIFIED_COUNT}), no "+"`,
+          why: `Student-count claims must use a founder-approved figure (verified: ${VERIFIED_COUNT}; approved: ${APPROVED_COUNTS.join(", ") || "none"})`,
           at: excerpt(html, m.index, m[0].length),
         });
       }
+    }
+  }
+
+  for (const m of html.matchAll(BARE_PLUS_RE)) {
+    const num = m[1].replaceAll(",", "");
+    if (!countOk(num, true)) {
+      violations.push({
+        rel,
+        id: "inflated-plus-count",
+        why: `"N+" counts are inflation claims unless founder-approved in claims.json approved_public_counts (approved: ${APPROVED_COUNTS.join(", ") || "none"})`,
+        at: excerpt(html, m.index, m[0].length),
+      });
+    }
+  }
+
+  if (SIGNED_PARTNERS.length === 0) {
+    for (const m of html.matchAll(PARTNER_UNI_RE)) {
+      violations.push({
+        rel,
+        id: "partner-university",
+        why: 'No signed partnerships exist — use "universities we work with", "universities our students apply to", or "destination universities" (File 08)',
+        at: excerpt(html, m.index, m[0].length),
+      });
     }
   }
 

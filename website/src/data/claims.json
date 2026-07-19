@@ -4,7 +4,8 @@
     "legal_name": "RichenQuest Private Limited",
     "brand": "RichenQuest",
     "hq": "Patna, Bihar, India",
-    "team_active_since": "2023",
+    "team_active_since": "2024",
+    "operations_note": "under earlier business operations",
     "incorporated": "January 2026",
     "website": "https://richenquest.com",
     "email": "official@richenquest.com"
@@ -28,6 +29,8 @@
     "status_line": "First direct partnership applications in progress."
   },
   "phrasings": {
+    "helping_since": "Helping students achieve their global education goals since 2024.",
+    "universities_language": "Universities our students apply to",
     "supported": "We have supported students through personalized counseling and admissions guidance.",
     "database": "We are building our verified placement database as the company scales.",
     "verifiable": "We only make publicly verifiable claims.",
