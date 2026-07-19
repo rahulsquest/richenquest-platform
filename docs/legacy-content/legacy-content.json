@@ -1,0 +1,840 @@
+{
+ "_source": "https://www.richenquest.com/ archived 2026-07-19",
+ "_rules": "RAW LEGACY CONTENT — claims here are NOT verified. Anything reused must pass docs/08 + founder sign-off first (testimonials additionally need written consent).",
+ "universities_directory": [
+  {
+   "country": "Austria",
+   "flag": "🇦🇹",
+   "note": "Low tuition · Strong research universities",
+   "unis": [
+    "Carinthia University of Applied Sciences",
+    "Danube University Krems",
+    "IMC University of Applied Sciences Krems",
+    "MCI Management Centre Innsbruck",
+    "Medical University of Graz",
+    "Modul University Vienna",
+    "Mozarteum University Salzburg",
+    "New Design University",
+    "Saint Pölten University of Applied Sciences",
+    "Salzburg University of Applied Sciences",
+    "University of Applied Sciences Kufstein",
+    "University of Innsbruck",
+    "University of Natural Resources and Life Sciences",
+    "University of Salzburg",
+    "Vienna University of Technology",
+    "Webster Vienna Private University"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Belgium",
+   "flag": "🇧🇪",
+   "note": "Heart of Europe · Multilingual campuses",
+   "unis": [
+    "Artevelde University College Ghent",
+    "Brussels School of International Studies",
+    "College of Europe",
+    "Ghent University",
+    "High School of Hainaut",
+    "ICHEC Brussels Management School",
+    "University of Hasselt",
+    "Vesalius College"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Croatia",
+   "flag": "🇭🇷",
+   "note": "Affordable · Coastal student life",
+   "unis": [
+    "Adriatic Union College",
+    "Business School PAR",
+    "Cotrugli Business School",
+    "Faculty of Humanities and Social Sciences, University of Osijek",
+    "Faculty of Veterinary Medicine, University of Zagreb",
+    "Institute of Oceanography and Fisheries",
+    "International Graduate Business School Zagreb",
+    "Libertas Business College",
+    "Libertas International University",
+    "Polytechnic of Rijeka",
+    "Rochester Institute of Technology",
+    "University of Rijeka",
+    "University of Zadar",
+    "University of Zagreb",
+    "Zagreb School of Economics and Management"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Czech Republic",
+   "flag": "🇨🇿",
+   "note": "Central Europe · Rich academic tradition",
+   "unis": [
+    "Architectural Institute in Prague",
+    "Charles University",
+    "Czech Technical University",
+    "Czech University of Life Sciences (CULS)",
+    "Masaryk University",
+    "Silesian University in Opava",
+    "Skoda Auto University",
+    "Technical University of Liberec",
+    "Technical University of Ostrava",
+    "Tomas Bata University",
+    "University of Economics",
+    "Mendel University",
+    "University of Pardubice",
+    "University of Veterinary and Pharmaceutical Sciences Brno",
+    "University of West Bohemia"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Denmark",
+   "flag": "🇩🇰",
+   "note": "Innovation-led · High quality of life",
+   "unis": [
+    "Aalborg University",
+    "Aarhus University",
+    "Copenhagen Business School (Cphbusiness)",
+    "Niels Brock Copenhagen Business College",
+    "Roskilde University",
+    "Technical University of Denmark (DTU)",
+    "University of Copenhagen",
+    "University of Southern Denmark"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Estonia",
+   "flag": "🇪🇪",
+   "note": "Digital society · Tech-forward",
+   "unis": [
+    "Estonian Entrepreneurship University of Applied Sciences",
+    "Estonian University of Life Sciences",
+    "Tallinn University of Technology",
+    "University of Tartu"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Finland",
+   "flag": "🇫🇮",
+   "note": "World-class education · English programs",
+   "unis": [
+    "Aalto University",
+    "Åbo Akademi University",
+    "Åland University of Applied Sciences",
+    "The Helsinki Deaconess Institute",
+    "Finnish Academy of Fine Arts",
+    "HAAGA-HELIA University of Applied Sciences",
+    "HAMK University of Applied Sciences",
+    "Hanken School of Economics",
+    "University of Helsinki",
+    "University of Tampere",
+    "University of Turku",
+    "University of Oulu",
+    "University of Vaasa",
+    "University of Eastern Finland"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "France",
+   "flag": "🇫🇷",
+   "note": "Grandes Écoles · Global prestige",
+   "unis": [
+    "LCB Paris Campus",
+    "American Business School",
+    "European Business School Paris",
+    "Epita France",
+    "HEC Paris",
+    "ISC Paris Business School",
+    "ISG Paris",
+    "Le Cordon Bleu Paris",
+    "Paris School of Business",
+    "Rennes School of Business",
+    "SKEMA Business School",
+    "Sup'Biotech",
+    "Vatel France"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Germany",
+   "flag": "🇩🇪",
+   "note": "Low/no tuition · Engineering powerhouse",
+   "unis": [
+    "Bielefeld University",
+    "Heidelberg University",
+    "Johannes Gutenberg University",
+    "Leibniz University",
+    "Leipzig University",
+    "Technical University of Dortmund",
+    "Technical University of Munich",
+    "University of Bonn",
+    "University of Cologne",
+    "University of Göttingen",
+    "University of Hamburg",
+    "University of Münster",
+    "University of Oldenburg",
+    "University of Potsdam",
+    "University of Stuttgart"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Greece",
+   "flag": "🇬🇷",
+   "note": "Historic · Affordable living",
+   "unis": [
+    "Athens University of Economics and Business",
+    "Hellenic American University",
+    "Panteion University",
+    "Technical University of Crete",
+    "Technological Educational Institute of Peloponnese",
+    "University of the Aegean",
+    "University of Ioannina",
+    "University of Piraeus"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Hungary",
+   "flag": "🇭🇺",
+   "note": "Budget-friendly · Central location",
+   "unis": [
+    "Budapest Business School",
+    "Budapest Metropolitan University",
+    "Budapest University of Technology and Economics",
+    "Central European University",
+    "Corvinus University of Budapest",
+    "Hungarian University of Fine Arts",
+    "McDaniel College",
+    "Moholy-Nagy University of Art and Design",
+    "Óbuda University",
+    "University of Pécs",
+    "University of Debrecen",
+    "University of Miskolc",
+    "University of Pannonia",
+    "University of Szeged"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Ireland",
+   "flag": "🇮🇪",
+   "note": "English-taught · 2-year stay-back · Tech & pharma hub",
+   "unis": [
+    "University College Dublin",
+    "Trinity College Dublin",
+    "University College Cork",
+    "National University of Ireland Galway",
+    "Dublin City University",
+    "University of Limerick",
+    "Maynooth University",
+    "Technological University Dublin"
+   ],
+   "region": "UK & Ireland"
+  },
+  {
+   "country": "Italy",
+   "flag": "🇮🇹",
+   "note": "Culture & design · Scholarships",
+   "unis": [
+    "Alma Mater Studiorum – University of Bologna",
+    "Bocconi University",
+    "Polytechnic University of Turin",
+    "University of Brescia",
+    "University of Ferrara",
+    "University of Florence",
+    "University of Genoa",
+    "University of Parma",
+    "University of Pavia",
+    "University of Pisa",
+    "University of Siena",
+    "University of Trento",
+    "University of Trieste",
+    "University of Verona",
+    "University of Catania"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Latvia",
+   "flag": "🇱🇻",
+   "note": "Affordable · Growing tech hub",
+   "unis": [
+    "Baltic International Academy",
+    "BA School of Business and Finance",
+    "ISMA University",
+    "Latvian Maritime Academy",
+    "Latvia University of Agriculture",
+    "National Defence Academy of Latvia",
+    "RISEBA University",
+    "Rīga Stradiņš University",
+    "Stockholm School of Economics in Riga",
+    "Turiba University",
+    "University of Latvia"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Lithuania",
+   "flag": "🇱🇹",
+   "note": "Low cost · English programs",
+   "unis": [
+    "Aleksandras Stulginskis University",
+    "Alytaus Kolegija UAS",
+    "ISM University of Management and Economics",
+    "Kaunas University of Technology",
+    "Kauno Kolegija UAS",
+    "Kazimieras Simonavičius University",
+    "LCC International University",
+    "Lithuanian Academy of Music and Theatre",
+    "Lithuanian Sports University",
+    "Mykolas Romeris University",
+    "Vilnius Gediminas Technical University",
+    "Vilnius University",
+    "Vytautas Magnus University"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Luxembourg",
+   "flag": "🇱🇺",
+   "note": "Multilingual · Finance hub",
+   "unis": [
+    "Sacred Heart University",
+    "University of Luxembourg"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Malta",
+   "flag": "🇲🇹",
+   "note": "English-speaking · Mediterranean",
+   "unis": [
+    "University of Malta",
+    "LSC Malta",
+    "Malta University Language School",
+    "American University of Malta",
+    "European College of Malta",
+    "Pegaso International",
+    "Queen Mary University of London Malta",
+    "Middlesex University Malta",
+    "Global College Malta"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Netherlands",
+   "flag": "🇳🇱",
+   "note": "English-taught · Innovation",
+   "unis": [
+    "Amsterdam University of Applied Sciences",
+    "Avans University of Applied Sciences",
+    "Eindhoven University of Technology",
+    "HAN University of Applied Sciences",
+    "Hanze University Groningen",
+    "HU University of Applied Sciences Utrecht",
+    "Maastricht University",
+    "Nyenrode Business Universiteit",
+    "Rotterdam University of Applied Sciences",
+    "The Hague University of Applied Sciences",
+    "Tilburg University",
+    "University of Amsterdam",
+    "University of Twente",
+    "Wageningen University & Research",
+    "Windesheim University of Applied Sciences"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Norway",
+   "flag": "🇳🇴",
+   "note": "Low/no tuition · Nature & research",
+   "unis": [
+    "BI Norwegian Business School",
+    "Nord University",
+    "Norwegian School of Economics",
+    "Norwegian University of Science and Technology",
+    "Østfold University College",
+    "University of Agder",
+    "University of Oslo",
+    "University of South-Eastern Norway",
+    "University of Stavanger",
+    "University of Tromsø"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Portugal",
+   "flag": "🇵🇹",
+   "note": "Affordable · Warm & welcoming",
+   "unis": [
+    "University of Coimbra",
+    "University of Lisbon",
+    "University of Porto",
+    "ISCTE – Lisbon University Institute",
+    "University of Minho",
+    "University of Beira Interior",
+    "University of the Azores",
+    "University of Évora",
+    "Nova School of Business and Economics",
+    "Catholic University of Portugal",
+    "Lusíada University of Porto"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Slovakia",
+   "flag": "🇸🇰",
+   "note": "Budget-friendly · Central Europe",
+   "unis": [
+    "Academy of Arts in Banská Bystrica",
+    "Bratislava International School of Liberal Arts",
+    "Catholic University in Ružomberok",
+    "Constantine the Philosopher University",
+    "J. Selye University",
+    "Košice Medical University",
+    "Matej Bel University",
+    "Pavol Jozef Šafárik University",
+    "Slovak Medical University",
+    "Slovak University of Agriculture",
+    "Slovak University of Technology in Bratislava",
+    "University of Economics in Bratislava",
+    "University of Trnava",
+    "University of Žilina"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Spain",
+   "flag": "🇪🇸",
+   "note": "Vibrant culture · Diverse programs",
+   "unis": [
+    "Complutense University of Madrid",
+    "Universidad Alfonso X El Sabio",
+    "University of Barcelona",
+    "Polytechnic University of Valencia",
+    "Autonomous University of Madrid",
+    "Pompeu Fabra University",
+    "Charles III University of Madrid",
+    "University of Salamanca",
+    "University of Seville",
+    "Technical University of Madrid",
+    "University of Granada",
+    "University of Zaragoza",
+    "University of Murcia"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Sweden",
+   "flag": "🇸🇪",
+   "note": "Innovation · Sustainability focus",
+   "unis": [
+    "Blekinge Institute of Technology",
+    "Chalmers University of Technology",
+    "Karlstad University",
+    "Kristianstad University",
+    "KTH Royal Institute of Technology",
+    "Linköping University",
+    "Linnaeus University",
+    "Lund University",
+    "Malmö University",
+    "Örebro University",
+    "Stockholm University",
+    "University of Borås",
+    "University of Gothenburg",
+    "University of Skövde",
+    "Uppsala University"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Switzerland",
+   "flag": "🇨🇭",
+   "note": "World-top universities · Premium",
+   "unis": [
+    "EHL – Lausanne Hotel School",
+    "ETH Zürich",
+    "Glion Institute of Higher Education",
+    "SUPSI",
+    "Università della Svizzera italiana",
+    "University of Bern",
+    "University of Fribourg",
+    "University of Geneva",
+    "University of Lausanne",
+    "University of Lucerne",
+    "University of Neuchâtel",
+    "University of St. Gallen",
+    "University of Zurich",
+    "Zurich University of Applied Sciences",
+    "Zurich University of the Arts"
+   ],
+   "region": "Europe"
+  },
+  {
+   "country": "Japan",
+   "flag": "🇯🇵",
+   "note": "MEXT fully funded · World-top research",
+   "region": "Asia",
+   "unis": [
+    "University of Tokyo",
+    "Kyoto University",
+    "Osaka University",
+    "Tokyo Institute of Technology",
+    "Tohoku University",
+    "Nagoya University",
+    "Kyushu University",
+    "Hokkaido University",
+    "Waseda University",
+    "Keio University",
+    "University of Tsukuba",
+    "Hiroshima University"
+   ]
+  },
+  {
+   "country": "Singapore",
+   "flag": "🇸🇬",
+   "note": "Asia's top hub · Global rankings",
+   "region": "Asia",
+   "unis": [
+    "National University of Singapore (NUS)",
+    "Nanyang Technological University (NTU)",
+    "Singapore Management University",
+    "Singapore University of Technology and Design",
+    "Singapore Institute of Technology",
+    "James Cook University Singapore"
+   ]
+  },
+  {
+   "country": "South Korea",
+   "flag": "🇰🇷",
+   "note": "KGSP scholarships · Tech & innovation",
+   "region": "Asia",
+   "unis": [
+    "Seoul National University",
+    "KAIST",
+    "Yonsei University",
+    "Korea University",
+    "Sungkyunkwan University",
+    "POSTECH",
+    "Hanyang University",
+    "Kyung Hee University",
+    "Ewha Womans University"
+   ]
+  },
+  {
+   "country": "China",
+   "flag": "🇨🇳",
+   "note": "CSC scholarships · Fast-rising universities",
+   "region": "Asia",
+   "unis": [
+    "Tsinghua University",
+    "Peking University",
+    "Fudan University",
+    "Shanghai Jiao Tong University",
+    "Zhejiang University",
+    "University of Science and Technology of China",
+    "Nanjing University",
+    "Wuhan University",
+    "Beijing Institute of Technology",
+    "Harbin Institute of Technology"
+   ]
+  },
+  {
+   "country": "Dubai (UAE)",
+   "flag": "🇦🇪",
+   "note": "Global campuses · Career gateway",
+   "region": "Middle East",
+   "unis": [
+    "University of Birmingham Dubai",
+    "Heriot-Watt University Dubai",
+    "Middlesex University Dubai",
+    "University of Wollongong Dubai",
+    "Canadian University Dubai",
+    "BITS Pilani Dubai",
+    "Amity University Dubai",
+    "Rochester Institute of Technology Dubai",
+    "Murdoch University Dubai",
+    "American University in Dubai"
+   ]
+  },
+  {
+   "country": "United Kingdom",
+   "flag": "🇬🇧",
+   "note": "1-year Master's · Global prestige · Graduate Route visa",
+   "region": "UK & Ireland",
+   "unis": [
+    "University of Oxford",
+    "University of Cambridge",
+    "Imperial College London",
+    "University College London (UCL)",
+    "University of Edinburgh",
+    "University of Manchester",
+    "King's College London",
+    "London School of Economics (LSE)",
+    "University of Warwick",
+    "University of Bristol",
+    "University of Glasgow",
+    "University of Birmingham",
+    "University of Leeds",
+    "University of Sheffield",
+    "Queen Mary University of London",
+    "University of Nottingham",
+    "Coventry University",
+    "University of Hull",
+    "Leeds Trinity University"
+   ]
+  },
+  {
+   "country": "Australia",
+   "flag": "🇦🇺",
+   "note": "Post-study work up to 4 years · Great lifestyle",
+   "region": "Oceania",
+   "unis": [
+    "University of Melbourne",
+    "Australian National University (ANU)",
+    "University of Sydney",
+    "University of New South Wales (UNSW)",
+    "University of Queensland",
+    "Monash University",
+    "University of Western Australia",
+    "University of Adelaide",
+    "University of Technology Sydney (UTS)",
+    "Macquarie University",
+    "RMIT University",
+    "La Trobe University",
+    "Deakin University",
+    "Queensland University of Technology"
+   ]
+  },
+  {
+   "country": "New Zealand",
+   "flag": "🇳🇿",
+   "note": "Up to 3-year work visa · Safe & sustainable",
+   "region": "Oceania",
+   "unis": [
+    "University of Auckland",
+    "University of Otago",
+    "Victoria University of Wellington",
+    "University of Canterbury",
+    "Massey University",
+    "University of Waikato",
+    "Auckland University of Technology (AUT)",
+    "Lincoln University"
+   ]
+  },
+  {
+   "country": "Canada",
+   "flag": "🇨🇦",
+   "note": "PGWP · PR pathways · Affordable",
+   "region": "North America",
+   "unis": [
+    "University of Toronto",
+    "University of British Columbia (UBC)",
+    "McGill University",
+    "University of Alberta",
+    "University of Waterloo",
+    "McMaster University",
+    "Western University",
+    "University of Montreal",
+    "University of Calgary",
+    "Queen's University",
+    "University of Ottawa",
+    "Simon Fraser University",
+    "Dalhousie University",
+    "York University",
+    "Lakehead University"
+   ]
+  }
+ ],
+ "services": [
+  [
+   "🎯",
+   "Profile Assessment",
+   "We evaluate your academics, goals and budget to find the best-fit countries and courses."
+  ],
+  [
+   "🏛️",
+   "University Shortlisting",
+   "A tailored list of universities matched to your profile and ambitions — no generic templates."
+  ],
+  [
+   "📝",
+   "Application & SOP",
+   "Compelling SOPs, LORs and applications that make admissions committees say yes."
+  ],
+  [
+   "💰",
+   "Scholarship Guidance",
+   "We identify and apply for funding you actually qualify for, maximising your aid."
+  ],
+  [
+   "🛂",
+   "Visa Assistance",
+   "Documentation, financial proof and mock interviews — visa-ready, stress-free."
+  ],
+  [
+   "✈️",
+   "Pre-Departure Support",
+   "Accommodation, forex, travel and settling-in guidance before you fly."
+  ],
+  [
+   "💼",
+   "Career Guidance",
+   "Internships, part-time work and post-study career direction in your destination."
+  ],
+  [
+   "🤝",
+   "Ongoing Mentorship",
+   "We stay with you beyond admission — a partner for your whole journey."
+  ],
+  [
+   "🌐",
+   "Test Prep Support",
+   "IELTS, GRE, GMAT and language prep resources and guidance."
+  ]
+ ],
+ "process": [
+  [
+   "Free Consultation",
+   "We understand your goals, background and budget in a no-cost first call."
+  ],
+  [
+   "Shortlist & Apply",
+   "Curated universities, polished applications, strong SOPs and LORs."
+  ],
+  [
+   "Scholarships & Funding",
+   "We target the scholarships you qualify for and build winning applications."
+  ],
+  [
+   "Offers & Visa",
+   "Compare offers, accept the best, and clear your visa with full support."
+  ],
+  [
+   "Fly & Thrive",
+   "Pre-departure prep and ongoing mentorship for a confident start."
+  ]
+ ],
+ "scholarships": [
+  [
+   "Italy · Fully Funded",
+   "DSU Regional Scholarship",
+   "Need-based grant at Italian public universities covering full tuition, free or subsidised accommodation, meals, and a yearly stipend of roughly €6,000–€8,000. Awarded as a right, not a competition — if you meet the ISEE income criteria, you qualify."
+  ],
+  [
+   "Germany · Fully Funded",
+   "DAAD Scholarships",
+   "Germany\\"
+  ],
+  [
+   "Japan · Fully Funded",
+   "MEXT Scholarship",
+   "The Japanese Government\\"
+  ],
+  [
+   "Italy",
+   "MAECI & Invest Your Talent",
+   "Italian Government awards (MAECI) plus the Invest Your Talent program — tuition waiver, monthly stipend and a guaranteed internship at a top Italian company."
+  ],
+  [
+   "Europe",
+   "Erasmus Mundus",
+   "Fully-funded joint Master\\"
+  ],
+  [
+   "Asia",
+   "KGSP · CSC · University Aid",
+   "Korea\\"
+  ]
+ ],
+ "team": [
+  [
+   "Rahul Kumar",
+   "Founder & CEO",
+   "Leads RichenQuest\\"
+  ],
+  [
+   "Kishor K Mehta",
+   "Collaborations Expert · Italy",
+   "Builds and manages our university and partner network across Europe, opening doors for our students."
+  ],
+  [
+   "Vivek Kumar",
+   "Counselor",
+   "Guides students and families through every decision with patience, clarity and genuine care."
+  ],
+  [
+   "Kunal Kohli",
+   "Visa Expert · Italy",
+   "Handles documentation, financial proof and visa interviews — making the most stressful step feel simple and secure."
+  ],
+  [
+   "M Tahir",
+   "Business Expansion",
+   "Drives RichenQuest\\"
+  ],
+  [
+   "Farhan",
+   "Developer",
+   "Builds and maintains the RichenQuest platform, making sure every student has a smooth, reliable digital experience."
+  ]
+ ],
+ "testimonials": [
+  [
+   "The guidance was clear at every stage. A2Z support — application, documents, visa — everything was handled without a single moment of stress.",
+   "Riyan Kashyap",
+   "Data Analytics · Luigi Vanvitelli, Naples"
+  ],
+  [
+   "Studying in Germany felt like a distant dream. RichenQuest turned it into reality, and the whole process was so clear that I never once felt confused.",
+   "Dhonushree Banerjee",
+   "IU International University of Applied Sciences, Germany"
+  ],
+  [
+   "The best part was the honesty and the speed. Rahul sir stays personally involved throughout — that is what sets RichenQuest apart from every other consultancy.",
+   "Himanshu Banerjee",
+   "BSc Computer Engineering · University of Perugia"
+  ],
+  [
+   "Choosing to study MBBS abroad was not an easy decision, but RichenQuest cleared every doubt. Premium support and genuine care — they changed my life.",
+   "Lakshay Rahiyawal",
+   "MBBS · Lucian Blaga University of Sibiu"
+  ],
+  [
+   "RichenQuest guided me from my first application to landing in Poland. Every step was smooth, transparent and genuinely supportive — I could not have asked for better.",
+   "Priyanshu Tyagi",
+   "BBA · Katowice Business School, Poland"
+  ]
+ ],
+ "faqs": [
+  [
+   "How much does it cost to study abroad in Europe?",
+   "Less than most families expect. Public universities in Germany and Norway charge little to no tuition even for international students, and at Italian public universities the DSU grant can make your degree nearly free. Elsewhere in Europe, tuition typically ranges from €1,000–15,000 per year plus living costs — we map the full budget for you before you apply."
+  ],
+  [
+   "Can I really get a fully-funded scholarship?",
+   "Yes — if you apply to the right one for your profile. DSU (Italy) is need-based and awarded as a right if you meet the income criteria. DAAD (Germany), MEXT (Japan) and Erasmus Mundus (EU) are merit-based with stipends, tuition and travel covered. We assess your profile honestly and target only the funding you genuinely qualify for."
+  ],
+  [
+   "Can I work part-time while studying?",
+   "In most of our destinations, yes — typically up to 20 hours per week during term time and full-time in vacations. Many of our students cover a large part of their living costs this way."
+  ],
+  [
+   "Can I stay back and work after graduation?",
+   "Most destinations offer post-study work routes: Germany gives an 18-month job-seeker visa, the UK a 2-year Graduate Route, Australia up to 4 years of post-study work, and Canada its PGWP. We factor your long-term career plan into the country we recommend."
+  ],
+  [
+   "Do I need IELTS to apply?",
+   "Not always. Many European universities accept a Medium of Instruction (MOI) certificate or conduct their own assessment instead of IELTS. It depends on the country, university and program — we tell you exactly what your shortlist requires before you spend on tests."
+  ],
+  [
+   "How do I get started with RichenQuest?",
+   "Book a free consultation — by form, call or WhatsApp. We evaluate your profile, budget and goals, then map your best-fit countries, universities and scholarships. The first consultation and profile evaluation cost you nothing."
+  ]
+ ]
+}
