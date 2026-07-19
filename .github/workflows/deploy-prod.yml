@@ -1,21 +1,21 @@
-# Deploys website/dist to the Zoho Catalyst DEVELOPMENT environment.
-# Activates automatically once the CATALYST_TOKEN secret exists (founder
-# creates the Catalyst project first — File 13 action 3). Until then the
-# deploy step reports and exits green so CI history stays clean.
-name: Deploy (Development)
+# PRODUCTION deploy — release tags only, behind a manual approval environment.
+# Setup (one-time, on GitHub): Settings → Environments → "production" →
+# require reviewers (founder). Rollback = re-run this workflow from the
+# previous release tag.
+name: Deploy (Production)
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    tags: ["v*"]
 
 concurrency:
-  group: deploy-dev
-  cancel-in-progress: true
+  group: deploy-prod
+  cancel-in-progress: false
 
 jobs:
-  deploy-dev:
+  deploy-prod:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
@@ -32,15 +32,15 @@ jobs:
       - name: Internal link & asset check
         run: node scripts/check-links.mjs
 
-      - name: Deploy to Catalyst (Development)
+      - name: Deploy to Catalyst (Production)
         env:
           CATALYST_TOKEN: ${{ secrets.CATALYST_TOKEN }}
           CATALYST_ORG: ${{ secrets.CATALYST_ORG }}
         run: |
           if [ -z "$CATALYST_TOKEN" ]; then
-            echo "::warning::CATALYST_TOKEN not set — Catalyst project pending (File 13, founder action 3). Skipping deploy."
-            exit 0
+            echo "::error::CATALYST_TOKEN not set — cannot deploy to production."
+            exit 1
           fi
           npm install -g zcatalyst-cli
           # Exact flags finalized during the M4 Catalyst spike (File 09 §5):
-          catalyst deploy --project richenquest --env development --token "$CATALYST_TOKEN"
+          catalyst deploy --project richenquest --env production --token "$CATALYST_TOKEN"

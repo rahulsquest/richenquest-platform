@@ -1,0 +1,17 @@
+{
+  "_purpose": "Target security headers for richenquest.com (File 09 §7). Applied at the Catalyst hosting layer during the M4 spike — mechanism (console config, catalyst.json, or edge function) confirmed against a real project. If Catalyst cannot set a header, the documented fallback applies.",
+  "headers": {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' *.zoho.com *.zoho.in *.zohopublic.com *.zohostatic.com *.zohocdn.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' *.zohostatic.com; img-src 'self' data: *.zoho.com *.zoho.in *.zohocdn.com https://*.clarity.ms; frame-src *.zoho.com *.zoho.in *.zohopublic.com; connect-src 'self' *.zoho.com *.zoho.in https://*.clarity.ms; font-src 'self'; base-uri 'self'; form-action 'self' *.zoho.com *.zoho.in",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    "X-Frame-Options": "DENY"
+  },
+  "_notes": [
+    "CSP allowlists cover the planned Zoho embeds (Forms/SalesIQ/Bookings, .com and .in DCs) and consent-gated Microsoft Clarity (File 11 C4). Tighten after the M4 embed spike confirms actual hosts.",
+    "'unsafe-inline' script-src is required only for the JSON-LD blocks and Zoho embed snippets; revisit with nonces if Catalyst supports response rewriting.",
+    "GA4/Meta Pixel hosts intentionally ABSENT — add only after founder approval (File 13, Analytics).",
+    "Fallback if headers are unsupported at the host: meta-tag CSP (reduced coverage; no HSTS/frame-ancestors) + Cloudflare-proxied DNS as a last resort — founder decision required for the latter."
+  ]
+}
