@@ -1,19 +1,31 @@
 <!-- component: header — sitewide masthead + primary navigation.
      Nav items live HERE (single source; v1 engine has no loops — ADR-002).
-     M1 will add items as their pages ship. JS hook: data-nav-toggle (modules/nav.js). -->
+     Links are added only when their pages ship (no dead links — File 10).
+     JS hooks: data-nav-toggle (modules/nav.js), data-disclosure (modules/disclosure.js)
+     — the Destinations dropdown pattern activates in M3 when guides exist. -->
 <header class="site-header">
   <div class="container site-header__inner">
     <a class="site-header__brand" href="/" aria-label="{{ site.name }} — home">{{ site.name }}</a>
     <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
       <span class="visually-hidden">Menu</span>
-      <span class="site-header__toggle-bar" aria-hidden="true"></span>
-      <span class="site-header__toggle-bar" aria-hidden="true"></span>
-      <span class="site-header__toggle-bar" aria-hidden="true"></span>
+      <svg class="icon site-header__icon-open" aria-hidden="true"><use href="/assets/img/icons.svg#icon-menu"></use></svg>
+      <svg class="icon site-header__icon-close" aria-hidden="true"><use href="/assets/img/icons.svg#icon-close"></use></svg>
     </button>
     <nav id="site-nav" class="site-nav" aria-label="Main">
       <ul class="site-nav__list">
         <li class="site-nav__item"><a class="site-nav__link" href="/">Home</a></li>
-        <!-- M1: About · Services · Destinations · Partner With Us · Contact -->
+        <!-- M2: About · Services · Contact | M3: Destinations dropdown, e.g.
+        <li class="site-nav__item">
+          <button class="site-nav__group-toggle" type="button" aria-expanded="false"
+                  aria-controls="nav-destinations" data-disclosure="nav-destinations">
+            Destinations
+            <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg>
+          </button>
+          <div class="site-nav__dropdown" id="nav-destinations" hidden>
+            <a class="site-nav__dropdown-link" href="/destinations/italy/">Italy</a>
+          </div>
+        </li>
+        -->
         <li class="site-nav__item">
           <a class="btn btn--primary site-nav__cta" href="mailto:{{ site.email }}">Contact us</a>
         </li>

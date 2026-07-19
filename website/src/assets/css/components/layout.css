@@ -1,0 +1,104 @@
+/* component: layout — containers, sections, grid system, spacing primitives.
+   The grid is content-driven (auto-fit) for card collections plus fixed
+   12-col-style splits for page layouts. Mobile-first throughout. */
+
+/* Containers (.container base lives in base.css) */
+.container--narrow {
+  max-width: var(--container-narrow);
+}
+
+/* Vertical page rhythm */
+.section {
+  padding-block: var(--space-8);
+}
+
+.section--tight {
+  padding-block: var(--space-6);
+}
+
+.section--roomy {
+  padding-block: var(--space-10);
+}
+
+.section--alt {
+  background: var(--color-surface-alt);
+}
+
+.section--inverse {
+  background: var(--color-inverse-surface);
+  color: var(--color-inverse-ink);
+}
+
+.section__head {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-end: var(--space-6);
+  max-width: var(--container-narrow);
+}
+
+/* Grid — card collections: as many columns as fit, each ≥ the min width */
+.grid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}
+
+.grid--wide-items {
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+}
+
+/* Grid — fixed splits (collapse to one column below tablet) */
+.grid--2,
+.grid--3,
+.grid--4 {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 40em) {
+  .grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .grid--4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 64em) {
+  .grid--4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Split — asymmetric two-column (content + aside), stacks on mobile */
+.split {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 64em) {
+  .split {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+
+  .split--even {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Stack — vertical spacing between siblings without margins on components */
+.stack > * + * {
+  margin-block-start: var(--space-4);
+}
+
+.stack--tight > * + * {
+  margin-block-start: var(--space-2);
+}
+
+.stack--loose > * + * {
+  margin-block-start: var(--space-6);
+}
+
+/* Cluster — horizontal wrapping row (tags, actions, meta) */
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}

@@ -1,0 +1,278 @@
+<!--meta
+title: Design System — RichenQuest (internal)
+description: Living style guide for the RichenQuest design system — tokens, typography, color, spacing, grid, buttons, forms, cards, navigation, icons, and animation guidelines.
+sitemap: false
+-->
+<!-- INTERNAL PAGE: the living design-system gallery. Every production component
+     is demonstrated here with its canonical markup. Not linked from public nav,
+     excluded from sitemap. The header above and footer below ARE the live
+     navigation and footer components. -->
+<div class="container stack">
+
+  <section class="sg-section stack">
+    <p class="kicker">RichenQuest design system</p>
+    <h1>Style guide</h1>
+    <p class="lede">The single reference for tokens and components. If a pattern isn't here, it doesn't exist yet — add it here in the same PR that introduces it.</p>
+    <p class="sg-note">Palette and type are provisional pending brand assets (File 09 R6): rebranding edits <code>tokens.css</code> only. Sample content on this page is layout demonstration, not company claims.</p>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-color">
+    <h2 id="sg-color">Color palette</h2>
+    <p class="sg-note">Text colors meet WCAG AA on their intended surfaces. Never use raw hex in components — tokens only.</p>
+    <h3>Brand</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch sg-swatch--brand"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-brand</span></div>
+      <div class="sg-swatch sg-swatch--brand-strong"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-brand-strong</span></div>
+      <div class="sg-swatch sg-swatch--brand-deep"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-brand-deep</span></div>
+      <div class="sg-swatch sg-swatch--brand-soft"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-brand-soft</span></div>
+      <div class="sg-swatch sg-swatch--accent"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-accent</span></div>
+      <div class="sg-swatch sg-swatch--accent-soft"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-accent-soft</span></div>
+    </div>
+    <h3>Neutrals</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch sg-swatch--ink"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-ink</span></div>
+      <div class="sg-swatch sg-swatch--ink-soft"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-ink-soft</span></div>
+      <div class="sg-swatch sg-swatch--ink-faint"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-ink-faint</span></div>
+      <div class="sg-swatch sg-swatch--surface"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-surface</span></div>
+      <div class="sg-swatch sg-swatch--surface-alt"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-surface-alt</span></div>
+      <div class="sg-swatch sg-swatch--surface-sunken"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-surface-sunken</span></div>
+      <div class="sg-swatch sg-swatch--border"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-border</span></div>
+    </div>
+    <h3>Semantic</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch sg-swatch--success"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-success</span></div>
+      <div class="sg-swatch sg-swatch--warning"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-warning</span></div>
+      <div class="sg-swatch sg-swatch--danger"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-danger</span></div>
+      <div class="sg-swatch sg-swatch--info"><div class="sg-swatch__chip"></div><span class="sg-swatch__name">--color-info</span></div>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-type">
+    <h2 id="sg-type">Typography system</h2>
+    <p class="sg-note">System font stack (swap in <code>tokens.css</code> when brand fonts arrive). Fluid sizes use <code>clamp()</code> — no breakpoint jumps. Headings front-load meaning in the first two words (UX contract, File 11 §7).</p>
+    <p class="sg-type-display">Display — hero statements</p>
+    <p class="sg-type-3xl">Heading 3XL — page titles (h1)</p>
+    <p class="sg-type-2xl">Heading 2XL — section titles (h2)</p>
+    <p class="sg-type-xl">Heading XL — card and block titles (h3)</p>
+    <p class="sg-type-lg">Large — ledes and emphasized body text</p>
+    <p class="sg-type-base">Base — body text at 1rem / 1.6 line-height, max 65ch measure</p>
+    <p class="sg-type-sm">Small — labels, meta information, hints</p>
+    <p class="sg-type-xs">Extra small — badges, kickers, fine print</p>
+    <p class="kicker">Kicker — uppercase eyebrow above headings</p>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-space">
+    <h2 id="sg-space">Spacing system</h2>
+    <p class="sg-note">4px base scale. Components use tokens only; page rhythm comes from <code>.section</code> and <code>.stack</code>, never ad-hoc margins.</p>
+    <div class="sg-space">
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--1"></div><span>--space-1 · 0.25rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--2"></div><span>--space-2 · 0.5rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--3"></div><span>--space-3 · 0.75rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--4"></div><span>--space-4 · 1rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--5"></div><span>--space-5 · 1.5rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--6"></div><span>--space-6 · 2rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--8"></div><span>--space-8 · 3rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--10"></div><span>--space-10 · 4rem</span></div>
+      <div class="sg-space__row"><div class="sg-space__bar sg-space__bar--12"></div><span>--space-12 · 6rem</span></div>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-grid">
+    <h2 id="sg-grid">Grid system &amp; breakpoints</h2>
+    <p class="sg-note">Breakpoints: <strong>40em</strong> tablet · <strong>64em</strong> desktop · <strong>80em</strong> wide. Mobile-first — base styles are the phone experience. <code>.grid</code> auto-fits card collections; <code>.grid--2/3/4</code> are fixed splits; <code>.split</code> is content + aside.</p>
+    <h3><code>.grid</code> (auto-fit, min 16rem)</h3>
+    <div class="grid">
+      <div class="sg-box">auto</div><div class="sg-box">auto</div><div class="sg-box">auto</div><div class="sg-box">auto</div>
+    </div>
+    <h3><code>.grid--3</code></h3>
+    <div class="grid--3">
+      <div class="sg-box">1/3</div><div class="sg-box">2/3</div><div class="sg-box">3/3</div>
+    </div>
+    <h3><code>.split</code></h3>
+    <div class="split">
+      <div class="sg-box">content (2fr)</div><div class="sg-box">aside (1fr)</div>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-buttons">
+    <h2 id="sg-buttons">Button library</h2>
+    <p class="sg-note">Works on <code>&lt;a&gt;</code> and <code>&lt;button&gt;</code>. One primary action per view; ghost/quiet for secondary actions; inverse on dark bands. Tap targets stay ≥ 44px.</p>
+    <div class="cluster">
+      <a class="btn btn--primary" href="#sg-buttons">Primary</a>
+      <a class="btn btn--ghost" href="#sg-buttons">Ghost</a>
+      <a class="btn btn--quiet" href="#sg-buttons">Quiet</a>
+      <button class="btn btn--primary" type="button" disabled>Disabled</button>
+    </div>
+    <div class="cluster">
+      <a class="btn btn--primary btn--sm" href="#sg-buttons">Small</a>
+      <a class="btn btn--primary" href="#sg-buttons">Default</a>
+      <a class="btn btn--primary btn--lg" href="#sg-buttons">Large</a>
+      <a class="btn btn--primary" href="#sg-buttons">
+        With icon
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-arrow-right"></use></svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-forms">
+    <h2 id="sg-forms">Form components</h2>
+    <p class="sg-note">Native elements, styled. Error styling keys off <code>aria-invalid</code>. The public qualifying form is a Zoho embed (File 11 C7); these serve on-site and future branded forms. Never more than 7 fields per step.</p>
+    <form class="form" novalidate>
+      <fieldset class="form-fieldset">
+        <legend class="form-legend">Sample form (demonstration only)</legend>
+        <div class="grid--2">
+          <div class="form-field">
+            <label class="form-label" for="sg-name">Full name</label>
+            <input class="form-input" id="sg-name" name="sg-name" type="text" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="sg-phone">Phone / WhatsApp</label>
+            <input class="form-input" id="sg-phone" name="sg-phone" type="tel" autocomplete="tel" placeholder="+91">
+            <p class="form-hint">We reply on WhatsApp during office hours.</p>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="sg-country">Destination country</label>
+          <select class="form-input" id="sg-country" name="sg-country">
+            <option value="">Choose a destination</option>
+            <option>Sample option A</option>
+            <option>Sample option B</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="sg-msg">Message <span class="form-label__optional">(optional)</span></label>
+          <textarea class="form-input" id="sg-msg" name="sg-msg" placeholder="Tell us about your plans"></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="sg-email">Email (error state demo)</label>
+          <input class="form-input" id="sg-email" name="sg-email" type="email" aria-invalid="true" aria-describedby="sg-email-err" value="not-an-email">
+          <p class="form-error" id="sg-email-err">Enter a valid email address.</p>
+        </div>
+        <label class="form-choice">
+          <input type="checkbox" name="sg-consent">
+          <span>I agree to be contacted about my inquiry. Consent language finalized with the privacy policy in M2.</span>
+        </label>
+        <div class="form-actions">
+          <button class="btn btn--primary" type="button">Submit (demo)</button>
+          <button class="btn btn--quiet" type="button">Cancel</button>
+        </div>
+      </fieldset>
+    </form>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-cards">
+    <h2 id="sg-cards">Card components</h2>
+    <p class="sg-note">Equal heights come from the grid; <code>.card__meta</code> pins to the bottom. Interactive cards get one tab stop via a stretched title link.</p>
+    <h3>Destination card (interactive) + featured</h3>
+    <div class="grid">
+      <article class="card card--interactive">
+        <p class="card__kicker">Destination sample</p>
+        <h4 class="card__title"><a class="card__link" href="#sg-cards">Country name</a></h4>
+        <p class="card__body">One-line value proposition for this destination goes here.</p>
+        <p class="card__meta"><span class="badge badge--info">Tier 1</span><span>Intakes: Sep · Jan</span></p>
+      </article>
+      <article class="card card--interactive card--featured">
+        <p class="card__kicker">Featured sample</p>
+        <h4 class="card__title"><a class="card__link" href="#sg-cards">Flagship country</a></h4>
+        <p class="card__body">Featured variant with brand border for flagship content.</p>
+        <p class="card__meta"><span class="badge badge--success">Scholarships</span></p>
+      </article>
+      <article class="card">
+        <p class="card__kicker">Plain card</p>
+        <h4 class="card__title">Non-interactive</h4>
+        <p class="card__body">For grouped static content.</p>
+      </article>
+    </div>
+    <h3>Package card + checklist</h3>
+    <div class="grid">
+      <article class="card card--package">
+        <h4 class="card__title">Package name</h4>
+        <p class="card__price">₹ —</p>
+        <p class="card__price-note">Final fees depend on destination and scope — exact quote in your free consultation.</p>
+        <ul class="card__list">
+          <li><svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg><span>Included item one</span></li>
+          <li><svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg><span>Included item two</span></li>
+          <li><svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg><span>Included item three</span></li>
+        </ul>
+        <p class="card__meta"><a class="btn btn--ghost btn--sm" href="#sg-cards">Book free consultation</a></p>
+      </article>
+      <article class="card card--testimonial">
+        <p class="card__quote">Sample quote text demonstrating the testimonial layout only — real stories ship with written consent (File 11 C2).</p>
+        <div class="card__person">
+          <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-graduation-cap"></use></svg></span>
+          <div>
+            <p class="card__person-name">Student name</p>
+            <p class="card__person-meta">Program · University · Year</p>
+          </div>
+        </div>
+      </article>
+    </div>
+    <h3>Stat tiles (proof strip — values from claims.json only)</h3>
+    <div class="grid--3">
+      <div class="stat-tile"><span class="stat-tile__value">{{ claims.company.team_active_since }}</span><span class="stat-tile__label">counseling students since</span></div>
+      <div class="stat-tile"><span class="stat-tile__value">{{ claims.students.verified_placements }}</span><span class="stat-tile__label">verified placement records</span></div>
+      <div class="stat-tile"><span class="stat-tile__value">{{ claims.team.core_full_time }}</span><span class="stat-tile__label">full-time core team members</span></div>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-badges">
+    <h2 id="sg-badges">Badges</h2>
+    <div class="cluster">
+      <span class="badge">Neutral</span>
+      <span class="badge badge--info">Info</span>
+      <span class="badge badge--success">Success</span>
+      <span class="badge badge--warning">Warning</span>
+      <span class="badge badge--danger">Danger</span>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-nav">
+    <h2 id="sg-nav">Navigation &amp; footer</h2>
+    <p class="sg-note">The sticky header above and the footer below this page ARE the live components. Dropdown groups use the generic disclosure pattern (click-to-open — reliable on touch, keyboard-accessible, Escape and outside-click to close):</p>
+    <div>
+      <button class="btn btn--ghost" type="button" aria-expanded="false" aria-controls="sg-disclosure-demo" data-disclosure="sg-disclosure-demo">
+        Disclosure demo
+        <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg>
+      </button>
+      <div id="sg-disclosure-demo" class="card" hidden>
+        <p class="card__body">This panel toggles via <code>modules/disclosure.js</code> — the same mechanism the Destinations menu uses in M3.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-icons">
+    <h2 id="sg-icons">Icons</h2>
+    <p class="sg-note">Stroke icons from one SVG sprite (<code>assets/img/icons.svg</code>), 24px grid, inheriting <code>currentColor</code>. Decorative icons carry <code>aria-hidden="true"</code>. The WhatsApp brand mark is added with official brand assets in M1 (never hand-drawn).</p>
+    <div class="sg-icons">
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-arrow-right"></use></svg>arrow-right</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg>chevron-down</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>check</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-close"></use></svg>close</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-menu"></use></svg>menu</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-phone"></use></svg>phone</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-mail"></use></svg>mail</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg>map-pin</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-calendar"></use></svg>calendar</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-globe"></use></svg>globe</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-star"></use></svg>star</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>chat</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-graduation-cap"></use></svg>graduation-cap</span>
+      <span class="sg-icon-cell"><svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-document"></use></svg>document</span>
+    </div>
+    <p><span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-globe"></use></svg></span> — feature icon in a tinted disc (journey steps, service highlights).</p>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-motion">
+    <h2 id="sg-motion">Animation guidelines</h2>
+    <ul>
+      <li><strong>Purposeful only:</strong> motion confirms an action or guides attention — never decoration for its own sake.</li>
+      <li><strong>Fast:</strong> hovers/toggles 150ms (<code>--duration-fast</code>), most transitions 200ms, reveals 300ms max.</li>
+      <li><strong>Cheap properties only:</strong> animate <code>opacity</code>, <code>translate</code>/<code>transform</code>, <code>box-shadow</code> — never layout properties (width, height, top).</li>
+      <li><strong>Reduced motion is law:</strong> every animation collapses under <code>prefers-reduced-motion</code> (enforced globally in <code>base.css</code>; <code>reveal.js</code> exits early).</li>
+      <li><strong>No scroll-jacking, no autoplaying carousels, no parallax.</strong></li>
+    </ul>
+    <p><span class="sg-motion-chip">Hover me — 200ms lift, --ease-out</span></p>
+    <p class="sg-note" data-reveal>This paragraph fades in via <code>data-reveal</code> when scrolled into view (and renders instantly for reduced-motion users and without JS).</p>
+  </section>
+
+</div>

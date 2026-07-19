@@ -1,4 +1,4 @@
-/* page: home (+ shared .section rhythm used by simple pages) */
+/* page: home. (.section rhythm moved to components/layout.css) */
 .hero {
   background: var(--color-surface-alt);
 }
@@ -33,11 +33,4 @@
 .hero__note {
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
-}
-
-.section {
-  padding-block: var(--space-8);
-  display: grid;
-  gap: var(--space-4);
-  justify-items: start;
 }

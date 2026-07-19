@@ -1,38 +1,78 @@
 /* ============================================================
-   Design tokens — the single source of visual truth (File 10 §4).
-   PROVISIONAL PALETTE: pending founder brand assets (File 09 risk R6).
-   Swap values here; never hardcode colors/sizes in components.
-   Breakpoints (use in @media, CSS vars can't): 40em tablet · 64em desktop.
+   RichenQuest Design Tokens — the single source of visual truth.
+   Every color, size, space, shadow, and motion value in the UI
+   comes from here (File 10 §4). Components never hardcode values.
+
+   PROVISIONAL BRAND: palette pending founder brand assets (R6).
+   Rebranding = editing this file only.
+
+   Breakpoints (CSS vars can't be used in @media — use these
+   literals, documented here as the only allowed values):
+     ≥ 40em (640px)  — tablet
+     ≥ 64em (1024px) — desktop
+     ≥ 80em (1280px) — wide
    ============================================================ */
 :root {
-  /* Color — provisional: deep navy + Europe-blue + amber accent */
-  --color-ink: #16233a;          /* headings, primary text        */
-  --color-ink-soft: #46536e;     /* secondary text (4.5:1 on white) */
+  /* ---------- Color: brand ---------- */
+  --color-brand: #1d4ed8;          /* primary actions, links            */
+  --color-brand-strong: #1e40af;   /* hover / active                    */
+  --color-brand-deep: #1e3a8a;     /* dark bands, emphasis surfaces     */
+  --color-brand-soft: #dbe5fb;     /* tinted backgrounds, selected      */
+  --color-accent: #b45309;         /* sparing highlights (AA on white)  */
+  --color-accent-soft: #fdeeda;    /* accent tint background            */
+
+  /* ---------- Color: neutrals ---------- */
+  --color-ink: #16233a;            /* headings, primary text            */
+  --color-ink-soft: #46536e;       /* secondary text (≥4.5:1 on white)  */
+  --color-ink-faint: #6b7691;      /* placeholders, disabled text       */
   --color-surface: #ffffff;
-  --color-surface-alt: #f3f6fb;
-  --color-brand: #1d4ed8;        /* links, primary actions        */
-  --color-brand-strong: #1e40af; /* hover/active                  */
-  --color-accent: #b45309;       /* sparing highlights (AA on white) */
-  --color-inverse-ink: #ffffff;
-  --color-inverse-surface: #16233a;
+  --color-surface-alt: #f3f6fb;    /* alternate section background      */
+  --color-surface-sunken: #e9edf5; /* wells, pressed states             */
   --color-border: #d8dfeb;
+  --color-border-strong: #aeb9cf;  /* form control borders (3:1 contrast) */
+
+  /* ---------- Color: inverse (dark bands, footer) ---------- */
+  --color-inverse-surface: #16233a;
+  --color-inverse-ink: #ffffff;
+  --color-inverse-ink-soft: #c4cede;
+  --color-inverse-border: rgb(255 255 255 / 0.15);
+
+  /* ---------- Color: semantic ---------- */
+  --color-success: #166534;
+  --color-success-soft: #dcf3e4;
+  --color-warning: #92400e;
+  --color-warning-soft: #fdeeda;
+  --color-danger: #b42318;
+  --color-danger-soft: #fbe3e0;
+  --color-info: #1e40af;
+  --color-info-soft: #dbe5fb;
   --color-focus: #1d4ed8;
 
-  /* Typography — system stack until brand fonts are chosen */
+  /* ---------- Typography ---------- */
+  /* System stack until brand fonts are chosen; swap here only. */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+
+  --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
   --text-2xl: clamp(1.5rem, 1.2rem + 1.6vw, 2rem);
   --text-3xl: clamp(1.9rem, 1.4rem + 2.6vw, 2.75rem);
+  --text-display: clamp(2.2rem, 1.5rem + 3.6vw, 3.5rem);
+
   --leading-tight: 1.2;
+  --leading-snug: 1.4;
   --leading-body: 1.6;
+
   --weight-regular: 400;
   --weight-medium: 500;
+  --weight-semibold: 600;
   --weight-bold: 700;
 
-  /* Spacing — 4px base scale */
+  --tracking-wide: 0.08em;         /* kickers, uppercase labels         */
+
+  /* ---------- Spacing: 4px base scale ---------- */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -43,13 +83,32 @@
   --space-10: 4rem;
   --space-12: 6rem;
 
-  /* Shape & elevation */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.75rem;
+  /* ---------- Shape ---------- */
+  --radius-sm: 0.375rem;           /* buttons, inputs                   */
+  --radius-md: 0.75rem;            /* cards                             */
+  --radius-lg: 1.25rem;            /* feature panels                    */
+  --radius-full: 999px;            /* pills, badges                     */
+
+  /* ---------- Elevation ---------- */
   --shadow-sm: 0 1px 2px rgb(22 35 58 / 0.08);
   --shadow-md: 0 4px 16px rgb(22 35 58 / 0.10);
+  --shadow-lg: 0 12px 32px rgb(22 35 58 / 0.14);
 
-  /* Layout */
+  /* ---------- Motion (see styleguide: Animation guidelines) ---------- */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;          /* hovers, toggles                   */
+  --duration-base: 200ms;          /* most transitions                  */
+  --duration-slow: 300ms;          /* panels, reveals                   */
+
+  /* ---------- Layers ---------- */
+  --z-header: 10;
+  --z-dropdown: 20;
+  --z-sticky-bar: 30;
+  --z-overlay: 40;
+
+  /* ---------- Layout ---------- */
   --container-max: 72rem;
+  --container-narrow: 46rem;       /* prose-heavy pages                 */
   --container-pad: var(--space-4);
 }

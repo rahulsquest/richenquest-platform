@@ -1,0 +1,39 @@
+/* component: icon — inline SVG sprite usage (assets/img/icons.svg).
+   Icons are stroke-based, inherit currentColor, and size with text.
+   Markup: <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+   Decorative icons: aria-hidden="true". Meaningful icons: role="img" + <title>. */
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  vertical-align: -0.25em;
+}
+
+.icon--sm {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+.icon--lg {
+  width: 1.75em;
+  height: 1.75em;
+}
+
+/* Feature icon in a tinted disc (journey steps, service highlights) */
+.icon-disc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-full);
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
+.icon-disc .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  vertical-align: 0;
+}

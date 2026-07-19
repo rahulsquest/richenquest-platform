@@ -1,17 +1,37 @@
-<!-- component: footer — sitewide footer. Facts come from claims.json / site.json only.
-     Legal links land in M3 (pages don't exist yet — no dead links before then). -->
+<!-- component: footer — sitewide. Facts come from claims.json / site.json only.
+     Link columns grow as pages ship (File 10: no dead links).
+     M2 adds: legal pages links, CIN + registered office in the legal strip. -->
 <footer class="site-footer">
   <div class="container site-footer__inner">
-    <div class="site-footer__brand">
+    <div>
       <p class="site-footer__name">{{ site.legal_name }}</p>
-      <p class="site-footer__tagline">{{ claims.phrasings.verifiable }}</p>
+      <p class="site-footer__tagline">{{ claims.phrasings.supported }} {{ claims.phrasings.verifiable }}</p>
     </div>
-    <div class="site-footer__contact">
-      <p>{{ site.hq_short }}</p>
-      <p><a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
+    <nav aria-label="Footer">
+      <h2 class="site-footer__heading">Explore</h2>
+      <ul class="site-footer__links">
+        <li><a href="/">Home</a></li>
+        <!-- M2: /services/ · /about/ · /contact/ | M3: /destinations/ · /nepal/ -->
+      </ul>
+    </nav>
+    <div>
+      <h2 class="site-footer__heading">Contact</h2>
+      <ul class="site-footer__links">
+        <li class="site-footer__contact-row">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-mail"></use></svg>
+          <a href="mailto:{{ site.email }}">{{ site.email }}</a>
+        </li>
+        <li class="site-footer__contact-row">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg>
+          <span>{{ site.hq_short }}</span>
+        </li>
+        <!-- M1: phone + WhatsApp rows when the founder provides numbers -->
+      </ul>
     </div>
   </div>
   <div class="container site-footer__legal">
     <p>© {{ build.year }} {{ site.legal_name }}. All rights reserved.</p>
+    <p>{{ claims.company.hq }}</p>
+    <!-- M2: CIN · registered office · Privacy · Terms · Refund Policy -->
   </div>
 </footer>

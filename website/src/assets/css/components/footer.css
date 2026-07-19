@@ -1,8 +1,11 @@
-/* component: footer */
+/* component: footer — sitewide. Columns collapse to one on mobile;
+   legal strip carries the registered identity (CIN etc. added in M2
+   when the founder provides them). */
 .site-footer {
   margin-top: var(--space-12);
   background: var(--color-inverse-surface);
   color: var(--color-inverse-ink);
+  font-size: var(--text-sm);
 }
 
 .site-footer__inner {
@@ -12,27 +15,62 @@
 }
 
 .site-footer__name {
-  font-weight: var(--weight-bold);
   font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
 }
 
 .site-footer__tagline {
-  color: #c4cede; /* token exception: inverse-soft — promote to tokens.css when reused */
-  margin-top: var(--space-2);
+  margin-block-start: var(--space-2);
+  color: var(--color-inverse-ink-soft);
+  max-width: 28rem;
+}
+
+.site-footer__heading {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-inverse-ink-soft);
+  margin-block-end: var(--space-3);
+}
+
+.site-footer__links {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .site-footer a {
   color: var(--color-inverse-ink);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
+.site-footer__contact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.site-footer__contact-row .icon {
+  margin-block-start: 0.2em;
+  color: var(--color-inverse-ink-soft);
 }
 
 .site-footer__legal {
-  border-top: 1px solid rgb(255 255 255 / 0.15);
+  border-top: 1px solid var(--color-inverse-border);
   padding-block: var(--space-4);
-  font-size: var(--text-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  justify-content: space-between;
+  color: var(--color-inverse-ink-soft);
 }
 
 @media (min-width: 40em) {
   .site-footer__inner {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr;
   }
 }

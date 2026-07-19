@@ -68,7 +68,8 @@ This lets CSS refactors and JS evolve independently.
 - Every module exports an `init…()` that (a) exits silently if its markup is absent,
   (b) never throws for missing elements — pages must not break because a component isn't used.
 - No external scripts except Zoho embeds, which load **lazily** through the dedicated embed
-  modules (facade pattern — see ADR-001 consequences).
+  modules (facade pattern — see ADR-001 consequences). Approved exceptions (File 11 decision
+  C4): Microsoft Clarity — consent-gated, post-launch only. Nothing else without an ADR.
 - Public functions get a one-line JSDoc. Comments explain constraints, not narration.
 - Budget: total site JS (ours, excluding Zoho embeds) ≤ 30 KB gzipped.
 

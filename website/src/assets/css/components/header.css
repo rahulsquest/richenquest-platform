@@ -1,5 +1,11 @@
-/* component: header — masthead + responsive nav (toggle via modules/nav.js). */
+/* component: header — masthead + responsive nav with dropdown support.
+   Mobile: hamburger opens a full-width panel (modules/nav.js).
+   Desktop: horizontal nav; groups (e.g., Destinations) open on click via
+   modules/disclosure.js — click beats hover for touch + a11y. */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -10,7 +16,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-4);
-  padding-block: var(--space-4);
+  padding-block: var(--space-3);
 }
 
 .site-header__brand {
@@ -22,18 +28,22 @@
 
 .site-header__toggle {
   display: inline-flex;
-  flex-direction: column;
-  gap: 5px;
   padding: var(--space-2);
   background: none;
   border: 0;
+  color: var(--color-ink);
   cursor: pointer;
 }
 
-.site-header__toggle-bar {
-  width: 24px;
-  height: 2px;
-  background: var(--color-ink);
+.site-header__toggle .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Toggle swaps menu/close icons via aria-expanded */
+.site-header__toggle[aria-expanded="true"] .site-header__icon-open,
+.site-header__toggle[aria-expanded="false"] .site-header__icon-close {
+  display: none;
 }
 
 .site-nav {
@@ -48,18 +58,69 @@
 .site-nav__list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding-block: var(--space-3);
 }
 
 .site-nav__link {
+  display: block;
+  padding: var(--space-2) 0;
   color: var(--color-ink);
   text-decoration: none;
   font-weight: var(--weight-medium);
 }
 
-.site-nav__link:hover {
+.site-nav__link:hover,
+.site-nav__link[aria-current="page"] {
   color: var(--color-brand);
+}
+
+/* Dropdown group (Destinations menu) */
+.site-nav__group-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-2) 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.site-nav__group-toggle .icon {
+  transition: rotate var(--duration-fast) var(--ease-out);
+}
+
+.site-nav__group-toggle[aria-expanded="true"] .icon {
+  rotate: 180deg;
+}
+
+.site-nav__dropdown {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) 0 var(--space-2) var(--space-4);
+}
+
+.site-nav__dropdown[hidden] {
+  display: none;
+}
+
+.site-nav__dropdown-link {
+  display: block;
+  padding: var(--space-1) 0;
+  color: var(--color-ink-soft);
+  text-decoration: none;
+}
+
+.site-nav__dropdown-link:hover {
+  color: var(--color-brand);
+}
+
+.site-nav__cta {
+  margin-block-start: var(--space-2);
 }
 
 @media (min-width: 64em) {
@@ -77,5 +138,27 @@
     align-items: center;
     gap: var(--space-6);
     padding-block: 0;
+  }
+
+  .site-nav__item {
+    position: relative;
+  }
+
+  .site-nav__dropdown {
+    position: absolute;
+    top: calc(100% + var(--space-3));
+    left: 50%;
+    translate: -50% 0;
+    z-index: var(--z-dropdown);
+    min-width: 14rem;
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+
+  .site-nav__cta {
+    margin-block-start: 0;
   }
 }

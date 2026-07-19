@@ -4,6 +4,21 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — M0 complete: full design system (2026-07-19)
+- Complete token architecture (`tokens.css`): brand/neutral/semantic color palette,
+  fluid type scale, 4px spacing scale, radii, elevation, motion tokens, z-index layers,
+  documented breakpoints (40/64/80em).
+- Layout system (`layout.css`): sections, auto-fit + fixed grids, split, stack, cluster.
+- Component libraries: buttons (variants/sizes/states), forms (fields, selects, choices,
+  error states via `aria-invalid`), cards (destination/package/testimonial/stat-tile),
+  badges, icon system (14-icon SVG sprite, stroke-based, currentColor).
+- Upgraded navigation: sticky header, icon-swap mobile toggle, dropdown pattern via new
+  generic `disclosure.js`; upgraded 3-column footer with contact rows.
+- Animation guidelines + `reveal.js` scroll reveal (reduced-motion aware, JS-optional).
+- Living style guide at `/styleguide/` demonstrating every token and component with
+  canonical markup (excluded from sitemap).
+- GitHub PR template with the File 10 checklist; `website/README.md` developer guide.
+
 ### Added — Master plan (2026-07-19)
 - Final Master Implementation Plan (`docs/11-master-implementation-plan.md`, PROPOSED):
   merges `/docs` business systems, the 2026-07-17 website strategy document, and the approved

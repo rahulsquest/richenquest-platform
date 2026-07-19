@@ -1,17 +1,26 @@
-/* component: button — .btn + variants. Used by header, cta-band, and future forms. */
+/* component: button — .btn + variants, sizes, states.
+   Markup patterns documented in /styleguide/. Works on <a> and <button>. */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
   border: 2px solid transparent;
   border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
   font-size: var(--text-base);
   font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
   text-decoration: none;
   text-align: center;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+  transition: background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
 }
 
+/* Variants */
 .btn--primary {
   background: var(--color-brand);
   color: var(--color-inverse-ink);
@@ -29,7 +38,18 @@
 }
 
 .btn--ghost:hover {
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
+.btn--quiet {
+  color: var(--color-brand);
+  background: transparent;
+}
+
+.btn--quiet:hover {
   background: var(--color-surface-alt);
+  color: var(--color-brand-strong);
 }
 
 .btn--inverse {
@@ -40,4 +60,35 @@
 .btn--inverse:hover {
   background: var(--color-surface-alt);
   color: var(--color-ink);
+}
+
+/* Sizes */
+.btn--sm {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.btn--lg {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-lg);
+}
+
+/* Full width (mobile CTAs, sticky bar) */
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* States */
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--color-surface-sunken);
+  border-color: transparent;
+  color: var(--color-ink-faint);
+  cursor: not-allowed;
+}
+
+/* Icon inside a button inherits size/color */
+.btn .icon {
+  flex: none;
 }

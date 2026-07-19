@@ -1,0 +1,53 @@
+/* component: utilities — typography helpers + motion utilities.
+   Loaded last in the components layer so single-purpose helpers win. */
+
+/* Kicker — uppercase eyebrow above headings (F-pattern: meaning up front) */
+.kicker {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.section--inverse .kicker {
+  color: var(--color-inverse-ink-soft);
+}
+
+/* Lede — opening paragraph, slightly larger */
+.lede {
+  font-size: var(--text-lg);
+  color: var(--color-ink-soft);
+}
+
+.section--inverse .lede {
+  color: var(--color-inverse-ink-soft);
+}
+
+.text-soft {
+  color: var(--color-ink-soft);
+}
+
+.text-small {
+  font-size: var(--text-sm);
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Scroll reveal (modules/reveal.js adds .is-revealed; see Animation guidelines).
+   Elements without JS — or with reduced motion — render fully visible. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal].reveal-ready {
+    opacity: 0;
+    translate: 0 12px;
+    transition: opacity var(--duration-slow) var(--ease-out),
+      translate var(--duration-slow) var(--ease-out);
+  }
+
+  [data-reveal].is-revealed {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
