@@ -8,23 +8,43 @@ description: Helping students achieve their global education goals since 2024. S
 
 <section class="hero">
   <div class="container hero__inner">
-    <p class="hero__chip">
-      <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
-      {{ claims.phrasings.verifiable }}
-    </p>
-    <h1>Where ambitions meet <em>opportunities</em>.</h1>
-    <p class="hero__lede">
-      {{ site.name }} is a global education &amp; career mobility platform.
-      {{ claims.phrasings.guided_count }}
-    </p>
-    <div class="hero__actions">
-      <a class="btn btn--primary btn--lg" href="{{ site.whatsapp_href }}">
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
-        Book a free consultation
-      </a>
-      <a class="btn btn--ghost hero__ghost" href="#destinations">Explore study destinations</a>
+    <div class="hero__content">
+      <p class="hero__chip">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-graduation-cap"></use></svg>
+        Guiding students from India &amp; Nepal since {{ claims.company.team_active_since }}
+      </p>
+      <h1>Where ambitions meet <em>opportunities</em>.</h1>
+      <p class="hero__lede">
+        Study abroad counseling, admissions, scholarships and visa guidance for Europe
+        and beyond — handled end to end by a team living in India and Italy.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary btn--lg" href="{{ site.whatsapp_href }}">
+          <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+          Book a free consultation
+        </a>
+        <a class="btn btn--ghost hero__ghost" href="#destinations">Explore study destinations</a>
+      </div>
+      <p class="hero__note">Counselors reply on WhatsApp in office hours — India &amp; Italy time zones covered.</p>
     </div>
-    <p class="hero__note">Counselors reply on WhatsApp in office hours — India &amp; Italy time zones covered.</p>
+    <aside class="hero__panel" aria-label="What your free consultation includes">
+      <p class="hero__panel-title">Your free 30-minute consultation</p>
+      <ul class="hero__panel-list">
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+          <span>An honest review of your goals, grades and budget</span>
+        </li>
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+          <span>A realistic shortlist of countries and courses</span>
+        </li>
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+          <span>A written summary — yours to keep either way</span>
+        </li>
+      </ul>
+      <p class="hero__panel-note">No fees. No pressure. {{ claims.phrasings.verifiable }}</p>
+    </aside>
   </div>
 </section>
 
@@ -41,11 +61,11 @@ description: Helping students achieve their global education goals since 2024. S
       </div>
       <div class="stat-tile" data-reveal>
         <span class="stat-tile__value">India · Italy</span>
-        <span class="stat-tile__label">team on the ground in both regions</span>
+        <span class="stat-tile__label">counselors on the ground in both countries</span>
       </div>
       <div class="stat-tile" data-reveal>
-        <span class="stat-tile__value">2-person</span>
-        <span class="stat-tile__label">verification on every document file</span>
+        <span class="stat-tile__value">2×</span>
+        <span class="stat-tile__label">every document checked by two people before it leaves our office</span>
       </div>
     </div>
   </div>
@@ -84,32 +104,32 @@ description: Helping students achieve their global education goals since 2024. S
     </div>
     <div class="grid--3">
       <div class="step" data-reveal>
-        <span class="step__number">STEP 1</span>
+        <span class="step__badge" aria-hidden="true">1</span>
         <h3 class="step__title">Free consultation</h3>
         <p class="step__text">We understand your goals, background and budget in a no-cost first conversation.</p>
       </div>
       <div class="step" data-reveal>
-        <span class="step__number">STEP 2</span>
+        <span class="step__badge" aria-hidden="true">2</span>
         <h3 class="step__title">Profile &amp; country fit</h3>
         <p class="step__text">We map your profile to the destinations and courses where you can realistically thrive.</p>
       </div>
       <div class="step" data-reveal>
-        <span class="step__number">STEP 3</span>
+        <span class="step__badge" aria-hidden="true">3</span>
         <h3 class="step__title">Shortlist &amp; apply</h3>
         <p class="step__text">Curated universities, polished applications and strong SOPs — no generic templates.</p>
       </div>
       <div class="step" data-reveal>
-        <span class="step__number">STEP 4</span>
+        <span class="step__badge" aria-hidden="true">4</span>
         <h3 class="step__title">Scholarships &amp; funding</h3>
         <p class="step__text">We identify the grants and waivers you're actually eligible for, and file them properly.</p>
       </div>
       <div class="step" data-reveal>
-        <span class="step__number">STEP 5</span>
+        <span class="step__badge" aria-hidden="true">5</span>
         <h3 class="step__title">Offers &amp; visa</h3>
         <p class="step__text">Offer in hand, we prepare your documents with two-person verification and guide your visa filing.</p>
       </div>
       <div class="step" data-reveal>
-        <span class="step__number">STEP 6</span>
+        <span class="step__badge" aria-hidden="true">6</span>
         <h3 class="step__title">Fly &amp; thrive</h3>
         <p class="step__text">Pre-departure guidance, accommodation support and mentorship that continues after you land.</p>
       </div>
@@ -162,7 +182,7 @@ description: Helping students achieve their global education goals since 2024. S
     <div class="section__head">
       <p class="kicker">{{ claims.phrasings.universities_language }}</p>
       <h2>Study destinations, Europe first</h2>
-      <p class="lede">33 destinations across Europe, Asia-Pacific and beyond. Country guides are on their way — until then, ask us anything about any of them.</p>
+      <p class="lede">33 destinations across Europe, Asia-Pacific and beyond, for students from India and Nepal. Country guides are on their way — until then, ask us anything about any of them.</p>
     </div>
     <div class="grid">
       <article class="card card--featured" data-reveal>
@@ -193,6 +213,13 @@ description: Helping students achieve their global education goals since 2024. S
         <h3 class="card__title">Japan &amp; beyond</h3>
         <p class="card__body">From MEXT-funded Japan to Singapore and the Gulf — 33 destinations in all, matched to your profile.</p>
       </article>
+    </div>
+    <div class="cluster section__cta">
+      <a class="btn btn--primary" href="{{ site.whatsapp_href }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+        Ask about any destination
+      </a>
+      <span class="text-soft text-small">Free consultation · no pressure · honest answers</span>
     </div>
   </div>
 </section>
@@ -240,6 +267,14 @@ description: Helping students achieve their global education goals since 2024. S
       <strong>{{ claims.phrasings.verifiable }}</strong> {{ claims.phrasings.records }}
       Every document file passes two-person verification before it reaches a university, and we will always
       tell you when staying home — or waiting a year — is the better decision.
+    </p>
+    <p>
+      We are deploying a technology-first operations backbone — CRM-driven pipelines, automated
+      follow-ups and real-time application tracking — so quality holds as we grow.
+    </p>
+    <p>
+      You won't see student testimonials here yet: <strong>we publish stories only with written
+      consent</strong>, and we're gathering them the right way.
     </p>
     <p>Founded by Rahul Kumar · working between {{ site.hq_short }} and Italy.</p>
   </div>

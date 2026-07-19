@@ -10,6 +10,10 @@
 <meta property="og:description" content="{{ page.description }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta property="og:image" content="{{ site.url }}/assets/img/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#16233a">
 <link rel="stylesheet" href="/assets/css/site.css?v={{ build.hash }}">
 <script type="application/ld+json">
@@ -23,6 +27,7 @@
   "email": "{{ site.email }}",
   "telephone": ["{{ site.phone_in }}", "{{ site.phone_it }}"],
   "foundingDate": "2026-01",
+  "areaServed": ["IN", "NP"],
   "address": { "@type": "PostalAddress", "addressLocality": "Patna", "addressRegion": "Bihar", "addressCountry": "IN" }
 }
 </script>

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /styleguide/
 
 Sitemap: https://www.richenquest.com/sitemap.xml
