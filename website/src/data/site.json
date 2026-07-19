@@ -1,9 +1,15 @@
 {
-  "_comment": "Global site facts. Contact details must match docs/08 approved claim #9. Phone number intentionally absent until founder provides it (never invent).",
+  "_comment": "Global site facts per founder decisions 2026-07-19: brand 'RichenQuest' + descriptive tagline; canonical https://www.richenquest.com (apex 301s to www); official@ email; both India + Italy numbers displayed; WhatsApp = Italy number (as on legacy site).",
   "name": "RichenQuest",
   "legal_name": "RichenQuest Private Limited",
-  "url": "https://richenquest.com",
+  "tagline": "Global Education & Career Mobility",
+  "url": "https://www.richenquest.com",
   "email": "official@richenquest.com",
+  "phone_in": "+91 76312 07948",
+  "phone_in_href": "tel:+917631207948",
+  "phone_it": "+39 327 186 6329",
+  "phone_it_href": "tel:+393271866329",
+  "whatsapp_href": "https://wa.me/393271866329?text=Hi%20RichenQuest!%20I%27d%20like%20to%20book%20a%20free%20consultation%20about%20studying%20abroad.",
   "locale": "en",
   "hq_short": "Patna, Bihar, India"
 }

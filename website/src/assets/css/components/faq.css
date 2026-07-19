@@ -1,0 +1,46 @@
+/* component: faq — accessible accordion on native <details>/<summary>.
+   No JS required; works everywhere. Markup pattern in /styleguide/. */
+.faq {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.faq__item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.faq__item[open] {
+  border-color: var(--color-border-strong);
+}
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq__q .icon {
+  flex: none;
+  color: var(--color-ink-soft);
+  transition: rotate var(--duration-fast) var(--ease-out);
+}
+
+.faq__item[open] .faq__q .icon {
+  rotate: 180deg;
+}
+
+.faq__a {
+  padding: 0 var(--space-5) var(--space-5);
+  color: var(--color-ink-soft);
+}

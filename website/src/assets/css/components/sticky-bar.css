@@ -1,0 +1,37 @@
+/* component: sticky-bar — mobile thumb-zone action bar (UX contract, File 11 §7).
+   Fixed to the bottom on mobile; hidden on desktop where header + CTA band serve.
+   Reserves body space so the footer is never obscured. */
+.sticky-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-sticky-bar);
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.sticky-bar__btn {
+  flex: 1;
+}
+
+@media (max-width: 63.99em) {
+  body {
+    /* keep page content clear of the fixed bar */
+    padding-block-end: 5rem;
+  }
+}
+
+@media (min-width: 64em) {
+  .sticky-bar {
+    display: none;
+  }
+
+  body {
+    padding-block-end: 0;
+  }
+}

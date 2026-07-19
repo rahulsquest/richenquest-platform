@@ -240,6 +240,23 @@ sitemap: false
     </div>
   </section>
 
+  <section class="sg-section stack" aria-labelledby="sg-faq">
+    <h2 id="sg-faq">FAQ accordion &amp; sticky bar</h2>
+    <p class="sg-note">FAQ uses native <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> — zero JS, keyboard-accessible by default. The mobile <strong>sticky bar</strong> (thumb-zone WhatsApp + call actions) is included by the base layout on every page — shrink this window below 64em to see it.</p>
+    <div class="faq">
+      <details class="faq__item">
+        <summary class="faq__q">Sample question — how does this open?
+          <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+        <p class="faq__a">Natively, with no JavaScript. The chevron rotates via the <code>[open]</code> attribute.</p>
+      </details>
+      <details class="faq__item">
+        <summary class="faq__q">Can several stay open at once?
+          <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+        <p class="faq__a">Yes — independent details elements. Add the disclosure-group pattern if exclusivity is ever needed.</p>
+      </details>
+    </div>
+  </section>
+
   <section class="sg-section stack" aria-labelledby="sg-icons">
     <h2 id="sg-icons">Icons</h2>
     <p class="sg-note">Stroke icons from one SVG sprite (<code>assets/img/icons.svg</code>), 24px grid, inheriting <code>currentColor</code>. Decorative icons carry <code>aria-hidden="true"</code>. The WhatsApp brand mark is added with official brand assets in M1 (never hand-drawn).</p>

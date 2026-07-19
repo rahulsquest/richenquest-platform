@@ -12,3 +12,17 @@
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
 <meta name="theme-color" content="#16233a">
 <link rel="stylesheet" href="/assets/css/site.css?v={{ build.hash }}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "{{ site.name }}",
+  "legalName": "{{ site.legal_name }}",
+  "slogan": "{{ site.tagline }}",
+  "url": "{{ site.url }}",
+  "email": "{{ site.email }}",
+  "telephone": ["{{ site.phone_in }}", "{{ site.phone_it }}"],
+  "foundingDate": "2026-01",
+  "address": { "@type": "PostalAddress", "addressLocality": "Patna", "addressRegion": "Bihar", "addressCountry": "IN" }
+}
+</script>

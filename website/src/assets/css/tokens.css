@@ -37,6 +37,10 @@
   --color-inverse-ink-soft: #c4cede;
   --color-inverse-border: rgb(255 255 255 / 0.15);
 
+  /* ---------- Hero (premium dark, from legacy visual language) ---------- */
+  --gradient-hero: linear-gradient(135deg, #101a30 0%, #1e3a8a 60%, #3f3d9e 100%);
+  --color-hero-accent: #93b4f8; /* serif accent word on dark */
+
   /* ---------- Color: semantic ---------- */
   --color-success: #166534;
   --color-success-soft: #dcf3e4;
@@ -49,8 +53,10 @@
   --color-focus: #1d4ed8;
 
   /* ---------- Typography ---------- */
-  /* System stack until brand fonts are chosen; swap here only. */
+  /* System stacks (zero webfont bytes). Serif display carries the premium
+     accent inherited from the legacy brand (File 12 KEEP verdict). */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-serif-display: "Charter", "Iowan Old Style", "Palatino", Georgia, Cambria, serif;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;

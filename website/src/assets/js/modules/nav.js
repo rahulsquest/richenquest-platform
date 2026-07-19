@@ -14,6 +14,11 @@ export function initNav() {
     setOpen(!nav.classList.contains("is-open"));
   });
 
+  // Same-page anchor links don't reload — close the menu on selection.
+  nav.addEventListener("click", (event) => {
+    if (event.target.closest("a")) setOpen(false);
+  });
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && nav.classList.contains("is-open")) {
       setOpen(false);

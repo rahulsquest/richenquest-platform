@@ -1,36 +1,296 @@
 <!--meta
-title: RichenQuest — Study Abroad Counseling for India & Nepal
-description: RichenQuest Private Limited is an education consultancy in Patna, India, guiding students from India and Nepal through counseling, admissions, documentation, and visa support. Full website launching soon.
+title: RichenQuest — Global Education & Career Mobility | Study Abroad from India & Nepal
+description: Helping students achieve their global education goals since 2024. Study abroad counseling, admissions, scholarships, documentation and visa guidance for Europe and 33 study destinations — with a team on the ground in India and Italy.
 -->
-<!-- M0 PLACEHOLDER PAGE — proves the build pipeline; replaced by the real homepage in M1.
-     All facts sourced from data/claims.json (File 10 §7). -->
+<!-- M1 homepage. Every fact from claims.json (File 10 §7); every CTA is a real
+     workflow (founder decision 8): WhatsApp / tel / mailto until Zoho org is live.
+     Testimonials intentionally absent pending written consent (decision 7). -->
+
 <section class="hero">
   <div class="container hero__inner">
-    <p class="hero__kicker">{{ claims.company.hq }}</p>
-    <h1>Study abroad with honest, verified guidance.</h1>
-    <p class="hero__lede">
-      {{ claims.company.brand }} guides students from {{ claims.reach }} toward universities
-      abroad — counseling, admissions, documentation, and visa support, end to end.
+    <p class="hero__chip">
+      <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+      {{ claims.phrasings.verifiable }}
     </p>
-    <p class="hero__lede">{{ claims.phrasings.verifiable }}</p>
+    <h1>Where ambitions meet <em>opportunities</em>.</h1>
+    <p class="hero__lede">
+      {{ site.name }} is a global education &amp; career mobility platform.
+      {{ claims.phrasings.guided_count }}
+    </p>
     <div class="hero__actions">
-      <a class="btn btn--primary" href="mailto:{{ site.email }}">Email {{ site.email }}</a>
+      <a class="btn btn--primary btn--lg" href="{{ site.whatsapp_href }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+        Book a free consultation
+      </a>
+      <a class="btn btn--ghost hero__ghost" href="#destinations">Explore study destinations</a>
     </div>
-    <p class="hero__note">Our full website is under construction and launching soon.</p>
+    <p class="hero__note">Counselors reply on WhatsApp in office hours — India &amp; Italy time zones covered.</p>
   </div>
 </section>
 
-<section class="container section stack">
-  <h2>What we do</h2>
-  <p>{{ claims.services_line }}</p>
-  <p>{{ claims.phrasings.helping_since }} {{ claims.phrasings.guided_count }}</p>
-  <p>
-    Our team has been active in international education since
-    {{ claims.company.team_active_since }} {{ claims.company.operations_note }}, and
-    {{ claims.company.legal_name }} was incorporated in {{ claims.company.incorporated }}
-    to consolidate that work into a systematic, compliance-first company.
-  </p>
-  <p>{{ claims.phrasings.records }}</p>
+<section class="proof" aria-label="RichenQuest at a glance">
+  <div class="container proof__inner">
+    <div class="grid--4">
+      <div class="stat-tile" data-reveal>
+        <span class="stat-tile__value">1,000+</span>
+        <span class="stat-tile__label">students guided since {{ claims.company.team_active_since }}</span>
+      </div>
+      <div class="stat-tile" data-reveal>
+        <span class="stat-tile__value">33</span>
+        <span class="stat-tile__label">study destinations — Europe first, and beyond</span>
+      </div>
+      <div class="stat-tile" data-reveal>
+        <span class="stat-tile__value">India · Italy</span>
+        <span class="stat-tile__label">team on the ground in both regions</span>
+      </div>
+      <div class="stat-tile" data-reveal>
+        <span class="stat-tile__value">2-person</span>
+        <span class="stat-tile__label">verification on every document file</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container section" id="why-europe">
+  <div class="section__head">
+    <p class="kicker">Why Europe, why now</p>
+    <h2>The map has changed</h2>
+    <p class="lede">The four countries everyone applied to are tightening. Europe is opening its doors — and we are already there.</p>
+  </div>
+  <div class="grid--3">
+    <article class="card" data-reveal>
+      <p class="card__kicker">The old routes</p>
+      <h3 class="card__title">Big-four doors are narrowing</h3>
+      <p class="card__body">Canada, the USA, the UK and Australia have tightened student visas, caps and costs through 2024–26. Families need a smarter map, not more hope.</p>
+    </article>
+    <article class="card" data-reveal>
+      <p class="card__kicker">The new routes</p>
+      <h3 class="card__title">Europe is opening up</h3>
+      <p class="card__body">Germany, France, Ireland and Italy are actively growing international intakes — with English-taught programs and public universities that charge little or no tuition.</p>
+    </article>
+    <article class="card card--featured" data-reveal>
+      <p class="card__kicker">Our edge</p>
+      <h3 class="card__title">We guide you from inside Europe</h3>
+      <p class="card__body">Our team lives and works between India and Italy. Scholarships like Italy's DSU aren't a rumor to us — we handle them on the ground.</p>
+    </article>
+  </div>
+</section>
+
+<section class="section section--alt" id="journey">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker">How it works</p>
+      <h2>A clear path in six steps</h2>
+    </div>
+    <div class="grid--3">
+      <div class="step" data-reveal>
+        <span class="step__number">STEP 1</span>
+        <h3 class="step__title">Free consultation</h3>
+        <p class="step__text">We understand your goals, background and budget in a no-cost first conversation.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__number">STEP 2</span>
+        <h3 class="step__title">Profile &amp; country fit</h3>
+        <p class="step__text">We map your profile to the destinations and courses where you can realistically thrive.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__number">STEP 3</span>
+        <h3 class="step__title">Shortlist &amp; apply</h3>
+        <p class="step__text">Curated universities, polished applications and strong SOPs — no generic templates.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__number">STEP 4</span>
+        <h3 class="step__title">Scholarships &amp; funding</h3>
+        <p class="step__text">We identify the grants and waivers you're actually eligible for, and file them properly.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__number">STEP 5</span>
+        <h3 class="step__title">Offers &amp; visa</h3>
+        <p class="step__text">Offer in hand, we prepare your documents with two-person verification and guide your visa filing.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="step__number">STEP 6</span>
+        <h3 class="step__title">Fly &amp; thrive</h3>
+        <p class="step__text">Pre-departure guidance, accommodation support and mentorship that continues after you land.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container section" id="services">
+  <div class="section__head">
+    <p class="kicker">What we do</p>
+    <h2>End-to-end support, nothing left to chance</h2>
+    <p class="lede">{{ claims.phrasings.helping_since }}</p>
+  </div>
+  <div class="grid">
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-document"></use></svg></span>
+      <h3 class="card__title">Counseling &amp; profile assessment</h3>
+      <p class="card__body">Honest evaluation of your academics, goals and budget — including when to wait or aim differently.</p>
+    </article>
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-graduation-cap"></use></svg></span>
+      <h3 class="card__title">Admissions &amp; SOP support</h3>
+      <p class="card__body">University shortlisting, applications and statements that sound like you — reviewed line by line.</p>
+    </article>
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-star"></use></svg></span>
+      <h3 class="card__title">Scholarship guidance</h3>
+      <p class="card__body">DSU, DAAD, MEXT, Erasmus Mundus and university aid — we file what you're eligible for, properly.</p>
+    </article>
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-check"></use></svg></span>
+      <h3 class="card__title">Documentation &amp; verification</h3>
+      <p class="card__body">Every file passes two-person verification before it leaves our office. No shortcuts, ever.</p>
+    </article>
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-globe"></use></svg></span>
+      <h3 class="card__title">Visa guidance</h3>
+      <p class="card__body">Student, work, business and tourist visa assistance with honest, case-specific preparation.</p>
+    </article>
+    <article class="card" data-reveal>
+      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg></span>
+      <h3 class="card__title">Pre-departure &amp; beyond</h3>
+      <p class="card__body">Accommodation, arrival and settling-in support — mentorship that doesn't stop at the airport.</p>
+    </article>
+  </div>
+</section>
+
+<section class="section section--alt" id="destinations">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker">{{ claims.phrasings.universities_language }}</p>
+      <h2>Study destinations, Europe first</h2>
+      <p class="lede">33 destinations across Europe, Asia-Pacific and beyond. Country guides are on their way — until then, ask us anything about any of them.</p>
+    </div>
+    <div class="grid">
+      <article class="card card--featured" data-reveal>
+        <p class="card__kicker">Flagship</p>
+        <h3 class="card__title">Italy</h3>
+        <p class="card__body">Public university tuition from a few hundred euros — and DSU regional scholarships can make it nearly free for eligible families. Our team handles DSU on the ground.</p>
+        <p class="card__meta"><span class="badge badge--success">DSU scholarships</span><span class="badge badge--info">Team in Italy</span></p>
+      </article>
+      <article class="card card--featured" data-reveal>
+        <p class="card__kicker">Flagship</p>
+        <h3 class="card__title">Germany</h3>
+        <p class="card__body">Little or no tuition at public universities, strong English-taught options, and an 18-month post-study job-seeker visa.</p>
+        <p class="card__meta"><span class="badge badge--success">Low tuition</span><span class="badge badge--info">Post-study work</span></p>
+      </article>
+      <article class="card" data-reveal>
+        <h3 class="card__title">France</h3>
+        <p class="card__body">Growing fast for Indian students, with national programs to welcome many more.</p>
+      </article>
+      <article class="card" data-reveal>
+        <h3 class="card__title">Ireland</h3>
+        <p class="card__body">English-speaking, tech-industry hiring, and a clear post-study pathway.</p>
+      </article>
+      <article class="card" data-reveal>
+        <h3 class="card__title">Netherlands &amp; Hungary</h3>
+        <p class="card__body">English-taught programs, EU degrees, and budgets well below the Big Four.</p>
+      </article>
+      <article class="card" data-reveal>
+        <h3 class="card__title">Japan &amp; beyond</h3>
+        <p class="card__body">From MEXT-funded Japan to Singapore and the Gulf — 33 destinations in all, matched to your profile.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="container section" id="scholarships">
+  <div class="section__head">
+    <p class="kicker">Funding</p>
+    <h2>Fully-funded pathways we help you pursue</h2>
+    <p class="lede">We never promise a scholarship — we tell you honestly which ones your profile can genuinely compete for, then file them right.</p>
+  </div>
+  <div class="grid">
+    <article class="card" data-reveal>
+      <p class="card__kicker">Italy · need-based</p>
+      <h3 class="card__title">DSU regional grants</h3>
+      <p class="card__body">A right, not a lottery: eligible families get fee waivers, subsidised meals and housing, and an annual stipend at Italian public universities.</p>
+    </article>
+    <article class="card" data-reveal>
+      <p class="card__kicker">Germany</p>
+      <h3 class="card__title">DAAD scholarships</h3>
+      <p class="card__body">Germany's national funding body supports international students across hundreds of programs.</p>
+    </article>
+    <article class="card" data-reveal>
+      <p class="card__kicker">Japan</p>
+      <h3 class="card__title">MEXT scholarship</h3>
+      <p class="card__body">The Japanese government's flagship award — tuition, flights and a monthly stipend for selected students.</p>
+    </article>
+    <article class="card" data-reveal>
+      <p class="card__kicker">Europe-wide</p>
+      <h3 class="card__title">Erasmus Mundus</h3>
+      <p class="card__body">EU-funded joint master's programs spanning multiple European universities, with generous funding for selected candidates.</p>
+    </article>
+  </div>
+</section>
+
+<section class="integrity" id="about">
+  <div class="container integrity__inner">
+    <p class="kicker">Why trust us</p>
+    <h2>Built on verifiable claims</h2>
+    <p>
+      Our team has worked in international education since <strong>{{ claims.company.team_active_since }}</strong>
+      {{ claims.company.operations_note }}. In <strong>{{ claims.company.incorporated }}</strong> we incorporated
+      {{ claims.company.legal_name }} to consolidate that work into a systematic, compliance-first company.
+    </p>
+    <p>
+      <strong>{{ claims.phrasings.verifiable }}</strong> {{ claims.phrasings.records }}
+      Every document file passes two-person verification before it reaches a university, and we will always
+      tell you when staying home — or waiting a year — is the better decision.
+    </p>
+    <p>Founded by Rahul Kumar · working between {{ site.hq_short }} and Italy.</p>
+  </div>
+</section>
+
+<section class="container section" id="faq">
+  <div class="section__head">
+    <p class="kicker">Questions families ask first</p>
+    <h2>Frequently asked questions</h2>
+  </div>
+  <div class="faq">
+    <details class="faq__item" data-reveal>
+      <summary class="faq__q">How much does it cost to study in Europe?
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+      <p class="faq__a">Often far less than families expect. Public universities in Germany and Norway charge little or no tuition, and in Italy the DSU grant can bring costs close to zero for eligible families. Exact numbers depend on country and program — we walk you through real figures in your free consultation.</p>
+    </details>
+    <details class="faq__item" data-reveal>
+      <summary class="faq__q">Can I really get a fully-funded scholarship?
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+      <p class="faq__a">Some funding is competitive (DAAD, MEXT, Erasmus Mundus); some is need-based and awarded by right if you qualify (Italy's DSU). We assess your profile honestly and only pursue what you can genuinely win.</p>
+    </details>
+    <details class="faq__item" data-reveal>
+      <summary class="faq__q">Can I work part-time while studying?
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+      <p class="faq__a">Most European destinations allow international students to work around 20 hours a week during term — enough to help with living costs. Rules vary by country and visa type; your counselor confirms the exact limits for your destination.</p>
+    </details>
+    <details class="faq__item" data-reveal>
+      <summary class="faq__q">Do I need IELTS to apply?
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+      <p class="faq__a">Not always. Many universities accept alternatives — other English tests or Medium-of-Instruction letters — though some countries and visas do require a formal test. We advise on your specific case before you spend on exams.</p>
+    </details>
+    <details class="faq__item" data-reveal>
+      <summary class="faq__q">How do I get started?
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
+      <p class="faq__a">Book a free consultation on WhatsApp or email {{ site.email }}. In 30 minutes we cover your goals, budget and realistic options — and you leave with a written summary, whether or not you continue with us.</p>
+    </details>
+  </div>
 </section>
 
 <!-- @include components/cta-band.html -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How much does it cost to study in Europe?", "acceptedAnswer": { "@type": "Answer", "text": "Often far less than families expect. Public universities in Germany and Norway charge little or no tuition, and in Italy the DSU grant can bring costs close to zero for eligible families. Exact numbers depend on country and program." } },
+    { "@type": "Question", "name": "Can I really get a fully-funded scholarship?", "acceptedAnswer": { "@type": "Answer", "text": "Some funding is competitive (DAAD, MEXT, Erasmus Mundus); some is need-based and awarded by right if you qualify, such as Italy's DSU. We assess profiles honestly and only pursue scholarships a student can genuinely win." } },
+    { "@type": "Question", "name": "Can I work part-time while studying?", "acceptedAnswer": { "@type": "Answer", "text": "Most European destinations allow international students to work around 20 hours a week during term. Rules vary by country and visa type." } },
+    { "@type": "Question", "name": "Do I need IELTS to apply?", "acceptedAnswer": { "@type": "Answer", "text": "Not always. Many universities accept alternatives such as other English tests or Medium-of-Instruction letters, though some countries and visas require a formal test." } },
+    { "@type": "Question", "name": "How do I get started?", "acceptedAnswer": { "@type": "Answer", "text": "Book a free consultation on WhatsApp or by email. In 30 minutes we cover goals, budget and realistic options, ending with a written summary." } }
+  ]
+}
+</script>

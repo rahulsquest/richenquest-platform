@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://richenquest.com/sitemap.xml
+Sitemap: https://www.richenquest.com/sitemap.xml

@@ -4,6 +4,21 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — M1: production homepage (2026-07-19)
+- Premium homepage on the design system: dark gradient hero with serif display accent
+  (legacy visual language preserved per File 12), claims-safe proof strip (1,000+ guided ·
+  33 study destinations · India/Italy team · 2-person verification), "map has changed"
+  Europe narrative, 6-step journey, services, destinations preview (Italy + Germany
+  flagships), scholarships (DSU/DAAD/MEXT/Erasmus Mundus), integrity band (2024
+  operations vs 2026 incorporation), FAQ accordion with FAQPage JSON-LD.
+- Founder decisions encoded: brand "RichenQuest" + tagline; canonical
+  https://www.richenquest.com; official@ email; both India + Italy numbers displayed;
+  every CTA a real workflow (WhatsApp/tel/mailto — no forms until Zoho org is live);
+  testimonials withheld pending consent.
+- New components: FAQ accordion (native details/summary), mobile sticky action bar;
+  header tagline + section nav; footer contact block; EducationalOrganization JSON-LD.
+- Page weight: 26 KB HTML vs 1.06 MB on the legacy site.
+
 ### Added — M0 complete: full design system (2026-07-19)
 - Complete token architecture (`tokens.css`): brand/neutral/semantic color palette,
   fluid type scale, 4px spacing scale, radii, elevation, motion tokens, z-index layers,

@@ -1,36 +1,123 @@
-/* page: home. (.section rhythm moved to components/layout.css) */
+/* page: home — premium hero + narrative + journey + destinations + integrity.
+   All colors/sizes from tokens; layout primitives from components/layout.css. */
+
+/* Hero — premium dark (legacy visual language, File 12 KEEP verdict) */
 .hero {
-  background: var(--color-surface-alt);
+  background: var(--gradient-hero);
+  color: var(--color-inverse-ink);
 }
 
 .hero__inner {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
   justify-items: start;
-  padding-block: var(--space-10);
+  padding-block: var(--space-10) var(--space-12);
 }
 
-.hero__kicker {
+.hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: var(--radius-full);
   font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--color-ink-soft);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--color-inverse-ink-soft);
+}
+
+.hero__chip .icon {
+  color: var(--color-hero-accent);
+}
+
+.hero h1 {
+  font-size: var(--text-display);
+  max-width: 18ch;
+}
+
+.hero h1 em {
+  font-family: var(--font-serif-display);
+  font-style: italic;
+  font-weight: var(--weight-regular);
+  color: var(--color-hero-accent);
 }
 
 .hero__lede {
   font-size: var(--text-lg);
-  color: var(--color-ink-soft);
+  color: var(--color-inverse-ink-soft);
+  max-width: 58ch;
 }
 
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-  margin-block: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+.hero__ghost {
+  border-color: rgb(255 255 255 / 0.4);
+  color: var(--color-inverse-ink);
+}
+
+.hero__ghost:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: var(--color-inverse-ink);
 }
 
 .hero__note {
   font-size: var(--text-sm);
+  color: var(--color-inverse-ink-soft);
+}
+
+/* Proof strip — sits directly under the hero */
+.proof {
+  background: var(--color-surface-alt);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.proof__inner {
+  padding-block: var(--space-6);
+}
+
+/* Journey steps */
+.step {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.step__number {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-brand-strong);
+  letter-spacing: var(--tracking-wide);
+}
+
+.step__title {
+  font-size: var(--text-xl);
+}
+
+.step__text {
   color: var(--color-ink-soft);
+}
+
+/* Integrity band */
+.integrity {
+  background: var(--color-inverse-surface);
+  color: var(--color-inverse-ink);
+}
+
+.integrity__inner {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding-block: var(--space-10);
+}
+
+.integrity__inner p {
+  color: var(--color-inverse-ink-soft);
+}
+
+.integrity__inner p strong {
+  color: var(--color-inverse-ink);
 }

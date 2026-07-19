@@ -1,10 +1,23 @@
-<!-- component: cta-band — sitewide conversion band.
-     v1: email CTA. M1 swaps the button to the Zoho Bookings "Free Counseling — 30 min"
-     link the moment the Zoho org is live (single edit here changes every page — that's the point). -->
+<!-- component: cta-band — sitewide conversion band. Real workflows only
+     (founder decision 8): WhatsApp, email, phone. Swap primary CTA to the
+     Zoho Bookings link the moment the org is live (one edit here). -->
 <section class="cta-band">
   <div class="container cta-band__inner">
-    <h2 class="cta-band__title">Talk to a counselor about studying abroad</h2>
-    <p class="cta-band__text">{{ claims.phrasings.supported }}</p>
-    <a class="btn btn--inverse" href="mailto:{{ site.email }}">Email {{ site.email }}</a>
+    <h2 class="cta-band__title">Book your free consultation</h2>
+    <p class="cta-band__text">{{ claims.phrasings.helping_since }} Talk to a counselor who knows the road — no fees, no pressure, honest answers.</p>
+    <div class="cluster">
+      <a class="btn btn--inverse" href="{{ site.whatsapp_href }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+        Chat on WhatsApp
+      </a>
+      <a class="btn btn--ghost cta-band__ghost" href="mailto:{{ site.email }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-mail"></use></svg>
+        Email {{ site.email }}
+      </a>
+    </div>
+    <p class="cta-band__phones">
+      Or call: <a href="{{ site.phone_in_href }}">{{ site.phone_in }}</a> (India) ·
+      <a href="{{ site.phone_it_href }}">{{ site.phone_it }}</a> (Italy)
+    </p>
   </div>
 </section>
