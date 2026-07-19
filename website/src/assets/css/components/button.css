@@ -67,6 +67,18 @@
   color: var(--color-brand-strong);
 }
 
+/* Ghost on dark bands (hero, cta-band) — unified in the cross-site audit */
+.btn--ghost-inverse {
+  border-color: rgb(255 255 255 / 0.4);
+  color: var(--color-inverse-ink);
+  background: transparent;
+}
+
+.btn--ghost-inverse:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: var(--color-inverse-ink);
+}
+
 .btn--inverse {
   background: var(--color-surface);
   color: var(--color-ink);

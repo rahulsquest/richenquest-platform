@@ -17,16 +17,6 @@
   color: var(--color-inverse-ink-soft);
 }
 
-.cta-band__ghost {
-  border-color: var(--color-inverse-ink-soft);
-  color: var(--color-inverse-ink);
-}
-
-.cta-band__ghost:hover {
-  background: rgb(255 255 255 / 0.1);
-  color: var(--color-inverse-ink);
-}
-
 .cta-band__phones {
   font-size: var(--text-sm);
   color: var(--color-inverse-ink-soft);

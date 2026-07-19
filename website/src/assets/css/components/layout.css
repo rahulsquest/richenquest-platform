@@ -102,3 +102,8 @@
   gap: var(--space-3);
   align-items: center;
 }
+
+/* Inline CTA row at the end of a value section (UX contract: CTA cadence) */
+.section__cta {
+  margin-block-start: var(--space-6);
+}

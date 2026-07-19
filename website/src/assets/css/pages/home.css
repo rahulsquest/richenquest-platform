@@ -146,16 +146,6 @@
   margin-block-start: var(--space-2);
 }
 
-.hero__ghost {
-  border-color: rgb(255 255 255 / 0.4);
-  color: var(--color-inverse-ink);
-}
-
-.hero__ghost:hover {
-  background: rgb(255 255 255 / 0.1);
-  color: var(--color-inverse-ink);
-}
-
 .hero__note {
   font-size: var(--text-sm);
   color: var(--color-inverse-ink-soft);
@@ -171,37 +161,8 @@
   padding-block: var(--space-8);
 }
 
-/* Journey steps */
-.step {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: start;
-}
-
-.step__badge {
-  display: grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--radius-full);
-  background: var(--color-brand-soft);
-  color: var(--color-brand-strong);
-  font-size: var(--text-xl);
-  font-weight: var(--weight-bold);
-}
-
-/* Inline CTA row at the end of a value section (UX contract: CTA cadence) */
-.section__cta {
-  margin-block-start: var(--space-6);
-}
-
-.step__title {
-  font-size: var(--text-xl);
-}
-
-.step__text {
-  color: var(--color-ink-soft);
-}
+/* Journey steps + inline section CTAs: promoted to components/steps.css and
+   components/layout.css (cross-site audit — used on multiple pages). */
 
 /* Integrity band */
 .integrity {
