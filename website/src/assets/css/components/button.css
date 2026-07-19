@@ -17,7 +17,22 @@
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    border-color var(--duration-fast) var(--ease-out),
+    translate var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+/* Micro-interaction: subtle lift on hover, grounded on press */
+@media (prefers-reduced-motion: no-preference) {
+  .btn:not(:disabled):hover {
+    translate: 0 -1px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn:not(:disabled):active {
+    translate: 0 0;
+    box-shadow: none;
+  }
 }
 
 /* Variants */

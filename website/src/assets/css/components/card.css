@@ -144,18 +144,19 @@
   color: var(--color-ink-soft);
 }
 
-/* Stat tile — proof strip numbers (claims.json values only) */
+/* Stat tile — proof strip numbers (claims.json values only).
+   Airy, not boxy: a thin brand rule and a large number breathe better
+   than a filled tile (benchmarked against Stripe-style stat rows). */
 .stat-tile {
   display: grid;
-  gap: var(--space-1);
-  padding: var(--space-4);
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  padding-inline-start: var(--space-4);
   border-inline-start: 3px solid var(--color-brand);
-  background: var(--color-surface-alt);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .stat-tile__value {
-  font-size: var(--text-2xl);
+  font-size: var(--text-3xl);
   font-weight: var(--weight-bold);
   line-height: var(--leading-tight);
 }

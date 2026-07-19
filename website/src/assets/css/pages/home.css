@@ -64,8 +64,16 @@
   border: 1px solid rgb(255 255 255 / 0.18);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   max-width: 26rem;
+}
+
+/* Older browsers without backdrop blur get a solid readable panel */
+@supports not ((backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px))) {
+  .hero__panel {
+    background: rgb(16 26 48 / 0.7);
+  }
 }
 
 .hero__panel-title {
@@ -160,7 +168,7 @@
 }
 
 .proof__inner {
-  padding-block: var(--space-6);
+  padding-block: var(--space-8);
 }
 
 /* Journey steps */
@@ -214,4 +222,38 @@
 
 .integrity__inner p strong {
   color: var(--color-inverse-ink);
+}
+
+/* Founder signature — credibility block, no photo until consent/assets */
+.integrity__founder {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-5);
+  border-top: 1px solid var(--color-inverse-border);
+  width: 100%;
+  max-width: 34rem;
+}
+
+.integrity__avatar {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: rgb(255 255 255 / 0.1);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.integrity__founder-name {
+  font-weight: var(--weight-bold);
+  color: var(--color-inverse-ink);
+}
+
+.integrity__founder-role {
+  font-size: var(--text-sm);
 }
