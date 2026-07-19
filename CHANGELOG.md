@@ -4,6 +4,22 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — M3: destination engine + Nepal (2026-07-19)
+- Destinations hub (/destinations/): Tier-1 flagship cards fed by data files,
+  Tier-2/3 listed honestly as "guides coming" (no dead links), Nepal callout.
+- Deep flagship guides: Italy (DSU explained properly — need-based, by right,
+  ~€6,000/yr varying by region; Universitaly process; 12 sample universities)
+  and Germany (APS day-one rule, blocked account ≈ €11,900 with update hedge,
+  public-vs-private lanes per File 05, DAAD/Deutschlandstipendium).
+- Tier-1 guides on the standard template: France, Ireland, Netherlands,
+  Hungary, Japan — quick-facts tiles from data/destinations/*.json, honest
+  ballparks + counselor-confirmation framing, FAQPage JSON-LD each.
+- /nepal/ landing: NOC 3-step guidance, Japan corridor (#1 for Nepali
+  students), Europe corridor, Nepal-specific counseling pitch.
+- Header Destinations dropdown (disclosure pattern, 9 links); footer +
+  homepage destination cards wired to guides; homepage NL/HU card split.
+- 19 pages, 17 sitemap URLs; claims-guard clean; link check + metas verified.
+
 ### Added — M2: core pages + legal (2026-07-19)
 - New pages on the design system: /services/ (featured journey, package transparency —
   written quote, no price matrix), /about/ (story with 2024-operations vs 2026-incorporation

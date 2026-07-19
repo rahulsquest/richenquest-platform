@@ -16,7 +16,24 @@
     </button>
     <nav id="site-nav" class="site-nav" aria-label="Main">
       <ul class="site-nav__list">
-        <li class="site-nav__item"><a class="site-nav__link" href="/#destinations">Destinations</a></li>
+        <li class="site-nav__item">
+          <button class="site-nav__group-toggle" type="button" aria-expanded="false"
+                  aria-controls="nav-destinations" data-disclosure="nav-destinations">
+            Destinations
+            <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg>
+          </button>
+          <div class="site-nav__dropdown" id="nav-destinations" hidden>
+            <a class="site-nav__dropdown-link" href="/destinations/">All destinations</a>
+            <a class="site-nav__dropdown-link" href="/destinations/italy/">Italy</a>
+            <a class="site-nav__dropdown-link" href="/destinations/germany/">Germany</a>
+            <a class="site-nav__dropdown-link" href="/destinations/france/">France</a>
+            <a class="site-nav__dropdown-link" href="/destinations/ireland/">Ireland</a>
+            <a class="site-nav__dropdown-link" href="/destinations/netherlands/">Netherlands</a>
+            <a class="site-nav__dropdown-link" href="/destinations/hungary/">Hungary</a>
+            <a class="site-nav__dropdown-link" href="/destinations/japan/">Japan</a>
+            <a class="site-nav__dropdown-link" href="/nepal/">From Nepal</a>
+          </div>
+        </li>
         <li class="site-nav__item"><a class="site-nav__link" href="/services/">Services</a></li>
         <li class="site-nav__item"><a class="site-nav__link" href="/about/">About</a></li>
         <li class="site-nav__item"><a class="site-nav__link" href="/success-stories/">Stories</a></li>

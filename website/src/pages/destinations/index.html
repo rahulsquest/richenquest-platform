@@ -1,0 +1,101 @@
+<!--meta
+title: Study Destinations — Europe First | RichenQuest
+description: 33 study destinations for students from India & Nepal — deep guides for Italy, Germany, France, Ireland, Netherlands, Hungary and Japan, with more added every week.
+-->
+<!-- M3 Destinations hub. Tier-1 guides linked; Tier-2/3 listed honestly as
+     "guides coming" (no dead links, File 10). Card facts come from
+     data/destinations/*.json — the same source as each guide's tiles. -->
+
+<section class="page-hero">
+  <div class="container page-hero__inner">
+    <p class="kicker">Study destinations</p>
+    <h1>Europe first — and 33 doors in all</h1>
+    <p class="page-hero__lede">Deep, honest country guides written by a team that lives on the route. Every figure is a real ballpark, and your counselor confirms current numbers for your case.</p>
+  </div>
+</section>
+
+<section class="container section" id="tier1">
+  <div class="section__head">
+    <p class="kicker">Flagship guides</p>
+    <h2>Start with the doors that are open</h2>
+  </div>
+  <div class="grid">
+    <article class="card card--interactive card--featured" data-reveal>
+      <p class="card__kicker">Flagship · {{ destinations.italy.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/italy/">Italy</a></h3>
+      <p class="card__body">{{ destinations.italy.tagline }}</p>
+      <p class="card__meta"><span class="badge badge--success">DSU grants</span><span class="badge badge--info">Team in Italy</span></p>
+    </article>
+    <article class="card card--interactive card--featured" data-reveal>
+      <p class="card__kicker">Flagship · {{ destinations.germany.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/germany/">Germany</a></h3>
+      <p class="card__body">{{ destinations.germany.tagline }}</p>
+      <p class="card__meta"><span class="badge badge--success">Low tuition</span><span class="badge badge--info">18-mo stay-back</span></p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <p class="card__kicker">{{ destinations.france.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/france/">France</a></h3>
+      <p class="card__body">{{ destinations.france.tagline }}</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <p class="card__kicker">{{ destinations.ireland.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/ireland/">Ireland</a></h3>
+      <p class="card__body">{{ destinations.ireland.tagline }}</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <p class="card__kicker">{{ destinations.netherlands.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/netherlands/">Netherlands</a></h3>
+      <p class="card__body">{{ destinations.netherlands.tagline }}</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <p class="card__kicker">{{ destinations.hungary.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/hungary/">Hungary</a></h3>
+      <p class="card__body">{{ destinations.hungary.tagline }}</p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <p class="card__kicker">{{ destinations.japan.tuition }}</p>
+      <h3 class="card__title"><a class="card__link" href="/destinations/japan/">Japan</a></h3>
+      <p class="card__body">{{ destinations.japan.tagline }}</p>
+      <p class="card__meta"><span class="badge badge--info">#1 for Nepali students</span></p>
+    </article>
+    <article class="card card--interactive" data-reveal>
+      <p class="card__kicker">From Nepal 🇳🇵</p>
+      <h3 class="card__title"><a class="card__link" href="/nepal/">Studying abroad from Nepal</a></h3>
+      <p class="card__body">NOC guidance, NPR cost framing, and the Japan + Europe corridors — built for Nepali students specifically.</p>
+    </article>
+  </div>
+</section>
+
+<section class="section section--alt" id="more">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker">More of Europe — guides coming weekly</p>
+      <h2>Also on our map</h2>
+      <p class="lede">We counsel for all of these today; their full guides are being written in the open, a few each week. Ask us about any of them right now.</p>
+    </div>
+    <div class="cluster">
+      <span class="badge">Spain</span><span class="badge">Poland</span><span class="badge">Malta</span>
+      <span class="badge">Czechia</span><span class="badge">Austria</span><span class="badge">Portugal</span>
+      <span class="badge">Sweden</span><span class="badge">Finland</span><span class="badge">Denmark</span>
+      <span class="badge">Norway</span><span class="badge">Belgium</span><span class="badge">Switzerland</span>
+      <span class="badge">Greece</span><span class="badge">Croatia</span><span class="badge">Estonia</span>
+      <span class="badge">Latvia</span><span class="badge">Lithuania</span><span class="badge">Slovakia</span>
+      <span class="badge">Luxembourg</span>
+    </div>
+    <h3 id="beyond">Beyond Europe</h3>
+    <div class="cluster">
+      <span class="badge">United Kingdom</span><span class="badge">Australia</span><span class="badge">New Zealand</span>
+      <span class="badge">Canada</span><span class="badge">Singapore</span><span class="badge">South Korea</span>
+      <span class="badge">China</span><span class="badge">Dubai (UAE)</span>
+    </div>
+    <div class="cluster section__cta">
+      <a class="btn btn--primary" href="{{ site.whatsapp_href }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+        Ask about any destination
+      </a>
+      <span class="text-soft text-small">Free consultation · honest answers</span>
+    </div>
+  </div>
+</section>
+
+<!-- @include components/cta-band.html -->
