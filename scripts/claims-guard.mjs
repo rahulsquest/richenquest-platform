@@ -31,7 +31,8 @@ const APPROVED_COUNTS = (claims.students.approved_public_counts ?? []).map((s) =
 );
 
 const countOk = (num, plus) => {
-  if (APPROVED_COUNTS.includes(num + (plus ? "+" : ""))) return true;
+  // An approved "N+" also covers "over N" / bare-N phrasings of the same figure.
+  if (APPROVED_COUNTS.includes(num + (plus ? "+" : "")) || APPROVED_COUNTS.includes(num + "+")) return true;
   return !plus && num === VERIFIED_COUNT;
 };
 

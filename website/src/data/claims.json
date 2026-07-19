@@ -17,7 +17,9 @@
   },
   "students": {
     "verified_placements": "15",
-    "_note": "Use this figure only where a number is required (docs/08 open item ①); prefer approved phrasings."
+    "approved_public_counts": ["1000+"],
+    "guided_count_note": "docs/08 claim 2b — founder confirmed records 2026-07-19; verb must be guided/supported/assisted, never placed",
+    "_note": "Placement figure: use only where a number is required (docs/08 open item ①); prefer approved phrasings."
   },
   "services_line": "Study-abroad counseling · university admissions · scholarships · documentation & application support · interview preparation · student, work, business, and tourist visa assistance · accommodation & pre-departure guidance",
   "package": {
@@ -30,6 +32,7 @@
   },
   "phrasings": {
     "helping_since": "Helping students achieve their global education goals since 2024.",
+    "guided_count": "Over 1,000 students guided through study-abroad counseling, admissions, scholarship guidance, documentation support and global education pathways since 2024.",
     "universities_language": "Universities our students apply to",
     "supported": "We have supported students through personalized counseling and admissions guidance.",
     "database": "We are building our verified placement database as the company scales.",

@@ -27,6 +27,7 @@ Clean on audit (no factual company claims): Files 01, 03, 05, 06.
 1. RichenQuest Private Limited, headquartered in Patna, Bihar, India.
 2. Team active in international education since **2024, under earlier business operations**; RichenQuest Private Limited incorporated **January 2026**. Public messaging must always distinguish operational experience (2024) from company incorporation (2026), and must never present pre-2026 achievements as company-incorporation achievements. *(Corrected from "since 2023" by founder direction, 2026-07-19.)*
 2a. Approved sentence: "Helping students achieve their global education goals since 2024."
+2b. Approved claim (founder confirmed supporting records exist, 2026-07-19): "Over 1,000 students guided through study-abroad counseling, admissions, scholarship guidance, documentation support and global education pathways since 2024." Verb must stay "guided/supported/assisted" — never "placed" (placement figure remains the verified 15). Keep the underlying records (counseling logs, event attendance, CRM entries) retrievable on request.
 3. Recruitment reach: India (Bihar, Jharkhand, eastern UP) and Nepal, via core team + collaborator network.
 4. Team structure: **5 full-time core members**; extended network of **20–25 collaborators, interns, and freelancers** engaged as needed (always distinguished from employees).
 5. Verified placement records maintained for every student placed under the company (currently 15 students; use the number only where a figure is required — see open item ①).
@@ -37,7 +38,7 @@ Clean on audit (no factual company claims): Files 01, 03, 05, 06.
 10. Partnership status: first direct partnership applications in progress (IU, GUS Gateway). Update this line ONLY when an agreement is signed.
 
 ### ❌ Banned until verified data exists (founder unlock required)
-- Any student count other than the verified figure ("hundreds", "1000+", "many students placed")
+- Any student count other than the verified placement figure (15) or a count explicitly approved above (currently: "1,000+ guided", claim 2b). "Hundreds", "many students placed", and any other loose count remain banned.
 - Any visa success rate or percentage — **including scholarship-success percentages**
 - "Partner of [institution]" or "**partner university/universities**" before a signed agreement. Approved alternatives (founder direction 2026-07-19): "universities we work with", "universities our students apply to", "destination universities".
 - **Verb discipline (founder direction 2026-07-19):** "placed" only where verified placement records exist; otherwise use "guided", "supported", or "assisted".
