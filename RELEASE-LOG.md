@@ -37,8 +37,24 @@ Rules: no unrelated improvements bundled into release commits; every change re-r
 build + claims-guard + link check before commit; stability outranks polish. When in doubt,
 do not change it.
 
+## Branch model (set 2026-07-19)
+
+| Branch | Role |
+|---|---|
+| `main` | Reserved to represent **production**. Frozen at the RC-1 cut (`4cfabaa`). Receives the RC-1 work only when the founder explicitly approves the production cutover. |
+| `release/rc-1` | Active branch. All permitted RC-1 changes land here. |
+
+Note on the live site: **www.richenquest.com is served by Zoho Sites** (WYSIWYG, server
+`ZGS`) and has no connection to this repository — no branch here powers it. The live site can
+only change by editing it inside Zoho Sites, or at DNS cutover. Nothing in git can affect it
+before then.
+
+CI implication: `deploy-dev.yml` currently triggers on pushes to `main`, so work on
+`release/rc-1` will not auto-deploy. Harmless today (no Catalyst project, deploy is
+secret-gated); revisit when Catalyst exists — founder decision, not an automatic change.
+
 ## Changes since RC-1
 
 | Date | Class | Change | Commit | Approval |
 |---|---|---|---|---|
-| — | — | *No changes yet — RC-1 is the current state.* | — | — |
+| 2026-07-19 | `deploy` | Created `release/rc-1` branch; froze `main` at the RC-1 cut so production cutover stays an explicit founder decision | *this commit* | Founder instruction |
