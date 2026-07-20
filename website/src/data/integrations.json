@@ -1,0 +1,21 @@
+{
+  "_rules": "Zoho integration configuration — the ONLY place Zoho IDs/URLs live (no hard-coding anywhere else). Every value ships EMPTY: each integration stays dormant and its real-workflow fallback (WhatsApp/phone/email) remains active until a value is filled in. Filling a value + rebuilding activates that integration — no code change. Setup instructions for each field: docs/14-zoho-integration.md. Secrets (OAuth client secrets, API tokens) NEVER belong in this file — they live in Catalyst env vars / GitHub Actions secrets.",
+
+  "forms": {
+    "_note": "Zoho Forms → CRM Leads. Get from: Forms → your form → Share → Embed → the permalink URL. Public URL, not a secret.",
+    "consultation_url": "",
+    "height": "820"
+  },
+
+  "bookings": {
+    "_note": "Zoho Bookings 'Free Counseling — 30 min' service. Get from: Bookings → Services → Share → booking page URL. Public URL, not a secret.",
+    "consultation_url": "",
+    "height": "700"
+  },
+
+  "salesiq": {
+    "_note": "Zoho SalesIQ live chat (and future AI answer bot). widget_code from SalesIQ → Settings → Brands → Installation. CONSENT-GATED: loads only after the visitor accepts non-essential cookies (DPDP/GDPR). Never loads without both a widget_code AND consent.",
+    "widget_code": "",
+    "domain": "salesiq.zohopublic.in"
+  }
+}

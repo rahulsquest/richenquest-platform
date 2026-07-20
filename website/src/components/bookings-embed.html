@@ -1,0 +1,14 @@
+<!-- component: bookings-embed — Zoho Bookings slot.
+     Dormant until integrations.json carries bookings.consultation_url; the
+     fallback below is a REAL workflow (WhatsApp scheduling), never a fake
+     control (founder decision 8). modules/zoho-bookings.js swaps in the
+     iframe when configured. -->
+<div class="embed" data-zoho-bookings>
+  <div class="embed__fallback">
+    <p class="text-soft">Online self-serve booking is coming soon — until then, WhatsApp is the fastest way to schedule your free consultation.</p>
+    <a class="btn btn--primary" href="{{ site.whatsapp_href }}">
+      <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+      Schedule on WhatsApp
+    </a>
+  </div>
+</div>

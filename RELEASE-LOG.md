@@ -57,4 +57,5 @@ secret-gated); revisit when Catalyst exists — founder decision, not an automat
 
 | Date | Class | Change | Commit | Approval |
 |---|---|---|---|---|
-| 2026-07-19 | `deploy` | Created `release/rc-1` branch; froze `main` at the RC-1 cut so production cutover stays an explicit founder decision | *this commit* | Founder instruction |
+| 2026-07-19 | `integration` | Zoho integration layer, dormant by default: `data/integrations.json` config (no hard-coded IDs/URLs), modules for Forms/Bookings/SalesIQ with Zoho-host URL validation + consent gate, embed components with real-workflow fallbacks, Bookings slot wired into `/contact/`, setup guide `docs/14-zoho-integration.md` | *this commit* | Founder instruction |
+| 2026-07-19 | `deploy` | Created `release/rc-1` branch; froze `main` at the RC-1 cut so production cutover stays an explicit founder decision | `964d005` | Founder instruction |
