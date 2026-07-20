@@ -24,6 +24,11 @@ jobs:
       - name: Internal link & asset check
         run: node scripts/check-links.mjs
 
+      # Server-side Zoho integration layer isn't part of the site build; syntax-
+      # check it so broken function code never lands (integration, File 14).
+      - name: Syntax-check serverless functions
+        run: find functions -name "*.mjs" -print0 | xargs -0 -n1 node --check
+
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"

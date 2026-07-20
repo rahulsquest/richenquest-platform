@@ -7,6 +7,7 @@ node_modules/
 # Environment & secrets — never commit credentials
 .env
 .env.*
+!.env.example
 *.pem
 
 # Zoho Catalyst local artifacts

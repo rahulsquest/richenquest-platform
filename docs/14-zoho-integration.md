@@ -177,3 +177,76 @@ placing it changes page content, which RC-1 reserves for founder approval. Optio
   inquiries.
 
 Say the word and it is a one-line include.
+
+---
+
+## 10. Server-side OAuth layer (built 2026-07-19, `functions/zoho/`)
+
+Two integration surfaces exist, and they are independent:
+
+- **Client-side embeds** (`website/src/assets/js/modules/zoho-*.js`) — Forms, Bookings, SalesIQ
+  as iframes/widgets. Config in `integrations.json`. **No OAuth, no secrets.** This covers the
+  launch lead journey.
+- **Server-side API layer** (`functions/zoho/`) — OAuth + REST clients for Catalyst functions
+  (the future branded form proxy, transactional mail, webhook bridges). This is where the API
+  Console app and its secrets belong. It runs on the server only; nothing reaches the browser.
+
+### 10a. Where your Client ID / Client Secret go — never hard-coded
+| | Local development | Production (Catalyst) |
+|---|---|---|
+| Client ID | `.env` → `ZOHO_CLIENT_ID` | Catalyst environment variable `ZOHO_CLIENT_ID` |
+| **Client Secret** | `.env` → `ZOHO_CLIENT_SECRET` | Catalyst environment variable `ZOHO_CLIENT_SECRET` |
+| Refresh token | `.env` → `ZOHO_REFRESH_TOKEN` | Catalyst environment variable `ZOHO_REFRESH_TOKEN` |
+
+`.env` is gitignored (`.env`, `.env.*`, with `!.env.example` the only tracked template). The
+secret never enters git, never enters the built site, and is never printed by any script (the
+`redact()` helper masks token/secret-shaped strings in logs). **Do not paste the Client Secret
+or Refresh Token into chat or anywhere else — only into your local `.env`.**
+
+### 10b. Every environment variable
+Template: `.env.example` (copy to `.env`). Required to obtain a token: `ZOHO_DC`,
+`ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REDIRECT_URI`, `ZOHO_SCOPES`. Produced by setup:
+`ZOHO_REFRESH_TOKEN`. Per-service extras, only when that client is used: `ZOHO_MAIL_ACCOUNT_ID`,
+`ZOHO_ANALYTICS_ORG_ID`, `ZOHO_SALESIQ_SCREENNAME`, `ZOHO_FLOW_WEBHOOK_URL`. Each is documented
+inline in `.env.example`.
+
+## 11. Generating the Refresh Token (one time)
+
+**Your data centre is India** (`ZOHO_DC=in`) because RichenQuest uses Zoho One India DC — so
+the authorization host is `https://accounts.zoho.in`. (If you created the "rahulsquest" app at
+`api-console.zoho.com` instead of `.in`, change `ZOHO_DC` to `us`; the app and the DC must match.)
+
+1. `cp .env.example .env`, then fill `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REDIRECT_URI`
+   (exactly as configured on the app), and `ZOHO_SCOPES` (start with the CRM default).
+2. `node --env-file=.env functions/zoho/scripts/auth-url.mjs` → prints the authorization URL.
+   For the India DC + CRM scope it looks like:
+   `https://accounts.zoho.in/oauth/v2/auth?scope=ZohoCRM.modules.ALL,ZohoCRM.settings.ALL&client_id=<id>&response_type=code&access_type=offline&prompt=consent&redirect_uri=<your-redirect>`
+3. Open it, sign in as the RichenQuest Zoho admin, approve. Your browser lands on the Redirect
+   URI with `?code=…` in the address bar (the page may 404 — the code is still in the URL).
+4. `node --env-file=.env functions/zoho/scripts/exchange-code.mjs <code>` → prints
+   `ZOHO_REFRESH_TOKEN=…` **in your terminal only**. Paste that line into `.env`.
+5. `node --env-file=.env functions/zoho/scripts/verify.mjs` → `✓ Zoho OAuth working`.
+
+Scopes drift over time. `ZohoCRM.modules.ALL` / `ZohoCRM.settings.ALL` are stable; confirm the
+Bookings/Mail/Analytics/Forms/SalesIQ scope strings against Zoho's current scope reference
+before requesting them, and add only what each server feature needs (least privilege).
+
+### 11a. API base URL confidence
+`config.mjs` resolves per-service base URLs per DC. **CRM (`/crm/v7`) is high-confidence.**
+Mail, Analytics, and SalesIQ use their own documented hosts; Bookings and Forms paths should be
+confirmed against the current API reference before first live call. All are in one table in
+`config.mjs` — correcting one is a one-line change, no client rewrite.
+
+## 12. Access-token lifecycle (automatic)
+
+`oauth.mjs` exchanges the refresh token for a short-lived access token, caches it in memory, and
+refreshes it a minute before expiry — and again transparently if any call returns 401 (token
+rotated server-side). Callers (`crm.createOrUpdateLead`, etc.) never see tokens. In a Catalyst
+function the default in-memory cache is fine; a shared cache (Catalyst Cache) can be injected via
+`setTokenCache()` if cross-invocation reuse is wanted later.
+
+## 13. This does not touch the live site
+The live `www.richenquest.com` is Zoho Sites (server `ZGS`), unrelated to this repository. The
+entire `functions/zoho/` tree is server-side and is never read by `website/build.mjs` (verified:
+it does not appear in `website/dist`). Nothing here can affect the live site, which changes only
+at DNS cutover with your approval.
