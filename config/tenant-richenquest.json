@@ -1,0 +1,63 @@
+{
+  "_note": "TENANT ZERO configuration for RichenQuest — the single, versioned, configurable source for operational parameters (Constitution File 19: reusable, modular, configurable, versioned, no hardcode). This is the authoritative input for the Zoho CRM build (AM0.4) and, later, for Catalyst functions that must read config instead of hardcoding. Each future Titan tenant is one config of this same shape. Not secrets — internal operational config.",
+  "tenant": { "id": "richenquest", "role": "Tenant Zero", "legal_name": "RichenQuest Private Limited", "dc": "in" },
+
+  "markets": {
+    "primary": ["India", "Nepal", "Pakistan"],
+    "secondary": ["Bangladesh", "Sri Lanka", "Bhutan"]
+  },
+  "destinations": {
+    "primary_europe": ["Italy", "Germany", "France", "Spain", "Hungary", "Latvia", "Lithuania", "Ireland", "Netherlands", "Malta", "Poland", "Other Schengen"],
+    "secondary": ["United Kingdom", "Australia", "New Zealand", "Singapore", "Japan", "South Korea"],
+    "future": ["North America"],
+    "_rule": "Geography is CONFIG (picklist now, Knowledge-Graph-backed later). Never hardcoded in workflow logic."
+  },
+  "languages": { "system": "en", "customer": ["en", "hi", "ne"], "_rule": "Never assume English-only; templates/content are language-aware." },
+
+  "lead_types": {
+    "active": ["Student"],
+    "future_ready": ["Parent", "University", "Partner Institution", "Recruitment Agent", "Corporate", "Employer", "Government", "Organization"],
+    "model": "single Leads module + configurable Lead Type picklist (Option A, founder-approved 2026-07-22)",
+    "_rule": "Only Student has production workflows. Revisit Zoho Record Types only when a 2nd lead type becomes operational."
+  },
+
+  "team": [
+    { "name": "Rahul Kumar", "title": "Founder & CEO", "function": "Executive Office", "crm_role": "CEO", "digital_employee_pod": ["COMPASS"] },
+    { "name": "Harsh", "title": "Operations & Data Intelligence Lead", "function": "Operations", "crm_role": "Manager / Operations", "digital_employee_pod": ["CADENCE"], "note": "candidate Automation Owner (executes Zoho config)" },
+    { "name": "Kunal", "title": "Student Success & Visa Operations Lead", "function": "Student Success", "crm_role": "Counselor", "digital_employee_pod": ["ARIA", "ATLAS"], "note": "primary student-facing owner" },
+    { "name": "Bibek", "title": "University Applications Lead", "function": "Applications", "crm_role": "Operations", "digital_employee_pod": ["ATLAS"] },
+    { "name": "Kishor", "title": "Strategic Partnerships Lead", "function": "Partnerships (B2B)", "crm_role": "Manager / Partnerships", "digital_employee_pod": ["SCOUT"] },
+    { "name": "Tahir", "title": "Regional Partnerships & Pakistan Operations", "function": "Partnerships / Regional", "crm_role": "Operations / Regional", "digital_employee_pod": ["SCOUT"], "note": "owns Pakistan market ops" },
+    { "name": "Vishrut", "title": "Brand & Creative Design Lead", "function": "Marketing", "crm_role": "Marketing", "digital_employee_pod": ["ECHO"] }
+  ],
+  "team_open_items": {
+    "finance_role_unassigned": "No dedicated Finance owner named — AM0.5 (Books) / LEDGER ownership TBD (likely Rahul or Harsh). Confirm.",
+    "core_headcount_vs_claim": "7 named vs the public claim '5 full-time core members' (File 08 #4, claims.json). CLAIMS DECISION NEEDED before this reaches the website — see AUTOMATION-LOG open items.",
+    "zoho_license_count": "AM0.1 provisioned ~5 Zoho One seats; 7 team members. Need +2 paid seats OR guest access for some. Affects AM0.2 + credits."
+  },
+
+  "service_packages": [
+    "Initial Counselling",
+    "University Shortlisting",
+    "Admission Assistance",
+    "Scholarship Assistance",
+    "Visa Assistance",
+    "End-to-End Premium",
+    "Custom Institutional Services"
+  ],
+
+  "assignment": {
+    "_rule": "Assignment is CONFIGURABLE — NEVER hardcoded round-robin (founder rule 2026-07-22).",
+    "dimensions": ["department", "country", "language", "lead_type", "workload", "availability"],
+    "future": "performance-based assignment (needs history; deferred)",
+    "v1_default_PROPOSED": {
+      "note": "Sensible starting routing for the small current team — CONFIRM before build. Not hardcoded; expressed as config the assignment rule reads.",
+      "Student": {
+        "default_owner": "Kunal (Student Success)",
+        "by_market": { "Pakistan": "route/notify Tahir (Regional & Pakistan Ops)" },
+        "overflow": "Bibek (Applications) when Kunal at workload cap",
+        "by_language": "future: Nepali/Hindi routing when team supports it"
+      }
+    }
+  }
+}

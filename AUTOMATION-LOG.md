@@ -64,4 +64,13 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 |---|---|---|---|
 | IF-1 | File 01's "Intended Intake" picklist (Jan 2027…) predates today (Jul 2026); the imminent Sep 2026 intake is missing | CRM field values only — **no architecture change** | Apply current-cycle intakes during AM0.4 build (spec §3). Files 16–18 untouched. |
 | IF-2 | Constitution expands markets (adds Pakistan + secondary) and destinations (Spain/Latvia/Lithuania/Malta/Poland/+); "never hardcode geography" | CRM picklist values + a new Market field — **config, no architecture change** (already picklist/KG-backed) | Applied to AM0.4 (Market field; expanded country config). Files 16–18 untouched. |
-| IF-3 | Constitution requires multi-type-lead compatibility (Student now; Parent/University/Agent/Corporate… later) | New Lead Type field + workflow scoped to Student — **config, no architecture change** (CRM-as-SoR + modules already support it) | Applied to AM0.4 (Lead Type field; workflow guard). Heavier modeling (record-types vs modules) deferred until a 2nd type is operational — see next milestone note. Files 16–18 untouched. |
+| IF-3 | Constitution requires multi-type-lead compatibility (Student now; Parent/University/Agent/Corporate… later) | New Lead Type field + workflow scoped to Student — **config, no architecture change** (CRM-as-SoR + modules already support it) | Applied to AM0.4 (Lead Type field; workflow guard). Option A approved 2026-07-22; record-types deferred until a 2nd type operational. Files 16–18 untouched. |
+| IF-4 | Founder rule: assignment must never be hardcoded round-robin; configurable by department/country/language/lead-type/workload/availability | Refines File 01 §5.1 assignment mechanism — **execution improvement, no architecture change** | AM0.4 workflow 1 now uses a config-driven Assignment Rule (config/tenant-richenquest.json → assignment). Performance-based routing deferred. Files 16–18 untouched. |
+
+## 8. Open items awaiting founder (non-blocking for AM0.4 structural build; resolve before dependent steps)
+| # | Item | Blocks | Decision needed |
+|---|---|---|---|
+| OI-1 | **Team headcount vs public claim:** 7 named leads vs claims.json/File 08 "5 full-time core members" | Website claim (before RC-1 launch) | Are all 7 full-time core? If yes → founder-signed update to File 08 + claims.json + site (claims-guard governs). If not → clarify who is core. **I will not change a public claim without sign-off.** |
+| OI-2 | **Zoho One licences:** ~5 seats at AM0.1 vs 7 members | AM0.2 (Directory) | +2 paid seats (credit impact) or guest access for some? |
+| OI-3 | **Finance owner unassigned** in roster | AM0.5 (Books), LEDGER | Who owns Finance — Rahul, Harsh, or a new hire? |
+| OI-4 | **v1 assignment routing defaults** (config proposes Kunal default / Tahir for Pakistan / Bibek overflow) | AM0.4 workflow 1 go-live | Confirm or adjust the routing values |

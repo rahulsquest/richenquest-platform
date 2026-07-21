@@ -8,20 +8,24 @@ Everything in File 16 (leads, cases, automations, dashboards) plugs into this.
 ## 1. Prerequisites (confirm before building)
 
 **A. Fast foundation items — confirm done, or complete first (~2.5h if not):**
-- **AM0.2 Directory:** all 5 core users provisioned; role hierarchy CEO → Manager → Counselor/Ops/
-  Finance; **2FA enforced** (non-negotiable — you hold passports/financials, File 00); data-sharing
-  "Private with role hierarchy."
+- **AM0.2 Directory:** provision the **7 team members** (config/tenant-richenquest.json → team) with the
+  role hierarchy CEO (Rahul) → Managers (Harsh Ops, Kishor Partnerships) → Counselor (Kunal) /
+  Operations (Bibek, Tahir) / Marketing (Vishrut) [/ Finance — unassigned, see open items];
+  **2FA enforced** (non-negotiable — you hold passports/financials, File 00); data-sharing "Private
+  with role hierarchy." **Note:** 7 members vs ~5 seats provisioned at AM0.1 → confirm +2 seats or
+  guest access (open item).
 - **AM0.8 Cliq channels:** `#leads`, `#wins`, `#finance-approvals`, `#ops-alerts`, `#daily-updates`.
   (`#leads` and `#ops-alerts` are used by AM0.4's workflows + heartbeat.)
 
 *The CRM **structure** (modules, fields, pipeline) can be built now regardless; the **workflow** layer
 needs A confirmed because it references users and Cliq channels.*
 
-**B. One business input needed from founder (the File 00 questionnaire gap):**
-- **Team roster:** the 5 core members' names + roles (for the Assigned Counselor lookup + round-robin
-  assignment). Also unblocks AM0.2.
-- **Service Package picklist:** confirm the tiers. Proposed default from File 08: `Counseling only` ·
-  `Standard Package (₹1,80,000)` · `Custom — per quote`. Adjust if you have named tiers.
+**B. Business inputs — ✅ RECEIVED 2026-07-22** (captured in `config/tenant-richenquest.json`):
+- **Team roster:** 7 members with roles + CRM-role + digital-employee-pod mapping. ✅
+- **Service Packages:** the 7 confirmed packages (see §3). ✅
+- **Lead types + assignment rule:** Option A + configurable assignment. ✅
+  *Remaining confirmations (non-blocking for structural build): the v1 assignment routing defaults,
+  Finance-role owner, and the 7-vs-5 headcount/licence items (open items in AUTOMATION-LOG).*
 
 ## 2. Modules (File 01 §2)
 - **Leads** — new inquiries (pre-payment).
@@ -34,7 +38,7 @@ needs A confirmed because it references users and Cliq channels.*
 **Leads:**
 | Field | Type | Options |
 |---|---|---|
-| **Lead Type** | Picklist | **Student (default/active)**, Parent, University, Partner Institution, Recruitment Agent, Corporate, Employer, Government, Organization, Training Partner *(IF-3: multi-type-ready per Constitution; only Student is workflow-active today)* |
+| **Lead Type** | Picklist | **Student (default/active)**, Parent, University, Partner Institution, Recruitment Agent, Corporate, Employer, Government, Organization *(Option A approved 2026-07-22; only Student is workflow-active; values from config/tenant-richenquest.json)* |
 | **Market** (residence) | Picklist | India, Nepal, Pakistan, Bangladesh, Sri Lanka, Bhutan, Other *(IF-2: multi-market per Constitution)* |
 | Lead Source Detail | Picklist | Website Form, WhatsApp, Instagram, Facebook, LinkedIn, YouTube, TikTok, Google Ads, Walk-in, Referral, Education Fair, Other |
 | Interested Country | Multi-select | Italy, Germany, France, Spain, Hungary, Latvia, Lithuania, Ireland, Netherlands, Malta, Poland, Other Schengen, UK, Australia, New Zealand, Singapore, Japan, South Korea, Other *(IF-2: config values — maintained as a picklist now, KG-backed later; never hardcoded in logic)* |
@@ -51,7 +55,7 @@ needs A confirmed because it references users and Cliq channels.*
 | Destination Country | Picklist | (same country set) |
 | Course & University (final) | Single line | |
 | Assigned Counselor | User lookup | (needs team roster) |
-| Service Package | Picklist | Counseling only, Standard Package (₹1,80,000), Custom — per quote *(confirm)* |
+| Service Package | Picklist | Initial Counselling, University Shortlisting, Admission Assistance, Scholarship Assistance, Visa Assistance, End-to-End Premium, Custom Institutional Services *(confirmed 2026-07-22)* |
 | Document Status | Picklist | Not Started, Collecting, **APS Applied, APS Received** (Germany), AI Pre-checked, Verified, Complete |
 | Lane (Germany) | Picklist | Commission (Private), Service-fee (Public), n/a *(File 05)* |
 | Visa Status | Picklist | N/A, Preparing, Lodged, Biometrics Done, Approved, Refused |
@@ -65,7 +69,11 @@ Lost Reason: Went Silent / Chose Competitor / Budget / Not Eligible / Postponed 
 
 ## 5. Workflows — build these 5 (File 01 §5); each gets an #ops-alerts heartbeat
 1. **Instant lead response** (Leads, on create): welcome email + Task "Call new lead" today/Highest +
-   `#leads` alert. Round-robin assignment among counselors. *(This is the seam AM1.1 extends.)*
+   `#leads` alert. **Configurable assignment (NOT hardcoded round-robin — founder rule IF-4):** an
+   Assignment Rule driven by the dimensions in `config/tenant-richenquest.json` (department, country,
+   language, lead type, workload, availability). v1 default (confirm): Student leads → Kunal (Student
+   Success); Pakistan-market → also notify Tahir; overflow → Bibek. Performance-based routing deferred.
+   *(This is the seam AM1.1 extends.)*
    *Multi-type guard (Constitution): scope workflow to `Lead Type = Student` so non-student lead types
    (University, Agent, Corporate…) don't trigger student-response logic when added later. Templates are
    language-aware per Preferred Language (English/Hindi/Nepali).*
