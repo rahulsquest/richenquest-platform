@@ -55,6 +55,7 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 ## 6. Implementation event log (newest first)
 | Date | Item | Event |
 |---|---|---|
+| 2026-07-22 | Governance | **Master Constitution v1.0 accepted (File 19).** Role → Chief Systems Engineer. Files 16–18 frozen as constitutional architecture. Assessment: Constitution adds config + governance, **does not invalidate architecture** (configurable design already accommodates new markets/geography/lead-types/languages). Applied deltas to AM0.4 (findings IF-2, IF-3). |
 | 2026-07-22 | State sync | Corrected state per founder. AM0.1 ✅. AM0.3 ✅ (DNS-verified, India DC). Retired obsolete "AM0.1 pending" assumption. Critical path advances to AM0.4. |
 | 2026-07-22 | — | Entered implementation mode; AM0.1 spec had been issued (now superseded — activation already done). |
 
@@ -62,3 +63,5 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 | # | Finding | Impact | Action |
 |---|---|---|---|
 | IF-1 | File 01's "Intended Intake" picklist (Jan 2027…) predates today (Jul 2026); the imminent Sep 2026 intake is missing | CRM field values only — **no architecture change** | Apply current-cycle intakes during AM0.4 build (spec §3). Files 16–18 untouched. |
+| IF-2 | Constitution expands markets (adds Pakistan + secondary) and destinations (Spain/Latvia/Lithuania/Malta/Poland/+); "never hardcode geography" | CRM picklist values + a new Market field — **config, no architecture change** (already picklist/KG-backed) | Applied to AM0.4 (Market field; expanded country config). Files 16–18 untouched. |
+| IF-3 | Constitution requires multi-type-lead compatibility (Student now; Parent/University/Agent/Corporate… later) | New Lead Type field + workflow scoped to Student — **config, no architecture change** (CRM-as-SoR + modules already support it) | Applied to AM0.4 (Lead Type field; workflow guard). Heavier modeling (record-types vs modules) deferred until a 2nd type is operational — see next milestone note. Files 16–18 untouched. |

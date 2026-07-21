@@ -34,8 +34,10 @@ needs A confirmed because it references users and Cliq channels.*
 **Leads:**
 | Field | Type | Options |
 |---|---|---|
-| Lead Source Detail | Picklist | Website Form, WhatsApp, Instagram, Facebook, Google Ads, Walk-in, Referral, Education Fair, Other |
-| Interested Country | Multi-select | Italy, Germany, France, Hungary, Ireland, Netherlands, Japan, Other Europe, Other |
+| **Lead Type** | Picklist | **Student (default/active)**, Parent, University, Partner Institution, Recruitment Agent, Corporate, Employer, Government, Organization, Training Partner *(IF-3: multi-type-ready per Constitution; only Student is workflow-active today)* |
+| **Market** (residence) | Picklist | India, Nepal, Pakistan, Bangladesh, Sri Lanka, Bhutan, Other *(IF-2: multi-market per Constitution)* |
+| Lead Source Detail | Picklist | Website Form, WhatsApp, Instagram, Facebook, LinkedIn, YouTube, TikTok, Google Ads, Walk-in, Referral, Education Fair, Other |
+| Interested Country | Multi-select | Italy, Germany, France, Spain, Hungary, Latvia, Lithuania, Ireland, Netherlands, Malta, Poland, Other Schengen, UK, Australia, New Zealand, Singapore, Japan, South Korea, Other *(IF-2: config values — maintained as a picklist now, KG-backed later; never hardcoded in logic)* |
 | Interested Level | Picklist | Bachelor's, Master's, Diploma, PhD, PR/Immigration, Other |
 | **Intended Intake** | Picklist | **Sep 2026, Jan 2027, May 2027, Sep 2027, 2028+, Undecided** *(IF-1: current-cycle correction — File 01 predated Jul 2026)* |
 | Budget Range | Picklist | <10L, 10–20L, 20–35L, 35L+ |
@@ -64,6 +66,9 @@ Lost Reason: Went Silent / Chose Competitor / Budget / Not Eligible / Postponed 
 ## 5. Workflows — build these 5 (File 01 §5); each gets an #ops-alerts heartbeat
 1. **Instant lead response** (Leads, on create): welcome email + Task "Call new lead" today/Highest +
    `#leads` alert. Round-robin assignment among counselors. *(This is the seam AM1.1 extends.)*
+   *Multi-type guard (Constitution): scope workflow to `Lead Type = Student` so non-student lead types
+   (University, Agent, Corporate…) don't trigger student-response logic when added later. Templates are
+   language-aware per Preferred Language (English/Hindi/Nepali).*
 2. **Stale lead rescue** (Leads, 3-day no activity): check-in email + task; 7-day silence → Nurture.
 3. **Stage-triggered client updates** (Cases, on stage change): Agreement Sent→sign+follow-up;
    Signed→onboarding + Ops task (WorkDrive folder) + `#wins`; Offer/Visa→congrats + `#wins`.
