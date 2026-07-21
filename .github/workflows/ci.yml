@@ -29,6 +29,11 @@ jobs:
       - name: Syntax-check serverless functions
         run: find functions -name "*.mjs" -print0 | xargs -0 -n1 node --check
 
+      # Configuration Validation quality gate (Execution Lock v1.0): tenant
+      # config must satisfy the CRM/automation invariants before it drives a build.
+      - name: Validate tenant configuration
+        run: node scripts/validate-config.mjs
+
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"

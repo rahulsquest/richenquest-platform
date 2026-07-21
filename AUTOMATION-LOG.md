@@ -55,6 +55,7 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 ## 6. Implementation event log (newest first)
 | Date | Item | Event |
 |---|---|---|
+| 2026-07-22 | Execution | **Execution Lock v1.0 in force** (Files 16–19 locked; CSE execution-only mode). Built config validator (scripts/validate-config.mjs, zero-dep) + wired into CI as the Configuration Validation gate. Positive+negative tested. Hardens the priority-1 CRM config ahead of the AM0.4 build. |
 | 2026-07-22 | Governance | Founder resolved OI-1/2/3/4 + engineering rule (design-for-scale/build-for-today, File 19 A1). Team size not a public claim; configurable licensing; role-based Finance ownership; configurable Assignment Engine. Findings IF-5/IF-6. Website headcount claim removed (separate `copy` commit). No architecture change. |
 | 2026-07-22 | Governance | **Master Constitution v1.0 accepted (File 19).** Role → Chief Systems Engineer. Files 16–18 frozen as constitutional architecture. Assessment: Constitution adds config + governance, **does not invalidate architecture** (configurable design already accommodates new markets/geography/lead-types/languages). Applied deltas to AM0.4 (findings IF-2, IF-3). |
 | 2026-07-22 | State sync | Corrected state per founder. AM0.1 ✅. AM0.3 ✅ (DNS-verified, India DC). Retired obsolete "AM0.1 pending" assumption. Critical path advances to AM0.4. |
