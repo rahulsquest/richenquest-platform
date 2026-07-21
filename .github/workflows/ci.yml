@@ -29,6 +29,10 @@ jobs:
       - name: Syntax-check serverless functions
         run: find functions -name "*.mjs" -print0 | xargs -0 -n1 node --check
 
+      # Functional tests for the Zoho automation layer (Quality Gate: Functional Testing).
+      - name: Test serverless functions
+        run: node --test "functions/**/*.test.mjs"
+
       # Configuration Validation quality gate (Execution Lock v1.0): tenant
       # config must satisfy the CRM/automation invariants before it drives a build.
       - name: Validate tenant configuration
