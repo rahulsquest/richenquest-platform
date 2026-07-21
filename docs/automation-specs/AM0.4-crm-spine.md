@@ -12,8 +12,9 @@ Everything in File 16 (leads, cases, automations, dashboards) plugs into this.
   role hierarchy CEO (Rahul) → Managers (Harsh Ops, Kishor Partnerships) → Counselor (Kunal) /
   Operations (Bibek, Tahir) / Marketing (Vishrut) [/ Finance — unassigned, see open items];
   **2FA enforced** (non-negotiable — you hold passports/financials, File 00); data-sharing "Private
-  with role hierarchy." **Note:** 7 members vs ~5 seats provisioned at AM0.1 → confirm +2 seats or
-  guest access (open item).
+  with role hierarchy." **Licensing (OI-2):** don't hardcode seat assumptions — provision the users
+  that current licences allow, assign roles to them, add more seats/guest access later. Ownership is
+  role-based (OI-3): Finance Owner = Rahul (temporary, transferable by reassigning the role).
 - **AM0.8 Cliq channels:** `#leads`, `#wins`, `#finance-approvals`, `#ops-alerts`, `#daily-updates`.
   (`#leads` and `#ops-alerts` are used by AM0.4's workflows + heartbeat.)
 
@@ -69,11 +70,12 @@ Lost Reason: Went Silent / Chose Competitor / Budget / Not Eligible / Postponed 
 
 ## 5. Workflows — build these 5 (File 01 §5); each gets an #ops-alerts heartbeat
 1. **Instant lead response** (Leads, on create): welcome email + Task "Call new lead" today/Highest +
-   `#leads` alert. **Configurable assignment (NOT hardcoded round-robin — founder rule IF-4):** an
-   Assignment Rule driven by the dimensions in `config/tenant-richenquest.json` (department, country,
-   language, lead type, workload, availability). v1 default (confirm): Student leads → Kunal (Student
-   Success); Pakistan-market → also notify Tahir; overflow → Bibek. Performance-based routing deferred.
-   *(This is the seam AM1.1 extends.)*
+   `#leads` alert. **Configurable Assignment Engine (NOT static routing — founder OI-4):** driven by
+   `config/tenant-richenquest.json → assignment_engine`. **Phase 1 (now, native):** Zoho CRM Assignment
+   Rules on field criteria (language / market / destination country / lead type / department /
+   expertise) **+ manual override** (always available). **Phase 2 (later, custom function):**
+   workload-balancing + availability. **Phase 3:** performance-based. v1 default (confirm): Student →
+   Kunal; Pakistan-market → also notify Tahir; overflow → Bibek. *(This is the seam AM1.1 extends.)*
    *Multi-type guard (Constitution): scope workflow to `Lead Type = Student` so non-student lead types
    (University, Agent, Corporate…) don't trigger student-response logic when added later. Templates are
    language-aware per Preferred Language (English/Hindi/Nepali).*

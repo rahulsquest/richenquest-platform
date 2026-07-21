@@ -21,19 +21,28 @@
     "_rule": "Only Student has production workflows. Revisit Zoho Record Types only when a 2nd lead type becomes operational."
   },
 
-  "team": [
-    { "name": "Rahul Kumar", "title": "Founder & CEO", "function": "Executive Office", "crm_role": "CEO", "digital_employee_pod": ["COMPASS"] },
-    { "name": "Harsh", "title": "Operations & Data Intelligence Lead", "function": "Operations", "crm_role": "Manager / Operations", "digital_employee_pod": ["CADENCE"], "note": "candidate Automation Owner (executes Zoho config)" },
-    { "name": "Kunal", "title": "Student Success & Visa Operations Lead", "function": "Student Success", "crm_role": "Counselor", "digital_employee_pod": ["ARIA", "ATLAS"], "note": "primary student-facing owner" },
-    { "name": "Bibek", "title": "University Applications Lead", "function": "Applications", "crm_role": "Operations", "digital_employee_pod": ["ATLAS"] },
-    { "name": "Kishor", "title": "Strategic Partnerships Lead", "function": "Partnerships (B2B)", "crm_role": "Manager / Partnerships", "digital_employee_pod": ["SCOUT"] },
-    { "name": "Tahir", "title": "Regional Partnerships & Pakistan Operations", "function": "Partnerships / Regional", "crm_role": "Operations / Regional", "digital_employee_pod": ["SCOUT"], "note": "owns Pakistan market ops" },
-    { "name": "Vishrut", "title": "Brand & Creative Design Lead", "function": "Marketing", "crm_role": "Marketing", "digital_employee_pod": ["ECHO"] }
-  ],
-  "team_open_items": {
-    "finance_role_unassigned": "No dedicated Finance owner named — AM0.5 (Books) / LEDGER ownership TBD (likely Rahul or Harsh). Confirm.",
-    "core_headcount_vs_claim": "7 named vs the public claim '5 full-time core members' (File 08 #4, claims.json). CLAIMS DECISION NEEDED before this reaches the website — see AUTOMATION-LOG open items.",
-    "zoho_license_count": "AM0.1 provisioned ~5 Zoho One seats; 7 team members. Need +2 paid seats OR guest access for some. Affects AM0.2 + credits."
+  "contributors": {
+    "_rule": "CRM supports ALL contributors regardless of engagement model (founder OI-1 2026-07-22). engagement_model ∈ {full_time, part_time, collaboration}. Assignment/ownership never depends on engagement model. Team SIZE is NOT a public claim — any public team number needs explicit founder approval.",
+    "roster": [
+      { "name": "Rahul Kumar", "title": "Founder & CEO", "function": "Executive Office", "engagement_model": "full_time", "crm_role": "CEO", "owns_roles": ["Finance Owner (temporary)"], "digital_employee_pod": ["COMPASS"] },
+      { "name": "Harsh", "title": "Operations & Data Intelligence Lead", "function": "Operations", "engagement_model": "full_time", "crm_role": "Manager / Operations", "digital_employee_pod": ["CADENCE"], "note": "candidate Automation Owner (executes Zoho config)" },
+      { "name": "Kunal", "title": "Student Success & Visa Operations Lead", "function": "Student Success", "engagement_model": "full_time", "crm_role": "Counselor", "digital_employee_pod": ["ARIA", "ATLAS"], "note": "primary student-facing owner" },
+      { "name": "Bibek", "title": "University Applications Lead", "function": "Applications", "engagement_model": "full_time", "crm_role": "Operations", "digital_employee_pod": ["ATLAS"] },
+      { "name": "Kishor", "title": "Strategic Partnerships Lead", "function": "Partnerships (B2B)", "engagement_model": "part_time", "crm_role": "Manager / Partnerships", "digital_employee_pod": ["SCOUT"] },
+      { "name": "Tahir", "title": "Regional Partnerships & Pakistan Operations", "function": "Partnerships / Regional", "engagement_model": "part_time", "crm_role": "Operations / Regional", "digital_employee_pod": ["SCOUT"], "note": "owns Pakistan market ops" },
+      { "name": "Vishrut", "title": "Brand & Creative Design Lead", "function": "Marketing", "engagement_model": "collaboration", "crm_role": "Marketing", "digital_employee_pod": ["ECHO"] }
+    ],
+    "_engagement_model_note": "Above engagement models are placeholders per OI-1 ('some full-time, some part-time, some collaboration') — founder to confirm exact classification per person. Not used in any public claim."
+  },
+  "ownership_roles": {
+    "_rule": "Ownership is ROLE-based, transferable by reassigning the role — no structural change (founder OI-3).",
+    "Finance Owner": { "current": "Rahul Kumar", "status": "temporary until a dedicated Finance Lead joins" },
+    "Automation Owner": { "current": "Harsh (proposed)", "status": "confirm" }
+  },
+  "licensing": {
+    "_rule": "Do NOT hardcode licensing assumptions (founder OI-2). Users are configurable; begin with available licensed users; provision more later. No redesign on expansion.",
+    "start": "use currently available Zoho One seats; assign roles to licensed users first",
+    "expansion": "add seats / guest access as contributors are onboarded"
   },
 
   "service_packages": [
@@ -46,18 +55,28 @@
     "Custom Institutional Services"
   ],
 
-  "assignment": {
-    "_rule": "Assignment is CONFIGURABLE — NEVER hardcoded round-robin (founder rule 2026-07-22).",
-    "dimensions": ["department", "country", "language", "lead_type", "workload", "availability"],
-    "future": "performance-based assignment (needs history; deferred)",
+  "assignment_engine": {
+    "_rule": "CONFIGURABLE ASSIGNMENT ENGINE — NEVER static/hardcoded routing (founder OI-4 2026-07-22). The config is the stable contract; the implementation behind it evolves without changing this contract or the architecture (Files 16-18).",
+    "priority_dimensions": ["language", "market", "destination_country", "lead_type", "department", "expertise", "current_workload", "availability", "manual_override"],
+    "implementation_phasing": {
+      "phase_1_now_native": "Zoho CRM Assignment Rules on field criteria (language/market/destination/lead_type/department/expertise) + manual override. Configurable, no code. Implements only what today needs.",
+      "phase_2_later_custom": "workload-balancing + availability-awareness via a custom function (Deluge or a Catalyst function that reads this config). Added only when volume needs it.",
+      "phase_3_future": "performance-based routing (needs historical data)."
+    },
+    "manual_override": "always available — a human can reassign any record at any time (never blocked by the engine).",
     "v1_default_PROPOSED": {
-      "note": "Sensible starting routing for the small current team — CONFIRM before build. Not hardcoded; expressed as config the assignment rule reads.",
+      "note": "Starting routing for the current small team — CONFIRM. Expressed as config the engine reads; not hardcoded logic.",
       "Student": {
         "default_owner": "Kunal (Student Success)",
         "by_market": { "Pakistan": "route/notify Tahir (Regional & Pakistan Ops)" },
         "overflow": "Bibek (Applications) when Kunal at workload cap",
-        "by_language": "future: Nepali/Hindi routing when team supports it"
+        "by_language": "Nepali/Hindi routing when team capacity supports it"
       }
     }
+  },
+  "scale_target": {
+    "_rule": "Engineering principle (founder 2026-07-22): never optimize for today's size; design for the future, implement only what is necessary today.",
+    "design_for": { "employees": "100+", "students": "100000+", "partner_institutions": "500+", "countries": "multiple", "business_units": "multiple" },
+    "build_today": "only the minimum necessary for current operations; everything config-driven, modular, reusable so scale needs no redesign."
   }
 }

@@ -67,3 +67,25 @@ future Titan tenants.
 ## Discipline
 Follow File 16, one milestone at a time, never skip dependencies, never redesign for a "better idea,"
 record findings separately. Current active milestone: **AM0.4 (CRM spine).**
+
+---
+
+## Amendments
+**A1 (2026-07-22) — Design-for-scale, build-for-today.** Never optimize for today's organization size.
+Design for a future org of **100+ employees, 100,000+ students, 500+ partner institutions, multiple
+countries, multiple business units** — while implementing **only what is necessary today.** Everything
+config-driven, modular, reusable, so scale needs no redesign. (Reinforces "never hardcode" +
+Titan-compatibility; does not change Files 16–18.)
+
+**A2 (2026-07-22) — Team size is not a public claim.** Headcount/team-size must not be used as a
+public marketing claim; any public team number requires explicit founder approval per use (mirrored in
+File 08). The CRM supports all contributors regardless of engagement model (full-time/part-time/
+collaboration).
+
+**A3 (2026-07-22) — Ownership is role-based & transferable.** Responsibilities (e.g. Finance Owner —
+currently Rahul, temporary) attach to roles, transferable by reassignment with no structural change.
+
+**A4 (2026-07-22) — Configurable Assignment Engine, no static routing.** Assignment is a configurable
+engine (language, market, destination, lead type, department, expertise, workload, availability, manual
+override); no routing logic hardcoded. Implemented minimally today (native rules), upgradeable without
+architecture change.

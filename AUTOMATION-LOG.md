@@ -55,6 +55,7 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 ## 6. Implementation event log (newest first)
 | Date | Item | Event |
 |---|---|---|
+| 2026-07-22 | Governance | Founder resolved OI-1/2/3/4 + engineering rule (design-for-scale/build-for-today, File 19 A1). Team size not a public claim; configurable licensing; role-based Finance ownership; configurable Assignment Engine. Findings IF-5/IF-6. Website headcount claim removed (separate `copy` commit). No architecture change. |
 | 2026-07-22 | Governance | **Master Constitution v1.0 accepted (File 19).** Role → Chief Systems Engineer. Files 16–18 frozen as constitutional architecture. Assessment: Constitution adds config + governance, **does not invalidate architecture** (configurable design already accommodates new markets/geography/lead-types/languages). Applied deltas to AM0.4 (findings IF-2, IF-3). |
 | 2026-07-22 | State sync | Corrected state per founder. AM0.1 ✅. AM0.3 ✅ (DNS-verified, India DC). Retired obsolete "AM0.1 pending" assumption. Critical path advances to AM0.4. |
 | 2026-07-22 | — | Entered implementation mode; AM0.1 spec had been issued (now superseded — activation already done). |
@@ -67,10 +68,16 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 | IF-3 | Constitution requires multi-type-lead compatibility (Student now; Parent/University/Agent/Corporate… later) | New Lead Type field + workflow scoped to Student — **config, no architecture change** (CRM-as-SoR + modules already support it) | Applied to AM0.4 (Lead Type field; workflow guard). Option A approved 2026-07-22; record-types deferred until a 2nd type operational. Files 16–18 untouched. |
 | IF-4 | Founder rule: assignment must never be hardcoded round-robin; configurable by department/country/language/lead-type/workload/availability | Refines File 01 §5.1 assignment mechanism — **execution improvement, no architecture change** | AM0.4 workflow 1 now uses a config-driven Assignment Rule (config/tenant-richenquest.json → assignment). Performance-based routing deferred. Files 16–18 untouched. |
 
-## 8. Open items awaiting founder (non-blocking for AM0.4 structural build; resolve before dependent steps)
-| # | Item | Blocks | Decision needed |
+## 8. Open items — ✅ RESOLVED by founder 2026-07-22
+| # | Item | Resolution |
+|---|---|---|
+| OI-1 | Team headcount vs public claim | **Team size is NOT a public marketing claim** (needs founder approval per use). CRM supports all contributors (full-time/part-time/collaboration). → File 08 + File 19 A2 updated; **website headcount claim removed** (RELEASE-LOG). |
+| OI-2 | Zoho licences | **Don't hardcode licensing.** Users configurable; begin with available licensed users, provision more later; no redesign on expansion. → config `licensing`; AM0.4 §1A. |
+| OI-3 | Finance owner | **Rahul = temporary Finance Owner** until a dedicated Finance Lead joins; **role-based, transferable** with no structural change. → config `ownership_roles`; File 19 A3. |
+| OI-4 | Assignment routing | **Configurable Assignment Engine**, no static routing (language/market/destination/lead-type/department/expertise/workload/availability/manual-override). Native rules now, custom function later. → config `assignment_engine`; File 19 A4. |
+
+## 9. Implementation findings (cont.)
+| # | Finding | Impact | Action |
 |---|---|---|---|
-| OI-1 | **Team headcount vs public claim:** 7 named leads vs claims.json/File 08 "5 full-time core members" | Website claim (before RC-1 launch) | Are all 7 full-time core? If yes → founder-signed update to File 08 + claims.json + site (claims-guard governs). If not → clarify who is core. **I will not change a public claim without sign-off.** |
-| OI-2 | **Zoho One licences:** ~5 seats at AM0.1 vs 7 members | AM0.2 (Directory) | +2 paid seats (credit impact) or guest access for some? |
-| OI-3 | **Finance owner unassigned** in roster | AM0.5 (Books), LEDGER | Who owns Finance — Rahul, Harsh, or a new hire? |
-| OI-4 | **v1 assignment routing defaults** (config proposes Kunal default / Tahir for Pakistan / Bibek overflow) | AM0.4 workflow 1 go-live | Confirm or adjust the routing values |
+| IF-5 | Assignment Engine needs workload/availability, which exceed native Zoho Assignment Rules | Phasing, **no architecture change** | Phase 1 native criteria + manual override now; Phase 2 custom function (Deluge/Catalyst reading config) later. Contract (config) stable across phases. |
+| IF-6 | Contributors have mixed engagement models; CRM must support all | Config field `engagement_model`; **no architecture change** (assignment never depends on it) | Captured in config `contributors`. |

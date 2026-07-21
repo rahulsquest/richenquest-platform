@@ -29,7 +29,7 @@ Clean on audit (no factual company claims): Files 01, 03, 05, 06.
 2a. Approved sentence: "Helping students achieve their global education goals since 2024."
 2b. Approved claim (founder confirmed supporting records exist, 2026-07-19; final wording per M1 approval): "Over 1,000 students guided through study abroad counseling, admissions, scholarship guidance, documentation support, visa guidance, and global education pathways since 2024." Verb must stay "guided/supported/assisted" — never "placed" (placement figure remains the verified 15). Keep the underlying records (counseling logs, event attendance, CRM entries) retrievable on request.
 3. Recruitment reach: India (Bihar, Jharkhand, eastern UP) and Nepal, via core team + collaborator network.
-4. Team structure: **5 full-time core members**; extended network of **20–25 collaborators, interns, and freelancers** engaged as needed (always distinguished from employees).
+4. Team structure (**INTERNAL REFERENCE ONLY — not a public marketing claim, founder rule 2026-07-22**): approximately seven active contributors with mixed engagement models (some full-time, some part-time, some collaboration), plus a network of collaborators/interns/freelancers. **Team size / headcount must NOT be used as a public marketing claim** and any public statement of team numbers requires explicit founder approval per use. Public-facing copy describes the team qualitatively, without a count. *(Supersedes the earlier "5 full-time core members" public phrasing.)*
 5. Verified placement records maintained for every student placed under the company (currently 15 students; use the number only where a figure is required — see open item ①).
 6. Services: study-abroad counseling; university admissions; scholarships; documentation & application support; interview preparation; student/work/business/tourist visa assistance; accommodation & pre-departure guidance.
 7. Standard service package: ₹1,80,000 (varies by destination and scope).
@@ -42,6 +42,7 @@ Clean on audit (no factual company claims): Files 01, 03, 05, 06.
 - Any visa success rate or percentage — **including scholarship-success percentages**
 - "Partner of [institution]" or "**partner university/universities**" before a signed agreement. Approved alternatives (founder direction 2026-07-19): "universities we work with", "universities our students apply to", "destination universities", "study destinations", "global university network".
 - **Verb discipline (founder direction 2026-07-19):** "placed" only where verified placement records exist; otherwise use "guided", "supported", or "assisted".
+- **Team size / headcount as a public marketing claim** (founder rule 2026-07-22) — any public team number requires explicit founder approval per use; describe the team qualitatively otherwise.
 - Revenue, growth-rate, or ranking claims
 - "AI-powered platform" in present tense until the CRM+automation stack is live (then: describe specifically what it does)
 - Testimonials or references without the named person's permission
