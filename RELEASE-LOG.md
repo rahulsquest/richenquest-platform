@@ -57,6 +57,7 @@ secret-gated); revisit when Catalyst exists — founder decision, not an automat
 
 | Date | Class | Change | Commit | Approval |
 |---|---|---|---|---|
+| 2026-07-22 | `copy` | Removed team-size headcount from public site (About team card + styleguide stat tile); team now described qualitatively. Founder rule OI-1: team size is not a public marketing claim (File 08 + File 19 A2). claims-guard + build + link-check green. | *this commit* | Founder OI-1 2026-07-22 |
 | 2026-07-19 | `integration` | Server-side Zoho OAuth layer (`functions/zoho/`): token manager with auto-refresh + 401 retry, generic API client, per-DC/service base resolution, clients for CRM/Mail/Bookings/Analytics/Forms/SalesIQ/Flow, CLI scripts (auth-url/exchange-code/verify), `.env.example`, CI syntax-gate for functions, docs/14 §10–13. Secrets in `.env` only (gitignored); nothing reaches the browser or live site (verified absent from `dist`) | *this commit* | Founder instruction |
 | 2026-07-19 | `integration` | Client-side Zoho integration layer, dormant by default: `data/integrations.json` config (no hard-coded IDs/URLs), modules for Forms/Bookings/SalesIQ with Zoho-host URL validation + consent gate, embed components with real-workflow fallbacks, Bookings slot wired into `/contact/`, setup guide `docs/14-zoho-integration.md` | `26ed0d9` | Founder instruction |
 | 2026-07-19 | `deploy` | Created `release/rc-1` branch; froze `main` at the RC-1 cut so production cutover stays an explicit founder decision | `964d005` | Founder instruction |
