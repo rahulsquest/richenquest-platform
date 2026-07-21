@@ -115,3 +115,139 @@ AM0.4 is "Live" only when:
 ## 9. On sign-off
 Founder signs off → I mark AM0.4 ✅ in AUTOMATION-LOG and issue **AM1.1 (Speed-to-Lead)** — the first
 revenue-impacting automation, which extends workflow 1 with WhatsApp (needs AM0.9 BSP, run in parallel).
+
+---
+
+# EXECUTION RUNBOOK (for Harsh) — do these in order
+
+Notes: Zoho CRM console labels vary slightly by edition; where a path differs, the **target** is named
+so you can find it. Values marked *(config)* come from `config/tenant-richenquest.json` — that file
+wins if anything ever disagrees. Capture the evidence noted at each step (screenshot/export) — I verify
+against it. No custom code/functions in AM0.4; everything is native Zoho.
+
+### STEP 0 — Prerequisites (confirm before building)
+- 0a. **Users & roles (AM0.2):** the 7 contributors *(config → contributors.roster)* exist; role
+  hierarchy CEO (Rahul) → Managers (Harsh, Kishor) → Counselor (Kunal) / Operations (Bibek, Tahir) /
+  Marketing (Vishrut). **2FA enforced** (Directory → Security Policies).
+- 0b. **Cliq channels (AM0.8):** `#leads`, `#wins`, `#finance-approvals`, `#ops-alerts`, `#daily-updates`.
+- **Evidence 0:** screenshot of the Users list (roles visible) + the Cliq channel list.
+
+### STEP 1 — Rename module Deals → "Student Cases"
+- Setup → Customization → **Modules and Fields** → hover **Deals** → **Rename** → singular
+  "Student Case", plural "Student Cases".
+- **Evidence 1:** screenshot showing the renamed module in the module list.
+
+### STEP 2 — Leads: create custom fields *(config-sourced values)*
+Open **Leads** → Fields (layout editor) → add each (type · options):
+- Lead Type — Picklist — Student *(default)*, Parent, University, Partner Institution, Recruitment
+  Agent, Corporate, Employer, Government, Organization
+- Market — Picklist — India, Nepal, Pakistan, Bangladesh, Sri Lanka, Bhutan, Other
+- Lead Source Detail — Picklist — Website Form, WhatsApp, Instagram, Facebook, LinkedIn, YouTube,
+  TikTok, Google Ads, Walk-in, Referral, Education Fair, Other
+- Interested Country — Multi-select — Italy, Germany, France, Spain, Hungary, Latvia, Lithuania,
+  Ireland, Netherlands, Malta, Poland, Other Schengen, UK, Australia, New Zealand, Singapore, Japan,
+  South Korea, Other
+- Interested Level — Picklist — Bachelor's, Master's, Diploma, PhD, PR/Immigration, Other
+- Intended Intake — Picklist — Sep 2026, Jan 2027, May 2027, Sep 2027, 2028+, Undecided
+- Budget Range — Picklist — <10L, 10–20L, 20–35L, 35L+
+- Preferred Language — Picklist — English, Hindi, Nepali, Other
+- WhatsApp Number — Phone
+- UTM Source / UTM Medium / UTM Campaign — Single line ×3
+- **Evidence 2:** screenshots of the Lead picklist value editors for Lead Type, Market,
+  Interested Country, Intended Intake.
+
+### STEP 3 — Student Cases: create custom fields
+Open **Student Cases** → Fields → add:
+- Destination Country — Picklist (same country set as Interested Country)
+- Course & University (final) — Single line
+- Assigned Counselor — User lookup
+- Service Package — Picklist — Initial Counselling, University Shortlisting, Admission Assistance,
+  Scholarship Assistance, Visa Assistance, End-to-End Premium, Custom Institutional Services *(config)*
+- Document Status — Picklist — Not Started, Collecting, APS Applied, APS Received, AI Pre-checked,
+  Verified, Complete
+- Lane (Germany) — Picklist — Commission (Private), Service-fee (Public), n/a
+- Visa Status — Picklist — N/A, Preparing, Lodged, Biometrics Done, Approved, Refused
+- Next Deadline — Date
+- **Evidence 3:** screenshot of the Student Cases field list + the Service Package picklist editor.
+
+### STEP 4 — Student Cases pipeline (Stage-Probability) + Lost Reason
+- Setup → Customization → **Pipelines** (or Modules and Fields → Student Cases → **Stage-Probability
+  Mapping**). Set stages/probabilities exactly:
+  New Inquiry 10 · Counseling Booked 20 · Counseling Done 30 · Agreement Sent 40 · **Agreement
+  Signed 60** · Documents in Progress 65 · Applications Submitted 70 · Offer Received 80 · Visa Filed
+  90 · Visa Approved — Won 100 · Closed Lost 0.
+- Add **Lost Reason** picklist (Went Silent, Chose Competitor, Budget, Not Eligible, Postponed, Visa
+  Refused).
+- **Validation Rule:** Lost Reason **required when** Stage = Closed Lost (Modules and Fields →
+  Student Cases → Validation Rules).
+- **Evidence 4:** screenshot of the stage list with probabilities + the validation rule.
+
+### STEP 5 — Duplicate check (dedupe foundation for Speed-to-Lead)
+- Leads → make **Email** a duplicate-check/unique field (Setup → Data Administration → Duplicate
+  Check Preferences, or field-level "Do not allow duplicate values"). Secondary: Phone.
+- **Evidence 5:** screenshot of the duplicate-check setting on Email.
+
+### STEP 6 — Assignment Rule (Assignment Engine, Phase-1 native — OI-4)
+- Setup → Automation → **Assignment Rules** → new rule on Leads, entry = "Lead Type is Student".
+- Criteria-based routing *(config → assignment_engine)*: default owner **Kunal**; if **Market =
+  Pakistan** → assign/notify **Tahir**; overflow → **Bibek**. Manual reassignment always allowed.
+- **Evidence 6:** screenshot of the assignment rule criteria.
+
+### STEP 7 — Workflow Rules (Setup → Automation → Workflow Rules) — build all 5
+For each, add an action posting a short ping to Cliq `#ops-alerts` (heartbeat).
+- **WF1 Instant lead response** — Module Leads · On Create · **condition Lead Type = Student** ·
+  Actions: send email (template "Welcome – 60 Second Reply"); create Task "Call new lead" due today,
+  priority Highest, owner = record owner; Cliq `#leads` "🔔 New lead: ${Last Name} — ${Interested
+  Country} — call within 5 min".
+- **WF2 Stale lead rescue** — Leads · time-based: Lead Status = Contacted AND no activity 3 days ·
+  Action: "Checking in" email + owner task; at 7 days → set Status = Nurture.
+- **WF3 Stage-triggered updates** — Student Cases · on Stage change · Agreement Sent → signing email
+  + "follow up if unsigned 48h" task; Agreement Signed → onboarding email + Ops task "create WorkDrive
+  folder" + Cliq `#wins`; Offer Received/Visa Approved → congrats email + `#wins`.
+- **WF4 Overdue task escalation** — Tasks · Due Date +1d & not Completed → email owner; +3d → Cliq DM
+  owner's manager.
+- **WF5 Deadline guardian** — Student Cases · Next Deadline −7d → counselor task + Cliq alert; −2d →
+  priority Highest.
+- **Evidence 7:** screenshot of the Workflow Rules list (all 5 active) + one rule's action detail.
+
+### STEP 8 — Data sharing
+- Setup → Security Control → **Data Sharing Settings** → Leads & Student Cases = **Private** (role
+  hierarchy grants managers upward visibility).
+- **Evidence 8:** screenshot of the data-sharing settings.
+
+### STEP 9 — Acceptance test (seed + run)
+1. Create a **test Lead**: Lead Type Student, Market India, Interested Country Italy, Email a test
+   address you control. → Observe WF1.
+2. Create a **test Student Case**, move it stage-by-stage through all 11. → Observe WF3 at Agreement
+   Signed.
+3. Create an overdue test Task; set a test Next Deadline 7 days out. → Observe WF4/WF5.
+- **Evidence 9 (the core proof):**
+  - 9a: the received **welcome email** + the **"Call new lead" task** (showing assignee) + the
+    **`#leads`** message.
+  - 9b: at Agreement Signed — the **onboarding email/task** + **`#wins`** message.
+  - 9c: an **`#ops-alerts`** heartbeat from a workflow run.
+  - 9d: logged in as Kunal (or any counselor), confirm they **cannot** see another counselor's test lead.
+
+---
+
+# ACCEPTANCE CHECKLIST (I mark PASS/FAIL against your evidence)
+
+| # | Criterion | Evidence required | Result |
+|---|---|---|---|
+| A1 | Prereqs: 7 users + roles + 2FA; 5 Cliq channels | Evidence 0 | ☐ |
+| A2 | Module Deals renamed to Student Cases | Evidence 1 | ☐ |
+| A3 | Lead fields + picklists match config exactly | Evidence 2 | ☐ |
+| A4 | Student Case fields + Service Package match config | Evidence 3 | ☐ |
+| A5 | 11-stage pipeline w/ probabilities + Lost Reason validation | Evidence 4 | ☐ |
+| A6 | Email duplicate-check active | Evidence 5 | ☐ |
+| A7 | Assignment rule = configurable criteria (Student; Pakistan→Tahir; overflow Bibek) | Evidence 6 | ☐ |
+| A8 | All 5 workflows active, each with `#ops-alerts` heartbeat | Evidence 7 | ☐ |
+| A9 | Data sharing Private + hierarchy | Evidence 8 | ☐ |
+| A10 | Test lead fires WF1 (email + task + `#leads`) within seconds | Evidence 9a | ☐ |
+| A11 | Agreement Signed fires WF3 (onboarding + `#wins`) | Evidence 9b | ☐ |
+| A12 | `#ops-alerts` heartbeat observed | Evidence 9c | ☐ |
+| A13 | Counselor sees only own records | Evidence 9d | ☐ |
+
+**PASS rule:** AM0.4 is marked ✅ only when A1–A13 are all satisfied by evidence. Any gap → I list the
+exact defect + corrective step, milestone stays IN PROGRESS. Missing/partial evidence = not verifiable
+= not PASS (I never mark complete without evidence).

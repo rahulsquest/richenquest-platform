@@ -33,7 +33,7 @@ Legend: ✅ Live · 🟩 Likely-done (verify) · 🟦 Next / in progress · ⬜ 
 | AM0.3 | Mail DNS (MX/SPF/DKIM) | ✅ | Independently DNS-verified (mx.zoho.in, SPF, DKIM) |
 | AM0.2 | Directory: users, roles, **2FA enforced**, groups | ❓ | Org+Mail imply users exist; roles/2FA-enforced/groups **unconfirmed** — verify |
 | AM0.8 | Cliq channels (#leads,#wins,#finance-approvals,#ops-alerts,#daily-updates) | ❓ | Unconfirmed |
-| AM0.4 | **CRM spine** (fields, 11-stage pipeline, 5 workflows) — File 01 | 🟦 **NEXT** | Not built to spec; the keystone; front of critical path |
+| AM0.4 | **CRM spine** (fields, 11-stage pipeline, 5 workflows) — File 01 | 🟦 **Executing (Harsh)** | Runbook + 13-point acceptance checklist (A1–A13) issued; awaiting implementation evidence |
 | AM0.5 | Books + GST + Razorpay | ⬜ | Unconfirmed; likely not started |
 | AM0.6 | WorkDrive Students template | ⬜ | Unconfirmed |
 | AM0.7 | Vault | ⬜ | Unconfirmed |
@@ -55,6 +55,7 @@ Gated only by a quick AM0.2/AM0.8 confirmation + one business input (team roster
 ## 6. Implementation event log (newest first)
 | Date | Item | Event |
 |---|---|---|
+| 2026-07-22 | Execution | Option A confirmed (Harsh = Automation Owner; I am Tech Lead + QA). Issued the AM0.4 step-by-step execution runbook (STEP 0–9, exact console paths + per-step evidence) and the 13-point acceptance checklist (A1–A13). AM0.4 → Executing; awaiting evidence. |
 | 2026-07-22 | Parallel work | AM0.4 human-blocked → safe parallel work: functional test suite for the Zoho automation layer (functions/zoho/zoho.test.mjs, 14 tests, native node:test, zero-dep) covering config/DC resolution, oauth caching+refresh, client 401-retry + error normalization + auth header, CRM upsert dedupe/validation, Flow URL guard. Wired into CI. Does not touch AM0.4; hardens the code that runs all future automation. |
 | 2026-07-22 | Execution | **Execution Lock v1.0 in force** (Files 16–19 locked; CSE execution-only mode). Built config validator (scripts/validate-config.mjs, zero-dep) + wired into CI as the Configuration Validation gate. Positive+negative tested. Hardens the priority-1 CRM config ahead of the AM0.4 build. |
 | 2026-07-22 | Governance | Founder resolved OI-1/2/3/4 + engineering rule (design-for-scale/build-for-today, File 19 A1). Team size not a public claim; configurable licensing; role-based Finance ownership; configurable Assignment Engine. Findings IF-5/IF-6. Website headcount claim removed (separate `copy` commit). No architecture change. |
