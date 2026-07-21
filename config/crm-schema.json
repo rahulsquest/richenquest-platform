@@ -1,0 +1,33 @@
+{
+  "_note": "CRM field schema for autonomous provisioning (functions/zoho/provision-crm.mjs). Picklist values with 'values_from' resolve from config/tenant-richenquest.json (single source of truth); inline 'values' are CRM-specific. 'manual:true' = API can't reliably create it → left for console. Module rename Deals→Student Cases is console-only; Student-Case fields are created on the 'Deals' module. Field API names auto-derive from label in Zoho.",
+  "modules": {
+    "Leads": [
+      { "label": "Lead Type", "type": "picklist", "values_from": "lead_types" },
+      { "label": "Market", "type": "picklist", "values_from": "markets" },
+      { "label": "Lead Source Detail", "type": "picklist", "values": ["Website Form", "WhatsApp", "Instagram", "Facebook", "LinkedIn", "YouTube", "TikTok", "Google Ads", "Walk-in", "Referral", "Education Fair", "Other"] },
+      { "label": "Interested Country", "type": "multiselectpicklist", "values_from": "destinations" },
+      { "label": "Interested Level", "type": "picklist", "values": ["Bachelor's", "Master's", "Diploma", "PhD", "PR/Immigration", "Other"] },
+      { "label": "Intended Intake", "type": "picklist", "values": ["Sep 2026", "Jan 2027", "May 2027", "Sep 2027", "2028+", "Undecided"] },
+      { "label": "Budget Range", "type": "picklist", "values": ["<10L", "10-20L", "20-35L", "35L+"] },
+      { "label": "Preferred Language", "type": "picklist", "values": ["English", "Hindi", "Nepali", "Other"] },
+      { "label": "WhatsApp Number", "type": "phone" },
+      { "label": "UTM Source", "type": "text", "length": 120 },
+      { "label": "UTM Medium", "type": "text", "length": 120 },
+      { "label": "UTM Campaign", "type": "text", "length": 120 }
+    ],
+    "Deals": [
+      { "label": "Destination Country", "type": "picklist", "values_from": "destinations" },
+      { "label": "Course & University Final", "type": "text", "length": 255 },
+      { "label": "Assigned Counselor", "type": "userlookup", "manual": true, "manual_reason": "user-lookup field creation is unreliable via API" },
+      { "label": "Service Package", "type": "picklist", "values_from": "service_packages" },
+      { "label": "Document Status", "type": "picklist", "values": ["Not Started", "Collecting", "APS Applied", "APS Received", "AI Pre-checked", "Verified", "Complete"] },
+      { "label": "Lane", "type": "picklist", "values": ["Commission (Private)", "Service-fee (Public)", "n/a"] },
+      { "label": "Visa Status", "type": "picklist", "values": ["N/A", "Preparing", "Lodged", "Biometrics Done", "Approved", "Refused"] },
+      { "label": "Next Deadline", "type": "date" }
+    ]
+  },
+  "console_only": {
+    "_note": "Not API-addressable — remain manual (Harsh, or a visual-UI bridge). I verify structurally where possible via API reads.",
+    "items": ["Module rename Deals→Student Cases", "11-stage pipeline + Lost Reason validation", "Email duplicate-check", "Assignment Rule (engine)", "5 Workflow Rules", "Data sharing Private+hierarchy"]
+  }
+}

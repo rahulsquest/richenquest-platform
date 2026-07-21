@@ -17,6 +17,8 @@ import { getAccessToken, setTokenCache } from "./oauth.mjs";
 import { zohoRequest } from "./client.mjs";
 import * as crm from "./services/crm.mjs";
 import * as flow from "./services/flow.mjs";
+import { buildFieldPayload } from "./services/crm-settings.mjs";
+import { resolveValues } from "./provision-crm.mjs";
 
 // Test-local fake credentials (never real).
 process.env.ZOHO_DC = "in";
@@ -179,6 +181,36 @@ test("createOrUpdateLead upserts with dedupe fields and returns action+id", asyn
 });
 
 // ---- services/flow.mjs ---------------------------------------------------
+// ---- provisioning: buildFieldPayload + resolveValues -------------------
+test("buildFieldPayload maps picklist/text/phone correctly", () => {
+  const pick = buildFieldPayload({ label: "Market", type: "picklist", values: ["India", "Nepal"] });
+  assert.equal(pick.data_type, "picklist");
+  assert.deepEqual(pick.pick_list_values, [
+    { display_value: "India", actual_value: "India" },
+    { display_value: "Nepal", actual_value: "Nepal" },
+  ]);
+  const text = buildFieldPayload({ label: "UTM Source", type: "text", length: 120 });
+  assert.equal(text.data_type, "text");
+  assert.equal(text.length, 120);
+  const phone = buildFieldPayload({ label: "WhatsApp Number", type: "phone" });
+  assert.equal(phone.data_type, "phone");
+  assert.equal(phone.pick_list_values, undefined);
+});
+
+test("resolveValues pulls picklist values from tenant config (single source)", () => {
+  const tenant = {
+    lead_types: { active: ["Student"], future_ready: ["Parent"] },
+    markets: { primary: ["India", "Nepal", "Pakistan"], secondary: ["Bhutan"] },
+    destinations: { primary_europe: ["Italy"], secondary: ["Japan"] },
+    service_packages: ["Initial Counselling"],
+  };
+  assert.deepEqual(resolveValues({ values_from: "lead_types" }, tenant), ["Student", "Parent"]);
+  assert.deepEqual(resolveValues({ values_from: "markets" }, tenant), ["India", "Nepal", "Pakistan", "Bhutan", "Other"]);
+  assert.deepEqual(resolveValues({ values_from: "destinations" }, tenant), ["Italy", "Japan", "Other"]);
+  assert.deepEqual(resolveValues({ values: ["A", "B"] }, tenant), ["A", "B"]);
+  assert.throws(() => resolveValues({ values_from: "nope" }, tenant), /Unknown values_from/);
+});
+
 test("triggerFlow rejects non-Zoho / insecure URLs and accepts a valid webhook", async () => {
   await assert.rejects(() => flow.triggerFlow({}, "http://flow.zoho.in/x"), /https Zoho Flow/);
   await assert.rejects(() => flow.triggerFlow({}, "https://evil.com/x"), /https Zoho Flow/);
