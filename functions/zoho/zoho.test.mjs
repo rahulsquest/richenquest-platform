@@ -13,12 +13,12 @@ import assert from "node:assert/strict";
 
 import { getDataCentre, serviceBase, requireEnv, getOAuthConfig, redact } from "./config.mjs";
 import { parseJson, ZohoError } from "./http.mjs";
-import { getAccessToken, setTokenCache } from "./oauth.mjs";
+import { getAccessToken, setTokenCache, exchangeAuthCode } from "./oauth.mjs";
 import { zohoRequest } from "./client.mjs";
 import * as crm from "./services/crm.mjs";
 import * as flow from "./services/flow.mjs";
 import { buildFieldPayload } from "./services/crm-settings.mjs";
-import { resolveValues } from "./provision-crm.mjs";
+import { resolveValues, planProvision, planRollback, executeProvision, executeRollback } from "./provision-crm.mjs";
 
 // Test-local fake credentials (never real).
 process.env.ZOHO_DC = "in";
@@ -209,6 +209,84 @@ test("resolveValues pulls picklist values from tenant config (single source)", (
   assert.deepEqual(resolveValues({ values_from: "destinations" }, tenant), ["Italy", "Japan", "Other"]);
   assert.deepEqual(resolveValues({ values: ["A", "B"] }, tenant), ["A", "B"]);
   assert.throws(() => resolveValues({ values_from: "nope" }, tenant), /Unknown values_from/);
+});
+
+// ---- oauth: auth-code exchange flow ------------------------------------
+test("exchangeAuthCode returns tokens on success and throws on error", async () => {
+  const opts = { clientId: "1000.x", clientSecret: "s", redirectUri: "https://r", dc: { accounts: "https://accounts.zoho.in" } };
+  let ok = stubFetch((u) => (isToken(u) ? jsonRes(200, { access_token: "a", refresh_token: "1000.rt", scope: "ZohoCRM.settings.ALL" }) : jsonRes(404, {})));
+  try {
+    const json = await exchangeAuthCode("grant123", opts);
+    assert.equal(json.refresh_token, "1000.rt");
+  } finally { ok(); }
+  await assert.rejects(() => exchangeAuthCode("", opts), /Missing authorization code/);
+  const bad = stubFetch(() => jsonRes(400, { error: "invalid_code" }));
+  try { await assert.rejects(() => exchangeAuthCode("expired", opts), /invalid_code/); } finally { bad(); }
+});
+
+// ---- provisioning engine: plan / execute / idempotency / retry / rollback
+const SCHEMA = { modules: { Leads: [
+  { label: "Lead Type", type: "picklist", values_from: "lead_types" },
+  { label: "WhatsApp Number", type: "phone" },
+  { label: "Assigned Counselor", type: "userlookup", manual: true, manual_reason: "user-lookup" },
+] } };
+const TENANT = { lead_types: { active: ["Student"], future_ready: ["Parent"] } };
+
+test("planProvision is idempotent: creates missing, skips existing, flags manual", () => {
+  const plan = planProvision(SCHEMA, TENANT, { Leads: [{ field_label: "WhatsApp Number", custom_field: true }] });
+  const actions = Object.fromEntries(plan.Leads.map((i) => [i.label, i.action]));
+  assert.equal(actions["Lead Type"], "create");
+  assert.equal(actions["WhatsApp Number"], "skip"); // already exists
+  assert.equal(actions["Assigned Counselor"], "manual");
+});
+
+test("executeProvision dry-run creates nothing", async () => {
+  let calls = 0;
+  const api = { createField: async () => (calls++, { ok: true }), getFields: async () => [] };
+  const s = await executeProvision(planProvision(SCHEMA, TENANT, { Leads: [] }), api, { commit: false });
+  assert.equal(calls, 0);
+  assert.equal(s.wouldCreate, 2); // Lead Type + WhatsApp Number; Assigned Counselor is manual
+});
+
+test("executeProvision commit creates, verifies by read-back, and auto-retries transient failures", async () => {
+  const created = [];
+  let attempts = 0;
+  const api = {
+    createField: async (m, def) => {
+      attempts++;
+      if (def.label === "Lead Type" && attempts === 1) return { ok: false, code: "INTERNAL_ERROR" }; // transient → retry
+      created.push({ field_label: def.label, custom_field: true, id: "id_" + def.label });
+      return { ok: true, api_name: def.label.replace(/ /g, "_") };
+    },
+    getFields: async () => created,
+  };
+  const plan = planProvision(SCHEMA, TENANT, { Leads: [] });
+  const s = await executeProvision(plan, api, { commit: true, tries: 3, delayMs: 0 });
+  assert.equal(s.created, 2); // Lead Type (after retry) + WhatsApp Number
+  assert.equal(s.manual, 1);
+  assert.equal(s.failed, 0);
+  assert.ok(attempts >= 3, "Lead Type retried at least once");
+});
+
+test("executeProvision reports permanent failure without infinite retry", async () => {
+  const api = { createField: async () => ({ ok: false, code: "DUPLICATE_DATA", message: "exists" }), getFields: async () => [] };
+  const s = await executeProvision(planProvision(SCHEMA, TENANT, { Leads: [] }), api, { commit: true, tries: 3, delayMs: 0 });
+  assert.equal(s.failed, 2); // Lead Type + WhatsApp both permanent-fail, no retry storm
+});
+
+test("planRollback + executeRollback delete custom fields, skip absent/non-custom", async () => {
+  const existing = { Leads: [
+    { field_label: "Lead Type", custom_field: true, id: "id1" },
+    { field_label: "WhatsApp Number", custom_field: true, id: "id2" },
+  ] };
+  const plan = planRollback(SCHEMA, existing);
+  const deletes = plan.Leads.filter((i) => i.action === "delete").map((i) => i.id);
+  assert.deepEqual(deletes.sort(), ["id1", "id2"]);
+  const removed = [];
+  const api = { deleteField: async (m, id) => (removed.push(id), { ok: true }) };
+  const s = await executeRollback(plan, api, { commit: true, delayMs: 0 });
+  assert.equal(s.deleted, 2);
+  assert.deepEqual(removed.sort(), ["id1", "id2"]);
 });
 
 test("triggerFlow rejects non-Zoho / insecure URLs and accepts a valid webhook", async () => {

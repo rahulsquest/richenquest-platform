@@ -10,10 +10,22 @@ import { zohoRequest } from "../client.mjs";
 export async function getFields(module) {
   const json = await zohoRequest("crm", "/settings/fields", { query: { module } });
   return (json.fields ?? []).map((f) => ({
+    id: f.id,
     api_name: f.api_name,
     field_label: f.field_label,
     data_type: f.data_type,
+    custom_field: f.custom_field,
   }));
+}
+
+/** Delete a custom field by id (rollback). Returns { ok, code }. */
+export async function deleteField(module, id) {
+  const json = await zohoRequest("crm", `/settings/fields/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    query: { module },
+  });
+  const row = json.fields?.[0] ?? json;
+  return { ok: row?.status === "success" || row?.code === "SUCCESS", code: row?.code, message: row?.message };
 }
 
 /**

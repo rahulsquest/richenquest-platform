@@ -10,7 +10,7 @@
  * is correct and safe — worst case is one extra refresh on a cold start.
  */
 
-import { getOAuthConfig, redact } from "./config.mjs";
+import { getOAuthConfig, getDataCentre, redact } from "./config.mjs";
 import { fetchWithTimeout, parseJson, ZohoError } from "./http.mjs";
 
 const EXPIRY_BUFFER_MS = 60_000; // refresh a minute early to avoid edge races
@@ -72,6 +72,38 @@ export async function getAccessToken({ forceRefresh = false } = {}) {
   const ttlMs = (Number(json.expires_in) || 3600) * 1000;
   cache.set(json.access_token, ttlMs);
   return json.access_token;
+}
+
+/**
+ * Exchange a one-time authorization CODE for tokens (the token-exchange flow used
+ * by exchange-code.mjs). Testable (fetch is stubbable). Returns the token JSON
+ * (incl. refresh_token) or throws with the error code.
+ */
+export async function exchangeAuthCode(code, { clientId, clientSecret, redirectUri, dc } = {}) {
+  const cfg = {
+    clientId: clientId ?? process.env.ZOHO_CLIENT_ID,
+    clientSecret: clientSecret ?? process.env.ZOHO_CLIENT_SECRET,
+    redirectUri: redirectUri ?? process.env.ZOHO_REDIRECT_URI,
+    dc: dc ?? getDataCentre(),
+  };
+  if (!code) throw new ZohoError("Missing authorization code", { code: "missing_code" });
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: cfg.clientId,
+    client_secret: cfg.clientSecret,
+    redirect_uri: cfg.redirectUri,
+    code,
+  });
+  const res = await fetchWithTimeout(`${cfg.dc.accounts}/oauth/v2/token`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  const json = await parseJson(res);
+  if (!res.ok || json.error) {
+    throw new ZohoError(`Auth-code exchange failed: ${json.error || res.status}`, { status: res.status, code: json.error || "exchange_failed" });
+  }
+  return json;
 }
 
 /** Forces a refresh and reports success without ever printing the token. */

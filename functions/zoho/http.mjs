@@ -31,6 +31,28 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TI
   }
 }
 
+export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Retry an async op that THROWS on transient failure. `shouldRetry(err)` decides
+ * (default: always). delayMs grows linearly. Returns the op's value or rethrows
+ * the last error. Deterministic in tests via delayMs: 0.
+ */
+export async function retryAsync(fn, { tries = 3, delayMs = 400, shouldRetry = () => true, onRetry } = {}) {
+  let last;
+  for (let attempt = 1; attempt <= tries; attempt++) {
+    try {
+      return await fn(attempt);
+    } catch (err) {
+      last = err;
+      if (attempt >= tries || !shouldRetry(err)) break;
+      if (onRetry) onRetry(err, attempt);
+      if (delayMs) await sleep(delayMs * attempt);
+    }
+  }
+  throw last;
+}
+
 /** Parses a response as JSON, tolerating empty bodies. */
 export async function parseJson(res) {
   const text = await res.text();
