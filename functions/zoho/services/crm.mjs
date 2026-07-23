@@ -60,12 +60,19 @@ export async function coql(selectQuery) {
   return { data: json.data ?? [], info: json.info ?? { more_records: false } };
 }
 
-/** Add a note to any record (e.g. attach a WhatsApp/chat transcript to a Lead). */
+/**
+ * Add a note to any record (e.g. an automation audit trail on a Lead).
+ * Parent_Id must be a json object { module:{api_name}, id } — a bare id is
+ * rejected with INVALID_DATA. Throws on a row-level error so a failure surfaces
+ * (dead-lettered by the engine) rather than passing silently.
+ */
 export async function addNote(parentModule, parentId, title, content) {
-  return zohoRequest("crm", "/Notes", {
+  const json = await zohoRequest("crm", "/Notes", {
     method: "POST",
-    body: {
-      data: [{ Note_Title: title, Note_Content: content, Parent_Id: parentId, se_module: parentModule }],
-    },
+    apiVersion: "v8",
+    body: { data: [{ Note_Title: title, Note_Content: content, Parent_Id: { module: { api_name: parentModule }, id: parentId } }] },
   });
+  const row = json.data?.[0];
+  if (row?.status === "error") throw new Error(`addNote failed: ${row.code} ${row.message}`);
+  return { id: row?.details?.id };
 }

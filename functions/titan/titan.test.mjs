@@ -324,27 +324,29 @@ test("isStudentLead gates non-student types but fails OPEN on a missing type", (
   assert.ok(!isStudentLead({ Lead_Type: "University" }));
 });
 
-test("onLeadCreate is idempotent: never reassigns an already-owned lead", async () => {
-  const updates = [];
+test("onLeadCreate skips non-student leads (multi-type guard)", async () => {
+  const notes = [];
   const deps = { tenant: { assignment_engine: { v1_default_PROPOSED: { Student: { default_owner: "Kunal" } } } },
-    crm: { updateLead: async (id, f) => updates.push({ id, f }) } };
-  const ctx = { id: "L1", logger: silent(), deps };
-  const r = await onLeadCreate({ Owner: { id: "human-7" } }, ctx);
+    crm: { addNote: async (...a) => notes.push(a) } };
+  const r = await onLeadCreate({ Lead_Type: "University" }, { module: "Leads", id: "L1", logger: silent(), deps });
   assert.equal(r.action, "skipped");
-  assert.equal(updates.length, 0, "must never take a lead away from its owner");
+  assert.equal(r.reason, "non_student");
+  assert.equal(notes.length, 0, "no side effect for a non-student lead");
 });
 
-test("onLeadCreate assigns and alerts on a fresh student lead", async () => {
-  const updates = [], posts = [];
+test("onLeadCreate routes a student lead: adds an audit note and posts to #leads", async () => {
+  const notes = [], posts = [];
   const deps = {
     tenant: { assignment_engine: { v1_default_PROPOSED: { Student: { default_owner: "Kunal", by_market: { Pakistan: "Tahir" } } } } },
-    crm: { updateLead: async (id, f) => updates.push({ id, f }) },
+    crm: { addNote: async (m, id, title, content) => notes.push({ m, id, title, content }) },
     cliq: { post: async (ch, msg) => posts.push({ ch, msg }) },
   };
-  const r = await onLeadCreate({ Market: "Pakistan" }, { id: "L1", logger: silent(), deps });
-  assert.equal(r.action, "assigned");
+  const r = await onLeadCreate({ Market: "Pakistan" }, { module: "Leads", id: "L1", logger: silent(), deps });
+  assert.equal(r.action, "routed");
   assert.equal(r.owner, "Tahir");
-  assert.equal(updates.length, 1);
+  assert.equal(notes.length, 1);
+  assert.equal(notes[0].m, "Leads");
+  assert.match(notes[0].content, /Tahir/);
   assert.equal(posts[0].ch, "leads");
   assert.ok(!posts[0].msg.includes("@"), "alert must not leak an email address");
 });

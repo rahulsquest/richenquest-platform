@@ -11,7 +11,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getRecord, coql, createOrUpdateLead } from "../zoho/services/crm.mjs";
+import { getRecord, coql, createOrUpdateLead, addNote } from "../zoho/services/crm.mjs";
 import * as cliqSvc from "../zoho/services/cliq.mjs";
 import { listWatches, createWatches, planWatches, toWatchPayload } from "../zoho/services/notifications.mjs";
 import { channelToken } from "./webhook-auth.mjs";
@@ -31,6 +31,7 @@ function crmForHandlers() {
     updateLead: (id, fields) =>
       zohoRequest("crm", "/Leads", { method: "PUT", apiVersion: "v8", body: { data: [{ id, ...fields }] } }),
     createOrUpdateLead,
+    addNote,
   };
 }
 

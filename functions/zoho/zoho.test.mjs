@@ -556,3 +556,27 @@ test("planWatches only provisions ENABLED subscriptions; disabled are neither cr
   const live = [{ channel_id: "1002", events: ["Leads.edit"], notify_url: "https://api.example.com/hook", expiresAt: Date.now() + 20 * 3600_000 }];
   assert.deepEqual(planWatches(cfg, live, "https://api.example.com/hook").orphans, []);
 });
+
+// ---- addNote payload + error handling ------------------------------------
+test("addNote sends Parent_Id as a json object and throws on row error", async () => {
+  setTokenCache(freshCache());
+  let body = null;
+  const restore = stubFetch((u, opts) => {
+    if (isToken(u)) return jsonRes(200, { access_token: "tok", expires_in: 3600 });
+    body = JSON.parse(opts.body);
+    return jsonRes(201, { data: [{ status: "success", details: { id: "N1" } }] });
+  });
+  try {
+    const out = await crm.addNote("Leads", "L1", "T", "c");
+    assert.deepEqual(body.data[0].Parent_Id, { module: { api_name: "Leads" }, id: "L1" });
+    assert.equal(out.id, "N1");
+  } finally { restore(); }
+
+  // A 200 with a row-level error must be surfaced by addNote (Zoho returns
+  // per-row status; a bad row here would otherwise pass silently).
+  setTokenCache(freshCache());
+  const restore2 = stubFetch((u) => (isToken(u) ? jsonRes(200, { access_token: "tok", expires_in: 3600 })
+    : jsonRes(200, { data: [{ status: "error", code: "INVALID_DATA", message: "bad" }] })));
+  try { await assert.rejects(() => crm.addNote("Leads", "L1", "T", "c"), /addNote failed: INVALID_DATA/); }
+  finally { restore2(); }
+});

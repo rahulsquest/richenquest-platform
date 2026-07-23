@@ -62,26 +62,24 @@ export async function onLeadCreate(lead, ctx) {
     return { action: "skipped", reason: "non_student" };
   }
 
-  // Idempotency: if an owner is already set, a previous run (or a human) has
-  // handled this. Never reassign — that would take a lead away from a person.
-  if (lead.Owner?.id) {
-    logger.info("skipped: already owned", { owner_id: lead.Owner.id });
-    return { action: "skipped", reason: "already_owned" };
-  }
-
   const assignment = resolveAssignment(lead, tenant);
   if (!assignment) {
     logger.warn("no assignment rule matched — leaving unassigned for manual pickup");
     return { action: "unassigned", reason: "no_rule" };
   }
 
-  await crm.updateLead(ctx.id, { Lead_Status: "Attempting Contact" });
-  logger.info("assigned", { rule: assignment.reason, owner: assignment.owner });
+  // Record the routing decision as a CRM note — a valid, always-safe audit
+  // trail (unlike a Lead_Status write, whose picklist values are org-specific).
+  // Engine-level idempotency (record-version key) ensures this runs once per
+  // lead version, so the note is not duplicated.
+  await crm.addNote(ctx.module, ctx.id, "Speed-to-Lead",
+    `Auto-routed to ${assignment.owner} (${assignment.reason}). Call within 5 minutes.`);
+  logger.info("routed", { rule: assignment.reason, owner: assignment.owner });
 
   if (cliq) {
     // Alert content deliberately excludes PII beyond what staff need to act.
     await cliq.post("leads", `🔔 New lead — ${assignment.owner} (${assignment.reason}) · case ${ctx.id}`);
   }
 
-  return { action: "assigned", owner: assignment.owner, reason: assignment.reason };
+  return { action: "routed", owner: assignment.owner, reason: assignment.reason };
 }
