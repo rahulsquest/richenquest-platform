@@ -15,10 +15,12 @@ import { fetchWithTimeout, parseJson, ZohoError } from "./http.mjs";
  * @param {object} [opts]   { method, query, body, headers, form, raw }
  *   - body: JSON-serialized unless `form` (URLSearchParams) is given
  *   - raw:  return the Response instead of parsed JSON (for exports/downloads)
+ *   - apiVersion: CRM API version override, e.g. "v8" for workflow-rule
+ *     endpoints that do not exist on v7
  */
 export async function zohoRequest(service, path, opts = {}) {
-  const { method = "GET", query, body, form, headers = {}, raw = false } = opts;
-  const base = serviceBase(service);
+  const { method = "GET", query, body, form, headers = {}, raw = false, apiVersion } = opts;
+  const base = serviceBase(service, undefined, apiVersion);
   const url = new URL(base + path);
   if (query) {
     for (const [k, v] of Object.entries(query)) {

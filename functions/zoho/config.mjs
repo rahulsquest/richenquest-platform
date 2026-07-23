@@ -38,10 +38,19 @@ export function getDataCentre(code = process.env.ZOHO_DC || DEFAULT_DC) {
  * others are the documented bases but should be confirmed against Zoho's
  * current API reference before first live call (noted in docs/14 §11).
  */
-export function serviceBase(service, code) {
+export const DEFAULT_CRM_VERSION = "v7";
+
+/**
+ * @param {string} service
+ * @param {string} [code]     data-centre code
+ * @param {string} [version]  CRM API version ("v7" default, "v8" for endpoints
+ *   only present in v8 — e.g. /settings/automation/workflow_rules, which
+ *   returns API_NOT_SUPPORTED{supported_version:8} on v7).
+ */
+export function serviceBase(service, code, version) {
   const dc = getDataCentre(code);
   switch (service) {
-    case "crm":       return `${dc.api}/crm/v7`;
+    case "crm":       return `${dc.api}/crm/${version ?? DEFAULT_CRM_VERSION}`;
     case "bookings":  return `${dc.api}/bookings/v1`;
     case "forms":     return `${dc.api}/forms/api/v1`;
     case "mail":      return `${dc.mail}/api`;

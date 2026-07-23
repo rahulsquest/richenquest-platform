@@ -74,6 +74,15 @@
 > is now granted). Roles are already created and waiting: Counselor · Operations · Marketing.
 > This is also why **A7 is PARTIAL** — the assignment rule has no real assignees to route to.
 >
+> ### 🔍 Release audit (2026-07-23) — 16/17 production checks pass
+> `node --env-file=.env functions/zoho/release-audit.mjs` — read-only, exit 0 only when clean.
+> Verifies production against the repo: field drift, picklist-value drift, pipeline order+
+> probabilities, orphaned picklist values, duplicate-check, data sharing, stray probe artifacts,
+> pre-existing-rule integrity, record counts, user reality. **Only failure: users (1 of 7).**
+> Incident register: [AM0.4-incidents.md](docs/automation-specs/AM0.4-incidents.md) — INC-1 stage
+> de-association (remediated + prevented), INC-2 Cliq duplicates (cleanup owed), INC-3 audit false
+> clean (remediated + prevented).
+>
 > ### Next actions
 > 1. **One re-consent** unlocks users + Cliq (URL in the final report) — optional, only if you want me
 >    to provision users/channels via API rather than console.

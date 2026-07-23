@@ -58,6 +58,29 @@ test("serviceBase maps services to correct per-DC hosts", () => {
   assert.throws(() => serviceBase("nope", "in"), /No API base/);
 });
 
+test("serviceBase supports a CRM API version override (v8-only endpoints)", () => {
+  assert.equal(serviceBase("crm", "in"), "https://www.zohoapis.in/crm/v7");
+  assert.equal(serviceBase("crm", "in", "v8"), "https://www.zohoapis.in/crm/v8");
+  // Non-CRM services ignore the version argument.
+  assert.equal(serviceBase("mail", "in", "v8"), "https://mail.zoho.in/api");
+});
+
+test("zohoRequest honours apiVersion when building the URL", async () => {
+  setTokenCache(freshCache());
+  let seen = null;
+  const restore = stubFetch((u) => {
+    if (isToken(u)) return jsonRes(200, { access_token: "tok", expires_in: 3600 });
+    seen = u;
+    return jsonRes(200, { workflow_rules: [] });
+  });
+  try {
+    await zohoRequest("crm", "/settings/automation/workflow_rules", { apiVersion: "v8" });
+    assert.ok(seen.includes("/crm/v8/"), `expected v8 in URL, got ${seen}`);
+    await zohoRequest("crm", "/Leads");
+    assert.ok(seen.includes("/crm/v7/"), `expected v7 default, got ${seen}`);
+  } finally { restore(); }
+});
+
 test("requireEnv names missing vars and never prints present values", () => {
   process.env.RQ_PRESENT = "supersecretvalue";
   try {
