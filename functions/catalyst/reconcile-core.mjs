@@ -10,7 +10,12 @@
 export function createReconcileCore({ buildRuntime, makeStore, automationUserId }) {
   return async function run(initArg) {
     const store = makeStore(initArg);
-    const { reconciler, logger, cliq } = await buildRuntime({ store, automationUserId });
+    const { reconciler, logger, cliq, maintainWatches } = await buildRuntime({ store, automationUserId });
+
+    // Renew watch channels first — a lapsed channel stops delivery silently, and
+    // it must never fail the sweep, so it is best-effort.
+    await maintainWatches?.().catch((e) => logger.error("watch maintenance failed", { error: e.message }));
+
     const summary = await reconciler.sweep({ dryRun: false });
     if (summary.missed > 0 || summary.failed > 0) {
       logger.warn("reconciliation surfaced gaps", { missed: summary.missed, failed: summary.failed });

@@ -35,12 +35,18 @@ app.get("/health", async (req, res) => {
     const catalyst = require("zcatalyst-sdk-node").initialize(req);
     const { catalystStore } = await import("./lib/titan/store.mjs");
     const { dataStoreAdapter } = await import("./lib/catalyst/datastore-adapter.mjs");
-    const store = catalystStore(dataStoreAdapter(catalyst));
+    const adapter = dataStoreAdapter(catalyst);
+    const store = catalystStore(adapter);
     // Full round-trip on the idempotency table: write, read back, delete.
     const k = `health:${Date.now()}`;
     await store.remember(k, 60_000);
     const seen = await store.seen(k);
     out.datastore = seen ? "ok (round-trip verified)" : "wrote but could not read back";
+    // Observables for end-to-end webhook tests: a processed event writes an
+    // idempotency key (vanish/success) or a dead-letter (failure) — either way
+    // one of these counts moves.
+    const count = async (t) => { try { return (await adapter.list(t)).length; } catch { return -1; } };
+    out.counts = { idempotency: await count("titan_idempotency"), dead_letter: await count("titan_dead_letter") };
   } catch (e) { out.datastore = "err: " + e.message; }
   res.status(200).json(out);
 });

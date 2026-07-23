@@ -34,6 +34,23 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TI
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
+ * Format an epoch-ms as a Zoho datetime literal `YYYY-MM-DDTHH:mm:ss±HH:MM`.
+ * Zoho rejects `.toISOString()` (the `Z`/millisecond form) with INVALID_DATA on
+ * datetime fields — both COQL `Modified_Time` filters and `actions/watch`
+ * `channel_expiry` need an explicit offset and no milliseconds. Default offset
+ * is India (+05:30, no DST).
+ */
+export function toZohoDateTime(ms, offsetMinutes = 330) {
+  const shifted = new Date(ms + offsetMinutes * 60_000);
+  const p = (n) => String(n).padStart(2, "0");
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const oh = Math.floor(Math.abs(offsetMinutes) / 60);
+  const om = Math.abs(offsetMinutes) % 60;
+  return `${shifted.getUTCFullYear()}-${p(shifted.getUTCMonth() + 1)}-${p(shifted.getUTCDate())}` +
+    `T${p(shifted.getUTCHours())}:${p(shifted.getUTCMinutes())}:${p(shifted.getUTCSeconds())}${sign}${p(oh)}:${p(om)}`;
+}
+
+/**
  * Retry an async op that THROWS on transient failure. `shouldRetry(err)` decides
  * (default: always). delayMs grows linearly. Returns the op's value or rethrows
  * the last error. Deterministic in tests via delayMs: 0.

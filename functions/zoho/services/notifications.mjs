@@ -15,6 +15,7 @@
  */
 
 import { zohoRequest } from "../client.mjs";
+import { toZohoDateTime } from "../http.mjs";
 
 const API_VERSION = "v8";
 
@@ -109,7 +110,8 @@ export function toWatchPayload(sub, notifyUrl, expiryHours, token) {
     channel_id: String(sub.channel_id),
     events: sub.events,
     notify_url: notifyUrl,
-    channel_expiry: new Date(Date.now() + expiryHours * 3600_000).toISOString(),
+    // Zoho rejects .toISOString() here (INVALID_DATA) — needs the offset format.
+    channel_expiry: toZohoDateTime(Date.now() + expiryHours * 3600_000),
     // Echoed back by Zoho on every delivery so the engine can authenticate it.
     token,
   };

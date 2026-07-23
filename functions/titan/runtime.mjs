@@ -13,6 +13,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getRecord, coql, createOrUpdateLead } from "../zoho/services/crm.mjs";
 import * as cliqSvc from "../zoho/services/cliq.mjs";
+import { listWatches, createWatches, planWatches, toWatchPayload } from "../zoho/services/notifications.mjs";
+import { channelToken } from "./webhook-auth.mjs";
 import { zohoRequest } from "../zoho/client.mjs";
 import { createEngine } from "./engine.mjs";
 import { createReconciler } from "./reconcile.mjs";
@@ -68,5 +70,25 @@ export async function buildRuntime({ store, automationUserId, level = "info" } =
 
   const reconciler = createReconciler({ query: coql, engine, store: st, subscriptions, logger, metrics });
 
-  return { engine, reconciler, store: st, logger, metrics, subscriptions, tenant, cliq };
+  /**
+   * Renew watch channels before they lapse. Zoho channels expire (≤1 week), and
+   * a lapsed channel stops event delivery silently — so the reconcile cron calls
+   * this each run. Idempotent: only expiring/changed channels are rewritten.
+   */
+  async function maintainWatches() {
+    const notifyUrl = process.env.ZOHO_NOTIFY_URL;
+    const secret = process.env.TITAN_WEBHOOK_SECRET;
+    if (!notifyUrl || !secret) return { skipped: "missing ZOHO_NOTIFY_URL/TITAN_WEBHOOK_SECRET" };
+    const live = await listWatches();
+    const { plan } = planWatches(subscriptions, live, notifyUrl);
+    const actionable = plan.filter((p) => p.action === "create" || p.action === "update" || p.action === "renew");
+    if (!actionable.length) return { renewed: 0 };
+    const payload = actionable.map((p) => toWatchPayload(p, notifyUrl, subscriptions.expiry_hours ?? 24, channelToken(p.channel_id, secret)));
+    const res = await createWatches(payload);
+    const ok = res.filter((r) => r.ok).length;
+    logger.info("watch channels maintained", { renewed: ok, of: actionable.length });
+    return { renewed: ok };
+  }
+
+  return { engine, reconciler, store: st, logger, metrics, subscriptions, tenant, cliq, maintainWatches };
 }

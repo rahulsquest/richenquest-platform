@@ -67,7 +67,7 @@ test("reconcile core runs a committing sweep and returns the summary", async () 
   const core = createReconcileCore({
     buildRuntime: async () => ({
       reconciler: { sweep: async ({ dryRun }) => { dryRunSeen = dryRun; return { missed: 0, failed: 0 }; } },
-      logger: { warn: () => {} }, cliq: { post: async () => {} },
+      logger: { warn: () => {}, error: () => {} }, cliq: { post: async () => {} }, maintainWatches: async () => ({ renewed: 0 }),
     }),
     makeStore: () => ({}), automationUserId: "u",
   });
@@ -81,7 +81,7 @@ test("reconcile core posts to #ops-alerts on gaps, and a Cliq failure never fail
   const gappy = (cliq) => createReconcileCore({
     buildRuntime: async () => ({
       reconciler: { sweep: async () => ({ missed: 2, failed: 0 }) },
-      logger: { warn: () => {}, error: () => {} }, cliq,
+      logger: { warn: () => {}, error: () => {} }, cliq, maintainWatches: async () => ({ renewed: 0 }),
     }),
     makeStore: () => ({}), automationUserId: "u",
   });

@@ -33,21 +33,10 @@ const DEFAULT_OVERLAP_MS = 60_000;
 /** India DC (Asia/Kolkata) has a fixed +05:30 offset and no DST. */
 const DEFAULT_OFFSET_MIN = 330;
 
-/**
- * Format an epoch-ms as a Zoho-CRM datetime literal: `YYYY-MM-DDTHH:mm:ss±HH:MM`.
- * Zoho COQL rejects `.toISOString()` output — it wants an explicit timezone
- * offset and no milliseconds ("value given seems to be invalid for the column"
- * otherwise). Exported because this format bug is subtle and worth pinning.
- */
-export function toZohoDateTime(ms, offsetMinutes = DEFAULT_OFFSET_MIN) {
-  const shifted = new Date(ms + offsetMinutes * 60_000);
-  const p = (n) => String(n).padStart(2, "0");
-  const sign = offsetMinutes >= 0 ? "+" : "-";
-  const oh = Math.floor(Math.abs(offsetMinutes) / 60);
-  const om = Math.abs(offsetMinutes) % 60;
-  return `${shifted.getUTCFullYear()}-${p(shifted.getUTCMonth() + 1)}-${p(shifted.getUTCDate())}` +
-    `T${p(shifted.getUTCHours())}:${p(shifted.getUTCMinutes())}:${p(shifted.getUTCSeconds())}${sign}${p(oh)}:${p(om)}`;
-}
+// Shared with the notification client — both need Zoho's offset datetime format.
+// Imported (local binding, used by planWindow) AND re-exported for callers/tests.
+import { toZohoDateTime } from "../zoho/http.mjs";
+export { toZohoDateTime };
 
 /** Zoho module api_names are identifiers; anything else is a config error or
  *  an injection attempt into the COQL string. */
