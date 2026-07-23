@@ -38,6 +38,12 @@ jobs:
       - name: Validate tenant configuration
         run: node scripts/validate-config.mjs
 
+      # CRM schema/pipeline config must stay internally consistent (AM0.4).
+      # Live CRM verification is NOT run in CI (needs org credentials) — run
+      # `node --env-file=.env functions/zoho/verify-crm.mjs` locally instead.
+      - name: Validate CRM schema + pipeline config
+        run: node scripts/validate-crm-schema.mjs
+
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"

@@ -23,11 +23,35 @@
       { "label": "Document Status", "type": "picklist", "values": ["Not Started", "Collecting", "APS Applied", "APS Received", "AI Pre-checked", "Verified", "Complete"] },
       { "label": "Lane", "type": "picklist", "values": ["Commission (Private)", "Service-fee (Public)", "n/a"] },
       { "label": "Visa Status", "type": "picklist", "values": ["N/A", "Preparing", "Lodged", "Biometrics Done", "Approved", "Refused"] },
-      { "label": "Next Deadline", "type": "date" }
+      { "label": "Next Deadline", "type": "date" },
+      { "label": "Lost Reason", "type": "picklist", "values": ["Went Silent", "Chose Competitor", "Budget", "Not Eligible", "Postponed", "Visa Refused"] }
+    ]
+  },
+  "pipeline": {
+    "_note": "Student Cases (Deals) pipeline — provisioned by functions/zoho/provision-pipeline.mjs. deal_category ∈ {Open, Closed Won, Closed Lost}. forecast_category is resolved to an ORG-SPECIFIC id at runtime (ids differ per org — never hardcode). Zoho treats a pick_list_values PATCH as the COMPLETE layout-associated set, so the provisioner always sends every stage atomically.",
+    "module": "Deals",
+    "field": "Stage",
+    "stages": [
+      { "name": "New Inquiry", "probability": 10, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Counseling Booked", "probability": 20, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Counseling Done", "probability": 30, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Agreement Sent", "probability": 40, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Agreement Signed", "probability": 60, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Documents in Progress", "probability": 65, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Applications Submitted", "probability": 70, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Offer Received", "probability": 80, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Visa Filed", "probability": 90, "category": "Open", "forecast": "Pipeline" },
+      { "name": "Visa Approved — Won", "probability": 100, "category": "Closed Won", "forecast": "Closed" },
+      { "name": "Closed Lost", "probability": 0, "category": "Closed Lost", "forecast": "Omitted" }
     ]
   },
   "console_only": {
-    "_note": "Not API-addressable — remain manual (Harsh, or a visual-UI bridge). I verify structurally where possible via API reads.",
-    "items": ["Module rename Deals→Student Cases", "11-stage pipeline + Lost Reason validation", "Email duplicate-check", "Assignment Rule (engine)", "5 Workflow Rules", "Data sharing Private+hierarchy"]
+    "_note": "Items PROVEN not automatable via the Zoho API (2026-07-23 probe). Everything previously listed here that turned out to be API-addressable — module rename, 11-stage pipeline, Email duplicate-check, Assignment Rule, data sharing, roles — has been automated and removed from this list.",
+    "items": [
+      "Lost Reason validation rule (Zoho validation_rules API returns HTTP 500 on schema-valid payload, v7 + v8)",
+      "5 Workflow Rules (a rule requires >=1 action entity; action entities are read-only via API)",
+      "User provisioning + 2FA enforcement (2FA is Admin Panel only; users need ZohoCRM.users.ALL scope)",
+      "Cliq channels (needs Cliq OAuth scopes)"
+    ]
   }
 }

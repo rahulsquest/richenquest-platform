@@ -19,6 +19,8 @@ import * as crm from "./services/crm.mjs";
 import * as flow from "./services/flow.mjs";
 import { buildFieldPayload } from "./services/crm-settings.mjs";
 import { resolveValues, planProvision, planRollback, executeProvision, executeRollback } from "./provision-crm.mjs";
+import { planPipeline, discoverForecastIds, executePipeline } from "./provision-pipeline.mjs";
+import { provisionChannels } from "./services/cliq.mjs";
 
 // Test-local fake credentials (never real).
 process.env.ZOHO_DC = "in";
@@ -104,6 +106,24 @@ test("getAccessToken caches and force-refreshes", async () => {
     assert.equal(calls, 1);
     assert.equal(await getAccessToken({ forceRefresh: true }), "tok2");
     assert.equal(calls, 2);
+  } finally {
+    restore();
+  }
+});
+
+test("getAccessToken single-flights concurrent refreshes (no stampede)", async () => {
+  setTokenCache(freshCache());
+  let calls = 0;
+  const restore = stubFetch(async (u) => {
+    if (!isToken(u)) return jsonRes(404, {});
+    calls++;
+    await new Promise((r) => setTimeout(r, 20)); // hold the refresh open
+    return jsonRes(200, { access_token: "tok", expires_in: 3600 });
+  });
+  try {
+    const tokens = await Promise.all([getAccessToken(), getAccessToken(), getAccessToken(), getAccessToken(), getAccessToken()]);
+    assert.ok(tokens.every((t) => t === "tok"));
+    assert.equal(calls, 1); // five concurrent callers, ONE refresh request
   } finally {
     restore();
   }
@@ -287,6 +307,118 @@ test("planRollback + executeRollback delete custom fields, skip absent/non-custo
   const s = await executeRollback(plan, api, { commit: true, delayMs: 0 });
   assert.equal(s.deleted, 2);
   assert.deepEqual(removed.sort(), ["id1", "id2"]);
+});
+
+// ---- pipeline provisioning ------------------------------------------------
+const PIPELINE = { module: "Deals", field: "Stage", stages: [
+  { name: "New Inquiry", probability: 10, category: "Open", forecast: "Pipeline" },
+  { name: "Closed Lost", probability: 0, category: "Closed Lost", forecast: "Omitted" },
+] };
+const LIVE_OPTS = [
+  { id: "o1", display_value: "New Inquiry", actual_value: "Qualification", probability: 99, deal_category: "Open", forecast_category: { name: "Pipeline", id: "fc1" } },
+  { id: "o2", display_value: "Legacy Stage", actual_value: "Legacy Stage", probability: 50, deal_category: "Open", forecast_category: { name: "Pipeline", id: "fc1" } },
+  { id: "o3", display_value: "Closed Lost", actual_value: "Closed Lost", probability: 0, deal_category: "Closed Lost", forecast_category: { name: "Omitted", id: "fc3" } },
+];
+
+test("discoverForecastIds maps org-specific forecast category ids", () => {
+  assert.deepEqual(discoverForecastIds(LIVE_OPTS), { Pipeline: "fc1", Omitted: "fc3" });
+});
+
+test("planPipeline preserves actual_value on rename and flags drift/orphans", () => {
+  const { values, diff, orphans } = planPipeline(PIPELINE, LIVE_OPTS, { Pipeline: "fc1", Omitted: "fc3" });
+  // Renamed option keeps its STORED value so historical records stay valid.
+  assert.equal(values[0].actual_value, "Qualification");
+  assert.equal(values[0].id, "o1");
+  assert.equal(values[0].probability, 10);
+  assert.equal(values[0].forecast_category.id, "fc1");
+  assert.equal(diff.find((d) => d.stage === "New Inquiry").action, "update"); // probability drifted 99→10
+  assert.equal(diff.find((d) => d.stage === "Closed Lost").action, "keep");
+  assert.deepEqual(orphans, ["Legacy Stage"]);
+});
+
+test("planPipeline sends the COMPLETE set (atomic) — never a partial list", () => {
+  const { values } = planPipeline(PIPELINE, LIVE_OPTS, { Pipeline: "fc1", Omitted: "fc3" });
+  // Every configured stage must be present, else Zoho de-associates the omitted ones.
+  assert.equal(values.length, PIPELINE.stages.length);
+  assert.deepEqual(values.map((v) => v.display_value), ["New Inquiry", "Closed Lost"]);
+  assert.deepEqual(values.map((v) => v.sequence_number), [1, 2]);
+});
+
+test("planPipeline creates new stages with deal_category + forecast id, and rejects unknown forecast", () => {
+  const withNew = { ...PIPELINE, stages: [...PIPELINE.stages, { name: "Visa Filed", probability: 90, category: "Open", forecast: "Pipeline" }] };
+  const { values, diff } = planPipeline(withNew, LIVE_OPTS, { Pipeline: "fc1", Omitted: "fc3" });
+  const created = values.find((v) => v.display_value === "Visa Filed");
+  assert.equal(created.id, undefined); // new option carries no id
+  assert.equal(created.deal_category, "Open");
+  assert.equal(created.forecast_category.id, "fc1");
+  assert.equal(diff.find((d) => d.stage === "Visa Filed").action, "create");
+  assert.throws(() => planPipeline({ ...PIPELINE, stages: [{ name: "X", probability: 1, category: "Open", forecast: "Nope" }] }, LIVE_OPTS, { Pipeline: "fc1" }), /No forecast category id/);
+});
+
+test("executePipeline is dry-run by default and commits atomically once", async () => {
+  let calls = 0;
+  const api = { updateField: async (_id, _m, vals) => (calls++, { ok: true, sent: vals.length }) };
+  const { values } = planPipeline(PIPELINE, LIVE_OPTS, { Pipeline: "fc1", Omitted: "fc3" });
+  const dry = await executePipeline("f1", values, api, { commit: false });
+  assert.equal(calls, 0);
+  assert.equal(dry.committed, false);
+  const live = await executePipeline("f1", values, api, { commit: true });
+  assert.equal(calls, 1); // ONE atomic call, not one per stage
+  assert.equal(live.ok, true);
+});
+
+// ---- Cliq channel provisioning (duplicate-safety) -------------------------
+test("provisionChannels ABORTS when channels cannot be listed (no blind creates)", async () => {
+  setTokenCache(freshCache());
+  const restore = stubFetch((u) => {
+    if (isToken(u)) return jsonRes(200, { access_token: "tok", expires_in: 3600 });
+    return jsonRes(401, { code: "oauthtoken_scope_invalid", message: "missing scope" });
+  });
+  try {
+    // Cliq allows duplicate names and has no delete API — creating blind is unrecoverable.
+    await assert.rejects(
+      () => provisionChannels([{ name: "leads", description: "x" }], { commit: true }),
+      (err) => /Refusing to create blind/.test(err.message) && err.code === "cliq_read_required"
+    );
+  } finally { restore(); }
+});
+
+test("provisionChannels creates only missing channels (case-insensitive, #-tolerant)", async () => {
+  setTokenCache(freshCache());
+  const created = [];
+  const restore = stubFetch((u, opts) => {
+    if (isToken(u)) return jsonRes(200, { access_token: "tok", expires_in: 3600 });
+    if (opts?.method === "POST") {
+      const body = JSON.parse(opts.body);
+      created.push(body.name);
+      return jsonRes(200, { name: `#${body.name}`, id: `CT_${body.name}` });
+    }
+    return jsonRes(200, { channels: [{ name: "#leads", id: "CT_1" }, { name: "Wins", id: "CT_2" }] });
+  });
+  try {
+    const s = await provisionChannels(
+      [{ name: "leads", description: "a" }, { name: "wins", description: "b" }, { name: "ops-alerts", description: "c" }],
+      { commit: true }
+    );
+    assert.deepEqual(created, ["ops-alerts"]); // leads (#-prefixed) and wins (case) both matched
+    assert.equal(s.created, 1);
+    assert.equal(s.existing, 2);
+  } finally { restore(); }
+});
+
+test("provisionChannels dry-run creates nothing", async () => {
+  setTokenCache(freshCache());
+  let posts = 0;
+  const restore = stubFetch((u, opts) => {
+    if (isToken(u)) return jsonRes(200, { access_token: "tok", expires_in: 3600 });
+    if (opts?.method === "POST") { posts++; return jsonRes(200, {}); }
+    return jsonRes(200, { channels: [] });
+  });
+  try {
+    const s = await provisionChannels([{ name: "leads", description: "a" }], { commit: false });
+    assert.equal(posts, 0);
+    assert.equal(s.wouldCreate, 1);
+  } finally { restore(); }
 });
 
 test("triggerFlow rejects non-Zoho / insecure URLs and accepts a valid webhook", async () => {

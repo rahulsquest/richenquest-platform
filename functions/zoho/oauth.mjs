@@ -10,6 +10,8 @@
  * is correct and safe — worst case is one extra refresh on a cold start.
  */
 
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import path from "node:path";
 import { getOAuthConfig, getDataCentre, redact } from "./config.mjs";
 import { fetchWithTimeout, parseJson, ZohoError } from "./http.mjs";
 
@@ -28,12 +30,50 @@ function memoryCache() {
   };
 }
 
-let cache = memoryCache();
+/**
+ * File-backed cache so separate CLI processes share one access token instead of
+ * each spending a refresh (Zoho rate-limits refreshes per 10-minute window).
+ * Enabled by setting ZOHO_TOKEN_CACHE_FILE (e.g. ".cache/zoho-token.json",
+ * gitignored). Corrupt/missing files read as empty; writes are best-effort.
+ */
+function fileCache(filePath) {
+  const read = () => {
+    try {
+      return JSON.parse(readFileSync(filePath, "utf8"));
+    } catch {
+      return { token: null, expiresAt: 0 };
+    }
+  };
+  return {
+    get: read,
+    set: (token, ttlMs) => {
+      try {
+        mkdirSync(path.dirname(filePath), { recursive: true });
+        writeFileSync(filePath, JSON.stringify({ token, expiresAt: Date.now() + ttlMs }), { mode: 0o600 });
+      } catch {
+        /* cache is an optimization; never fail the call over it */
+      }
+    },
+    clear: () => {
+      try {
+        writeFileSync(filePath, JSON.stringify({ token: null, expiresAt: 0 }), { mode: 0o600 });
+      } catch {
+        /* ignore */
+      }
+    },
+  };
+}
+
+let cache = process.env.ZOHO_TOKEN_CACHE_FILE ? fileCache(process.env.ZOHO_TOKEN_CACHE_FILE) : memoryCache();
 
 /** Swap in a custom cache (must implement get/set/clear). */
 export function setTokenCache(custom) {
   cache = custom;
 }
+
+// Single-flight guard: concurrent callers share ONE refresh request instead of
+// stampeding Zoho's token endpoint (which rate-limits refreshes hard).
+let inflightRefresh = null;
 
 /**
  * Returns a valid access token, refreshing when needed.
@@ -45,7 +85,14 @@ export async function getAccessToken({ forceRefresh = false } = {}) {
   if (!forceRefresh && current.token && now < current.expiresAt - EXPIRY_BUFFER_MS) {
     return current.token;
   }
+  if (inflightRefresh) return inflightRefresh;
+  inflightRefresh = refreshAccessToken().finally(() => {
+    inflightRefresh = null;
+  });
+  return inflightRefresh;
+}
 
+async function refreshAccessToken() {
   const { clientId, clientSecret, refreshToken, dc } = getOAuthConfig();
   const body = new URLSearchParams({
     grant_type: "refresh_token",
