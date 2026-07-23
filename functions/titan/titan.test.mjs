@@ -14,6 +14,7 @@ import { memoryStore, idempotencyKey, recordVersionKey } from "./store.mjs";
 import { createEngine, OUTCOMES, constantTimeEqual, isOurOwnWrite, expectedToken } from "./engine.mjs";
 import { createReconciler, buildQuery, planWindow, toZohoDateTime } from "./reconcile.mjs";
 import { resolveAssignment, isStudentLead, onLeadCreate } from "./handlers/on-lead-create.mjs";
+import { parseZohoNotification } from "../catalyst/parse-notification.mjs";
 
 // ---- fixtures -------------------------------------------------------------
 const SUBS = {
@@ -313,4 +314,28 @@ test("onLeadCreate assigns and alerts on a fresh student lead", async () => {
   assert.equal(updates.length, 1);
   assert.equal(posts[0].ch, "leads");
   assert.ok(!posts[0].msg.includes("@"), "alert must not leak an email address");
+});
+
+// ---- Catalyst notification parser (pure, testable pre-platform) -----------
+test("parseZohoNotification maps insert/update/delete to create/edit/delete", () => {
+  const base = { module: "Leads", ids: ["1"], channel_id: 1001, token: "t", server_time: 5 };
+  assert.equal(parseZohoNotification({ ...base, operation: "insert" }).notification.operation, "create");
+  assert.equal(parseZohoNotification({ ...base, operation: "update" }).notification.operation, "edit");
+  assert.equal(parseZohoNotification({ ...base, operation: "delete" }).notification.operation, "delete");
+});
+
+test("parseZohoNotification coerces channel_id/ids/token to strings", () => {
+  const p = parseZohoNotification({ module: "Leads", ids: [123, 456], operation: "insert", channel_id: 1001, token: 99, server_time: 5 });
+  assert.equal(p.ok, true);
+  assert.deepEqual(p.notification.ids, ["123", "456"]);
+  assert.equal(p.notification.channel_id, "1001");
+  assert.equal(p.notification.token, "99");
+});
+
+test("parseZohoNotification rejects malformed bodies with a reason (acked, never retried)", () => {
+  assert.equal(parseZohoNotification(null).reason, "empty_body");
+  assert.equal(parseZohoNotification({ ids: ["1"], operation: "insert", channel_id: 1 }).reason, "missing_module");
+  assert.equal(parseZohoNotification({ module: "Leads", operation: "insert", channel_id: 1 }).reason, "missing_ids");
+  assert.equal(parseZohoNotification({ module: "Leads", ids: ["1"], channel_id: 1 }).reason, "unknown_operation:undefined");
+  assert.match(parseZohoNotification({ module: "Leads", ids: ["1"], operation: "insert" }).reason, /missing_channel_id/);
 });
