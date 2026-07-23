@@ -11,6 +11,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { handlerNames } from "../functions/titan/handlers/index.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
@@ -66,9 +67,22 @@ for (const s of subs) {
   }
 }
 
+// ---- handlers must actually exist ----------------------------------------
+// A subscription naming a handler that is not registered would silently
+// discard every event it receives, which is invisible in production.
+const registered = new Set(handlerNames);
+const unimplemented = subs.filter((s) => s.handler && !registered.has(s.handler)).map((s) => `${s.name}→${s.handler}`);
+
 if (errors.length) {
   console.error("✗ automation-events.json invalid:");
   for (const e of errors) console.error(`  - ${e}`);
   process.exit(1);
 }
 console.log(`✓ automation-events.json: valid (${subs.length} subscriptions, renew every ${renewal}h vs ${expiry}h expiry)`);
+if (unimplemented.length) {
+  // A warning, not a failure: subscriptions are declared ahead of their
+  // handlers by design (roadmap Stage 4). The engine dead-letters these rather
+  // than dropping them, and provisioning them live would be premature.
+  console.log(`  ⚠ ${unimplemented.length} subscription(s) have no handler yet — do NOT provision these until implemented: ${unimplemented.join(", ")}`);
+  console.log(`    registered handlers: ${handlerNames.join(", ") || "(none)"}`);
+}
