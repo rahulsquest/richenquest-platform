@@ -39,8 +39,26 @@ const FUNCTIONS = {
 };
 
 const noTests = (src) => !/\.test\.mjs$/.test(src);
-const catalystConfig = (name, type) => ({
-  deployment: { name, stack: "node18", type, env_variables: {} },
+
+// Env vars baked into the function at deploy (infrastructure-as-code). Values
+// come from process.env — run the build with `node --env-file=.env` so they are
+// read from the local .env. They land only in dist/ (gitignored) and are sent
+// to Catalyst at deploy; never printed. This is deterministic and reproducible,
+// unlike manual console entry.
+const FN_ENV_KEYS = ["ZOHO_DC", "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN", "TITAN_WEBHOOK_SECRET", "TITAN_AUTOMATION_USER_ID"];
+function fnEnv() {
+  const env = {};
+  const missing = [];
+  for (const k of FN_ENV_KEYS) {
+    if (process.env[k]) env[k] = process.env[k];
+    else missing.push(k);
+  }
+  if (missing.length) console.warn(`⚠ env not baked (run with --env-file=.env): ${missing.join(", ")}`);
+  return env;
+}
+
+const catalystConfig = (name, type, env) => ({
+  deployment: { name, stack: "node18", type, env_variables: env },
   execution: { main: "index.js" },
 });
 const packageJson = (name, deps) => ({
@@ -50,6 +68,7 @@ const packageJson = (name, deps) => ({
 
 export async function build() {
   await rm(FN_ROOT, { recursive: true, force: true });
+  const env = fnEnv();
   const built = [];
 
   for (const [name, spec] of Object.entries(FUNCTIONS)) {
@@ -60,14 +79,14 @@ export async function build() {
     await cp(path.join(ROOT, "functions/titan"), path.join(dir, "lib/titan"), { recursive: true, filter: noTests });
     await cp(path.join(ROOT, "functions/zoho"), path.join(dir, "lib/zoho"), { recursive: true, filter: noTests });
     await mkdir(path.join(dir, "lib/catalyst"), { recursive: true });
-    for (const f of ["parse-notification.mjs", "webhook-core.mjs", "reconcile-core.mjs"]) {
+    for (const f of ["parse-notification.mjs", "webhook-core.mjs", "reconcile-core.mjs", "datastore-adapter.mjs"]) {
       await cp(path.join(HERE, f), path.join(dir, "lib/catalyst", f));
     }
     // Config read by runtime.mjs at the function root (its two-level ROOT).
     await cp(path.join(ROOT, "config"), path.join(dir, "config"), { recursive: true });
 
     await cp(path.join(HERE, spec.shell), path.join(dir, "index.js"));
-    await writeFile(path.join(dir, "catalyst-config.json"), JSON.stringify(catalystConfig(name, spec.type), null, 2) + "\n");
+    await writeFile(path.join(dir, "catalyst-config.json"), JSON.stringify(catalystConfig(name, spec.type, env), null, 2) + "\n");
     await writeFile(path.join(dir, "package.json"), JSON.stringify(packageJson(name, spec.deps), null, 2) + "\n");
 
     built.push({ name, dir, type: spec.type });

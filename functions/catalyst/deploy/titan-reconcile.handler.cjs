@@ -9,16 +9,10 @@ module.exports = async (event, context) => {
     const { createReconcileCore } = await import("./lib/catalyst/reconcile-core.mjs");
     const { buildRuntime } = await import("./lib/titan/runtime.mjs");
     const { catalystStore } = await import("./lib/titan/store.mjs");
+    const { dataStoreAdapter } = await import("./lib/catalyst/datastore-adapter.mjs");
 
     const catalyst = require("zcatalyst-sdk-node").initialize(context);
-    const ds = catalyst.datastore();
-    const store = catalystStore({
-      get: async (t, k) => (await ds.table(t).getRow(k).catch(() => null)) || null,
-      put: async (t, k, v) => ds.table(t).insertRow({ ROWID: k, ...v }),
-      delete: async (t, k) => ds.table(t).deleteRow(k),
-      append: async (t, r) => ds.table(t).insertRow(r),
-      list: async (t) => (await ds.table(t).getPagedRows()).data || [],
-    });
+    const store = catalystStore(dataStoreAdapter(catalyst));
 
     const run = createReconcileCore({ buildRuntime, makeStore: () => store, automationUserId: process.env.TITAN_AUTOMATION_USER_ID });
     const summary = await run(catalyst);
