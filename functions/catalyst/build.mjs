@@ -35,7 +35,9 @@ const FN_ROOT = path.join(DIST, "functions");
 const FUNCTIONS = {
   // Advanced I/O runs an Express app, so express is a bundled dependency.
   "titan-webhook": { type: "advancedio", shell: "deploy/titan-webhook.handler.cjs", deps: { express: "^4.19.2" } },
-  "titan-reconcile": { type: "cron", shell: "deploy/titan-reconcile.handler.cjs", deps: {} },
+  // A "job" function (not "cron"): the newer Job Scheduling model triggers Job
+  // Functions from a Job Pool on a cron. Same (arg, context) handler shape.
+  "titan-reconcile": { type: "job", shell: "deploy/titan-reconcile.handler.cjs", deps: {} },
 };
 
 const noTests = (src) => !/\.test\.mjs$/.test(src);

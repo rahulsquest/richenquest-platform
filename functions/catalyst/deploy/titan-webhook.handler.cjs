@@ -51,6 +51,39 @@ app.get("/health", async (req, res) => {
   res.status(200).json(out);
 });
 
+// Idempotent scheduling setup: creates the Periodic cron (every 15 min) that
+// submits the titan-reconcile job to the Job Pool. The Job Pool itself must
+// pre-exist — the SDK can only READ pools (getJobpool), not create them, so the
+// pool is a one-time console step. Safe to call repeatedly.
+const POOL = "titan_pool";
+const CRON_NAME = "titan_reconcile_15min";
+app.get("/setup-scheduling", async (req, res) => {
+  const out = {};
+  try {
+    const catalyst = require("zcatalyst-sdk-node").initialize(req);
+    const js = catalyst.jobScheduling();
+
+    // 1) Pool must exist (console-created).
+    try { await js.getJobpool(POOL); out.pool = "found"; }
+    catch (e) { out.pool = "MISSING — create a Functions job pool named '" + POOL + "' in the console: " + e.message; return res.status(200).json(out); }
+
+    // 2) Cron: create only if absent.
+    const existing = await js.CRON.getAllCron().catch(() => []);
+    if ((existing || []).some((c) => c.cron_name === CRON_NAME)) { out.cron = "already exists"; return res.status(200).json(out); }
+
+    const cron = await js.CRON.createCron({
+      cron_name: CRON_NAME,
+      cron_status: true,
+      cron_type: "Periodic",
+      cron_detail: { hour: 0, minute: 15, second: 0, repetition_type: "every" },
+      job_meta: { jobpool_name: POOL, target_type: "Function", target_name: "titan-reconcile", job_name: "titan_reconcile_job" },
+    });
+    out.cron = "created";
+    out.cron_id = cron?.cron_id ?? cron?.id ?? null;
+  } catch (e) { out.error = e.message; }
+  res.status(200).json(out);
+});
+
 app.post("/", async (req, res) => {
   const { createWebhookCore } = await import("./lib/catalyst/webhook-core.mjs");
   const { parseZohoNotification } = await import("./lib/catalyst/parse-notification.mjs");
