@@ -542,3 +542,17 @@ test("triggerFlow rejects non-Zoho / insecure URLs and accepts a valid webhook",
     restore();
   }
 });
+
+// ---- enabled-subscription gating (Stage-1 rollout) -----------------------
+test("planWatches only provisions ENABLED subscriptions; disabled are neither created nor orphaned", () => {
+  const cfg = { expiry_hours: 24, renewal_hours: 6, subscriptions: [
+    { name: "on", channel_id: "1001", events: ["Leads.create"], enabled: true },
+    { name: "off", channel_id: "1002", events: ["Leads.edit"], enabled: false },
+  ] };
+  const { plan, orphans } = planWatches(cfg, [], "https://api.example.com/hook");
+  assert.equal(plan.length, 1, "only the enabled subscription is planned");
+  assert.equal(plan[0].name, "on");
+  // A live channel for the disabled (but declared) subscription is left alone, not orphaned.
+  const live = [{ channel_id: "1002", events: ["Leads.edit"], notify_url: "https://api.example.com/hook", expiresAt: Date.now() + 20 * 3600_000 }];
+  assert.deepEqual(planWatches(cfg, live, "https://api.example.com/hook").orphans, []);
+});

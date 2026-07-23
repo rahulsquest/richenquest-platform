@@ -65,7 +65,10 @@ export function planWatches(config, live, notifyUrl, now = Date.now()) {
   const renewalMs = (config.renewal_hours ?? 6) * 3600_000;
   const plan = [];
 
-  for (const sub of config.subscriptions) {
+  // Only enabled subscriptions are provisioned. Disabled ones (handler not yet
+  // built) are neither created nor treated as orphans — they are left alone.
+  const desired = config.subscriptions.filter((s) => s.enabled !== false);
+  for (const sub of desired) {
     const id = String(sub.channel_id);
     const cur = byId.get(id);
     const events = [...sub.events].sort();
@@ -86,7 +89,8 @@ export function planWatches(config, live, notifyUrl, now = Date.now()) {
     }
   }
 
-  // Channels live in CRM that our config does not declare = undocumented drift.
+  // Orphan = a live channel not DECLARED at all (all subscriptions, incl.
+  // disabled). A disabled-but-declared channel is intentionally left as-is.
   const declared = new Set(config.subscriptions.map((s) => String(s.channel_id)));
   const orphans = live.filter((w) => !declared.has(String(w.channel_id))).map((w) => w.channel_id);
 

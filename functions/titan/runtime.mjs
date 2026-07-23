@@ -50,7 +50,8 @@ export async function buildRuntime({ store, automationUserId, level = "info" } =
 
   // Handlers receive shared deps (tenant config + narrow CRM/Cliq clients)
   // bound once, so a handler signature stays (record, ctx).
-  const deps = { tenant, crm: crmForHandlers(), cliq: cliqForHandlers() };
+  const cliq = cliqForHandlers();
+  const deps = { tenant, crm: crmForHandlers(), cliq };
   const boundHandlers = Object.fromEntries(
     Object.entries(handlers).map(([name, fn]) => [name, (record, ctx) => fn(record, { ...ctx, deps })])
   );
@@ -67,5 +68,5 @@ export async function buildRuntime({ store, automationUserId, level = "info" } =
 
   const reconciler = createReconciler({ query: coql, engine, store: st, subscriptions, logger, metrics });
 
-  return { engine, reconciler, store: st, logger, metrics, subscriptions, tenant };
+  return { engine, reconciler, store: st, logger, metrics, subscriptions, tenant, cliq };
 }

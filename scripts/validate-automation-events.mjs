@@ -70,8 +70,15 @@ for (const s of subs) {
 // ---- handlers must actually exist ----------------------------------------
 // A subscription naming a handler that is not registered would silently
 // discard every event it receives, which is invisible in production.
+// Only ENABLED subscriptions must have a working handler — a disabled one is a
+// declared-but-not-yet-built future channel and is never provisioned.
 const registered = new Set(handlerNames);
-const unimplemented = subs.filter((s) => s.handler && !registered.has(s.handler)).map((s) => `${s.name}→${s.handler}`);
+const enabledMissing = subs.filter((s) => s.enabled !== false && s.handler && !registered.has(s.handler)).map((s) => `${s.name}→${s.handler}`);
+const disabledPending = subs.filter((s) => s.enabled === false).map((s) => s.name);
+
+// An ENABLED subscription with no handler is a hard error — it would provision
+// a live channel that silently discards every event it receives.
+if (enabledMissing.length) fail(`enabled subscription(s) have no registered handler: ${enabledMissing.join(", ")} (handlers: ${handlerNames.join(", ") || "none"})`);
 
 if (errors.length) {
   console.error("✗ automation-events.json invalid:");
@@ -79,10 +86,6 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`✓ automation-events.json: valid (${subs.length} subscriptions, renew every ${renewal}h vs ${expiry}h expiry)`);
-if (unimplemented.length) {
-  // A warning, not a failure: subscriptions are declared ahead of their
-  // handlers by design (roadmap Stage 4). The engine dead-letters these rather
-  // than dropping them, and provisioning them live would be premature.
-  console.log(`  ⚠ ${unimplemented.length} subscription(s) have no handler yet — do NOT provision these until implemented: ${unimplemented.join(", ")}`);
-  console.log(`    registered handlers: ${handlerNames.join(", ") || "(none)"}`);
+if (disabledPending.length) {
+  console.log(`  ℹ ${disabledPending.length} subscription(s) declared but disabled (handler pending, not provisioned): ${disabledPending.join(", ")}`);
 }

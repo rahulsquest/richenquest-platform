@@ -11,28 +11,35 @@
       "channel_id": "1001",
       "events": ["Leads.create"],
       "description": "AM1.1 Speed-to-Lead — instant response, assignment, #leads alert. Replaces AM0.4 WF1.",
-      "handler": "onLeadCreate"
+      "handler": "onLeadCreate",
+      "enabled": true
     },
     {
       "name": "lead-updated",
       "channel_id": "1002",
       "events": ["Leads.edit"],
       "description": "Stale-lead rescue + status transitions. Replaces AM0.4 WF2.",
-      "handler": "onLeadEdit"
+      "handler": "onLeadEdit",
+      "enabled": false,
+      "_pending": "handler not yet implemented; stale-lead is time-based (reconciliation/cron), revisit"
     },
     {
       "name": "case-stage-change",
       "channel_id": "1003",
       "events": ["Deals.edit"],
       "description": "Stage-triggered student updates, onboarding on Agreement Signed, #wins. Replaces AM0.4 WF3.",
-      "handler": "onCaseEdit"
+      "handler": "onCaseEdit",
+      "enabled": false,
+      "_pending": "handler not yet implemented; #wins posting is in-scope, onboarding/WorkDrive parts await AM0.6"
     },
     {
       "name": "case-created",
       "channel_id": "1004",
       "events": ["Deals.create"],
       "description": "New Student Case — WorkDrive folder, deadline seeding. Feeds AM0.4 WF5.",
-      "handler": "onCaseCreate"
+      "handler": "onCaseCreate",
+      "enabled": false,
+      "_pending": "handler not yet implemented; needs WorkDrive (AM0.6) + deadline-guardian cron"
     }
   ]
 }

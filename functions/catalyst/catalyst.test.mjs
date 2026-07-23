@@ -67,13 +67,29 @@ test("reconcile core runs a committing sweep and returns the summary", async () 
   const core = createReconcileCore({
     buildRuntime: async () => ({
       reconciler: { sweep: async ({ dryRun }) => { dryRunSeen = dryRun; return { missed: 0, failed: 0 }; } },
-      logger: { warn: () => {} },
+      logger: { warn: () => {} }, cliq: { post: async () => {} },
     }),
     makeStore: () => ({}), automationUserId: "u",
   });
   const summary = await core({});
   assert.equal(dryRunSeen, false, "the cron is authoritative — never a dry run");
   assert.deepEqual(summary, { missed: 0, failed: 0 });
+});
+
+test("reconcile core posts to #ops-alerts on gaps, and a Cliq failure never fails the sweep", async () => {
+  const posts = [];
+  const gappy = (cliq) => createReconcileCore({
+    buildRuntime: async () => ({
+      reconciler: { sweep: async () => ({ missed: 2, failed: 0 }) },
+      logger: { warn: () => {}, error: () => {} }, cliq,
+    }),
+    makeStore: () => ({}), automationUserId: "u",
+  });
+  await gappy({ post: async (ch, msg) => posts.push({ ch, msg }) })({});
+  assert.equal(posts[0].ch, "ops-alerts");
+  assert.match(posts[0].msg, /2 missed/);
+  // A throwing Cliq must not bubble out of the sweep.
+  await assert.doesNotReject(() => gappy({ post: async () => { throw new Error("cliq down"); } })({}));
 });
 
 // ---- bundle assembler -----------------------------------------------------
