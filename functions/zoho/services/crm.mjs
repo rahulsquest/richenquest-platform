@@ -44,6 +44,22 @@ export async function searchLeadByEmail(email) {
   return json.data ?? [];
 }
 
+/** Fetch any record by module + id (used by the automation engine to hydrate). */
+export async function getRecord(module, id) {
+  const json = await zohoRequest("crm", `/${encodeURIComponent(module)}/${encodeURIComponent(id)}`, { apiVersion: "v8" });
+  return json.data?.[0] ?? null;
+}
+
+/**
+ * Run a COQL query. Returns { data, info }. COQL REQUIRES a WHERE clause
+ * (a query without one → SYNTAX_ERROR "missing clause"), and an empty result
+ * comes back as HTTP 204 with no body, which normalises to { data: [] }.
+ */
+export async function coql(selectQuery) {
+  const json = await zohoRequest("crm", "/coql", { method: "POST", apiVersion: "v8", body: { select_query: selectQuery } });
+  return { data: json.data ?? [], info: json.info ?? { more_records: false } };
+}
+
 /** Add a note to any record (e.g. attach a WhatsApp/chat transcript to a Lead). */
 export async function addNote(parentModule, parentId, title, content) {
   return zohoRequest("crm", "/Notes", {

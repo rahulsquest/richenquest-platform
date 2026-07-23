@@ -30,6 +30,25 @@ import { recordVersionKey } from "./store.mjs";
  *  sweep's execution window cannot slip between checkpoints. */
 const DEFAULT_OVERLAP_MS = 60_000;
 
+/** India DC (Asia/Kolkata) has a fixed +05:30 offset and no DST. */
+const DEFAULT_OFFSET_MIN = 330;
+
+/**
+ * Format an epoch-ms as a Zoho-CRM datetime literal: `YYYY-MM-DDTHH:mm:ss±HH:MM`.
+ * Zoho COQL rejects `.toISOString()` output — it wants an explicit timezone
+ * offset and no milliseconds ("value given seems to be invalid for the column"
+ * otherwise). Exported because this format bug is subtle and worth pinning.
+ */
+export function toZohoDateTime(ms, offsetMinutes = DEFAULT_OFFSET_MIN) {
+  const shifted = new Date(ms + offsetMinutes * 60_000);
+  const p = (n) => String(n).padStart(2, "0");
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const oh = Math.floor(Math.abs(offsetMinutes) / 60);
+  const om = Math.abs(offsetMinutes) % 60;
+  return `${shifted.getUTCFullYear()}-${p(shifted.getUTCMonth() + 1)}-${p(shifted.getUTCDate())}` +
+    `T${p(shifted.getUTCHours())}:${p(shifted.getUTCMinutes())}:${p(shifted.getUTCSeconds())}${sign}${p(oh)}:${p(om)}`;
+}
+
 /** PURE: build the COQL for one module. Exported for testing. */
 export function buildQuery(module, sinceIso, { limit = 200, offset = 0 } = {}) {
   // COQL requires an explicit field list; id + Modified_Time is all the engine
@@ -38,11 +57,11 @@ export function buildQuery(module, sinceIso, { limit = 200, offset = 0 } = {}) {
 }
 
 /** PURE: decide the window to scan. */
-export function planWindow(checkpoint, now, { overlapMs = DEFAULT_OVERLAP_MS, maxLookbackMs = 7 * 24 * 3600_000 } = {}) {
+export function planWindow(checkpoint, now, { overlapMs = DEFAULT_OVERLAP_MS, maxLookbackMs = 7 * 24 * 3600_000, offsetMinutes = DEFAULT_OFFSET_MIN } = {}) {
   // First run (no checkpoint): look back a bounded amount rather than all of
   // history, so an initial deploy cannot stampede the API.
   const since = checkpoint == null ? now - maxLookbackMs : Math.max(checkpoint - overlapMs, now - maxLookbackMs);
-  return { sinceMs: since, sinceIso: new Date(since).toISOString() };
+  return { sinceMs: since, sinceIso: toZohoDateTime(since, offsetMinutes) };
 }
 
 /**

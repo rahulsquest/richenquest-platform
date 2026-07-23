@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { createLogger, createMetrics, scrub } from "./logger.mjs";
 import { memoryStore, idempotencyKey, recordVersionKey } from "./store.mjs";
 import { createEngine, OUTCOMES, constantTimeEqual, isOurOwnWrite, expectedToken } from "./engine.mjs";
-import { createReconciler, buildQuery, planWindow } from "./reconcile.mjs";
+import { createReconciler, buildQuery, planWindow, toZohoDateTime } from "./reconcile.mjs";
 import { resolveAssignment, isStudentLead, onLeadCreate } from "./handlers/on-lead-create.mjs";
 
 // ---- fixtures -------------------------------------------------------------
@@ -183,6 +183,23 @@ test("engine processes every id in a batched notification", async () => {
 });
 
 // ---- reconciliation -------------------------------------------------------
+test("toZohoDateTime emits the offset format COQL requires (no millis, explicit offset)", () => {
+  // Regression: .toISOString() output (…Z, with millis) is rejected by COQL as
+  // "value given seems to be invalid for the column".
+  const s = toZohoDateTime(Date.parse("2026-07-16T12:32:00.501Z"), 330);
+  assert.match(s, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+05:30$/);
+  assert.ok(!s.includes("."), "must not contain milliseconds");
+  assert.ok(!s.endsWith("Z"), "must not be Z/UTC form");
+  // 12:32:00 UTC + 05:30 = 18:02:00 IST
+  assert.equal(s, "2026-07-16T18:02:00+05:30");
+});
+
+test("planWindow formats sinceIso as a Zoho datetime literal", () => {
+  const { sinceIso } = planWindow(Date.parse("2026-07-20T00:00:00.000Z"), Date.parse("2026-07-20T01:00:00.000Z"));
+  assert.match(sinceIso, /\+05:30$/);
+  assert.ok(!sinceIso.includes("."));
+});
+
 test("planWindow bounds the first run and overlaps subsequent ones", () => {
   const now = 1_000_000_000;
   const first = planWindow(null, now);
