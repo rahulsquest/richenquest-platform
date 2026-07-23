@@ -21,6 +21,7 @@ import { buildFieldPayload } from "./services/crm-settings.mjs";
 import { resolveValues, planProvision, planRollback, executeProvision, executeRollback } from "./provision-crm.mjs";
 import { planPipeline, discoverForecastIds, executePipeline } from "./provision-pipeline.mjs";
 import { provisionChannels } from "./services/cliq.mjs";
+import { planWatches, toWatchPayload } from "./services/notifications.mjs";
 
 // Test-local fake credentials (never real).
 process.env.ZOHO_DC = "in";
@@ -388,6 +389,64 @@ test("executePipeline is dry-run by default and commits atomically once", async 
   const live = await executePipeline("f1", values, api, { commit: true });
   assert.equal(calls, 1); // ONE atomic call, not one per stage
   assert.equal(live.ok, true);
+});
+
+// ---- event subscriptions (ADR-006) ----------------------------------------
+const EVENTS = {
+  expiry_hours: 24,
+  renewal_hours: 6,
+  subscriptions: [
+    { name: "speed-to-lead", channel_id: "1001", events: ["Leads.create"] },
+    { name: "case-stage-change", channel_id: "1003", events: ["Deals.edit"] },
+  ],
+};
+const URL_A = "https://api.richenquest.com/hook";
+const HOUR = 3600_000;
+
+test("planWatches requires an HTTPS notify_url", () => {
+  assert.throws(() => planWatches(EVENTS, [], ""), /notify_url is required/);
+  assert.throws(() => planWatches(EVENTS, [], "http://insecure.example/hook"), /must be HTTPS/);
+});
+
+test("planWatches creates only what is missing", () => {
+  const live = [{ channel_id: "1001", events: ["Leads.create"], notify_url: URL_A, expiresAt: Date.now() + 20 * HOUR }];
+  const { plan } = planWatches(EVENTS, live, URL_A);
+  assert.equal(plan.find((p) => p.channel_id === "1001").action, "keep");
+  assert.equal(plan.find((p) => p.channel_id === "1003").action, "create");
+});
+
+test("planWatches renews a channel about to expire (silent-failure guard)", () => {
+  const now = Date.now();
+  // Expires in 2h, inside the 6h renewal window → must renew BEFORE it lapses.
+  const live = [{ channel_id: "1001", events: ["Leads.create"], notify_url: URL_A, expiresAt: now + 2 * HOUR }];
+  const { plan } = planWatches(EVENTS, live, URL_A, now);
+  const p = plan.find((x) => x.channel_id === "1001");
+  assert.equal(p.action, "renew");
+  assert.match(p.reason, /expires in/);
+});
+
+test("planWatches updates when events or notify_url drift", () => {
+  const now = Date.now();
+  const far = now + 20 * HOUR;
+  const eventsDrift = planWatches(EVENTS, [{ channel_id: "1001", events: ["Leads.edit"], notify_url: URL_A, expiresAt: far }], URL_A, now);
+  assert.equal(eventsDrift.plan.find((p) => p.channel_id === "1001").reason, "events changed");
+  const urlDrift = planWatches(EVENTS, [{ channel_id: "1001", events: ["Leads.create"], notify_url: "https://old.example/hook", expiresAt: far }], URL_A, now);
+  assert.equal(urlDrift.plan.find((p) => p.channel_id === "1001").reason, "notify_url changed");
+});
+
+test("planWatches reports undeclared live channels as drift", () => {
+  const live = [{ channel_id: "9999", events: ["Contacts.create"], notify_url: URL_A, expiresAt: Date.now() + 20 * HOUR }];
+  const { orphans } = planWatches(EVENTS, live, URL_A);
+  assert.deepEqual(orphans, ["9999"]);
+});
+
+test("toWatchPayload builds a valid channel with expiry and auth token", () => {
+  const p = toWatchPayload(EVENTS.subscriptions[0], URL_A, 24);
+  assert.equal(p.channel_id, "1001");
+  assert.equal(p.notify_url, URL_A);
+  assert.deepEqual(p.events, ["Leads.create"]);
+  assert.ok(Date.parse(p.channel_expiry) > Date.now(), "expiry must be in the future");
+  assert.equal(p.token, "rq-speed-to-lead"); // echoed back so handlers can authenticate deliveries
 });
 
 // ---- Cliq channel provisioning (duplicate-safety) -------------------------

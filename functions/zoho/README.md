@@ -18,8 +18,9 @@ functions/zoho/
 ├── zoho.test.mjs     functional test suite (node:test, zero-dep)
 ├── services/
 │   ├── crm.mjs          createOrUpdateLead (dedupe), getLead, search, addNote
-│   ├── crm-settings.mjs field metadata CRUD — powers provisioning
-│   ├── cliq.mjs         channels (duplicate-safe) + heartbeat posting
+│   ├── crm-settings.mjs  field metadata CRUD — powers provisioning
+│   ├── notifications.mjs change-notification (watch) API — ADR-006
+│   ├── cliq.mjs          channels (duplicate-safe) + heartbeat posting
 │   ├── mail.mjs         sendMail (transactional)
 │   ├── bookings.mjs     services / availability / appointments
 │   ├── analytics.mjs    addRows / exportView
@@ -34,6 +35,8 @@ functions/zoho/
     ├── provision-crm.mjs      custom fields from config/crm-schema.json
     ├── provision-pipeline.mjs Stage pipeline (ATOMIC full-set — see file header)
     ├── provision-cliq.mjs     Cliq channels (lists first; aborts if unreadable)
+    ├── provision-notifications.mjs  event subscriptions (ADR-006) — gated on
+    │                          Catalyst + ZohoCRM.notifications.ALL
     ├── verify-crm.mjs         AM0.4 acceptance evidence, generated from the API
     └── release-audit.mjs      production-vs-repository drift audit
 ```

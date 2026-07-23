@@ -44,6 +44,11 @@ jobs:
       - name: Validate CRM schema + pipeline config
         run: node scripts/validate-crm-schema.mjs
 
+      # Event-subscription config (ADR-006). Guards the renewal-vs-expiry
+      # invariant: a misconfiguration there stops automation SILENTLY.
+      - name: Validate automation event subscriptions
+        run: node scripts/validate-automation-events.mjs
+
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"

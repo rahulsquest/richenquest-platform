@@ -1,0 +1,38 @@
+{
+  "_note": "Event-driven automation subscriptions (ADR-006). Each entry becomes a Zoho CRM change-notification channel that pushes record events to our Catalyst function, replacing console-configured workflow rules. Provisioned by functions/zoho/provision-notifications.mjs. The notify_url is NOT stored here — it is environment-specific and comes from ZOHO_NOTIFY_URL, so the same config drives dev/staging/prod.",
+
+  "_channel_expiry": "Zoho notification channels EXPIRE. renewal_hours must be comfortably shorter than expiry_hours so a renewal job always runs before a channel lapses; if a channel lapses, automation stops SILENTLY. Renewal is an operational requirement, not an optimisation.",
+  "expiry_hours": 24,
+  "renewal_hours": 6,
+
+  "subscriptions": [
+    {
+      "name": "speed-to-lead",
+      "channel_id": "1001",
+      "events": ["Leads.create"],
+      "description": "AM1.1 Speed-to-Lead — instant response, assignment, #leads alert. Replaces AM0.4 WF1.",
+      "handler": "onLeadCreate"
+    },
+    {
+      "name": "lead-updated",
+      "channel_id": "1002",
+      "events": ["Leads.edit"],
+      "description": "Stale-lead rescue + status transitions. Replaces AM0.4 WF2.",
+      "handler": "onLeadEdit"
+    },
+    {
+      "name": "case-stage-change",
+      "channel_id": "1003",
+      "events": ["Deals.edit"],
+      "description": "Stage-triggered student updates, onboarding on Agreement Signed, #wins. Replaces AM0.4 WF3.",
+      "handler": "onCaseEdit"
+    },
+    {
+      "name": "case-created",
+      "channel_id": "1004",
+      "events": ["Deals.create"],
+      "description": "New Student Case — WorkDrive folder, deadline seeding. Feeds AM0.4 WF5.",
+      "handler": "onCaseCreate"
+    }
+  ]
+}
