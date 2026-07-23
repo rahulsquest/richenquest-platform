@@ -18,10 +18,23 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+// Diagnostic/admin routes (/health, /setup-scheduling, /verify-scheduling) are
+// gated behind the webhook secret — they can trigger jobs and expose runtime
+// structure, so they must not be publicly callable. Pass ?key=<TITAN_WEBHOOK_SECRET>.
+function diagAuth(req, res) {
+  const expected = process.env.TITAN_WEBHOOK_SECRET || "";
+  const key = String(req.query.key || "");
+  const ok = expected && key.length === expected.length &&
+    require("crypto").timingSafeEqual(Buffer.from(key), Buffer.from(expected));
+  if (!ok) { res.status(403).json({ error: "forbidden" }); return false; }
+  return true;
+}
+
 // Diagnostic health/readiness probe. Reports env-var PRESENCE (never values),
 // CRM auth reachability, and the live Data Store table structure so the store
 // adapter can be finalised against reality. Read-only.
 app.get("/health", async (req, res) => {
+  if (!diagAuth(req, res)) return;
   const out = { env: {}, crm: null, datastore: null };
   for (const k of ["ZOHO_DC", "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN", "TITAN_WEBHOOK_SECRET", "TITAN_AUTOMATION_USER_ID"]) {
     out.env[k] = Boolean(process.env[k]);
@@ -55,9 +68,10 @@ app.get("/health", async (req, res) => {
 // submits the titan-reconcile job to the Job Pool. The Job Pool itself must
 // pre-exist — the SDK can only READ pools (getJobpool), not create them, so the
 // pool is a one-time console step. Safe to call repeatedly.
-const POOL = "titan_pool";
+const POOL = "titanpool"; // must match the console-created Job Pool name exactly
 const CRON_NAME = "titan_reconcile_15min";
 app.get("/setup-scheduling", async (req, res) => {
+  if (!diagAuth(req, res)) return;
   const out = {};
   try {
     const catalyst = require("zcatalyst-sdk-node").initialize(req);
@@ -80,6 +94,35 @@ app.get("/setup-scheduling", async (req, res) => {
     });
     out.cron = "created";
     out.cron_id = cron?.cron_id ?? cron?.id ?? null;
+  } catch (e) { out.error = e.message; }
+  res.status(200).json(out);
+});
+
+// Verify scheduling: list crons, optionally trigger a run (?run=1), and report
+// Data Store counts — reconcile writes checkpoints to titan_meta, so meta>0
+// after a run proves the job executed the sweep.
+app.get("/verify-scheduling", async (req, res) => {
+  if (!diagAuth(req, res)) return;
+  const out = {};
+  try {
+    const catalyst = require("zcatalyst-sdk-node").initialize(req);
+    const js = catalyst.jobScheduling();
+    try {
+      const crons = await js.CRON.getAllCron();
+      out.crons = (crons || []).map((c) => ({ name: c.cron_name, status: c.cron_status, type: c.cron_type }));
+    } catch (e) { out.crons = "err: " + e.message; }
+    if (req.query.run) {
+      try { out.run = await js.CRON.runCron(CRON_NAME); } catch (e) { out.run = "err: " + e.message; }
+    }
+    const { dataStoreAdapter } = await import("./lib/catalyst/datastore-adapter.mjs");
+    const a = dataStoreAdapter(catalyst);
+    const count = async (t) => { try { return (await a.list(t)).length; } catch { return -1; } };
+    out.counts = { meta: await count("titan_meta"), idempotency: await count("titan_idempotency"), dead_letter: await count("titan_dead_letter") };
+    // Live watch channels + expiry (renewal observable).
+    try {
+      const { listWatches } = await import("./lib/zoho/services/notifications.mjs");
+      out.channels = (await listWatches()).map((w) => ({ id: w.channel_id, expiry: w.expiry }));
+    } catch (e) { out.channels = "err: " + e.message; }
   } catch (e) { out.error = e.message; }
   res.status(200).json(out);
 });
