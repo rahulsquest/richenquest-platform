@@ -86,8 +86,9 @@ The `catalystStore` adapter (in `store.mjs`, contract-tested) expects three tabl
 ## Environment (Catalyst function env vars — never in code)
 
 Same names as `.env`: `ZOHO_CLIENT_ID/_SECRET/_REFRESH_TOKEN`, `ZOHO_DC=in`, plus
-`ZOHO_NOTIFY_URL` (the deployed webhook URL) and `TITAN_AUTOMATION_USER_ID` (the CRM user our writes
-run as — powers the loop-breaker).
+`ZOHO_NOTIFY_URL` (the deployed webhook URL), `TITAN_WEBHOOK_SECRET` (HMAC secret for the callback
+token — **must match** the value used at provisioning), and `TITAN_AUTOMATION_USER_ID` (the CRM user
+our writes run as — powers the loop-breaker).
 
 ## Deploy sequence (at B3)
 

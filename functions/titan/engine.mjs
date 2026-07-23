@@ -20,6 +20,7 @@
  */
 
 import { idempotencyKey, recordVersionKey } from "./store.mjs";
+import { channelToken } from "./webhook-auth.mjs";
 import { retryAsync } from "../zoho/http.mjs";
 
 export const OUTCOMES = {
@@ -44,7 +45,7 @@ const DEFAULT_TTL_MS = 7 * 24 * 3600_000; // 7 days — comfortably longer than 
  * @param {object} deps.logger
  * @param {object} deps.metrics
  */
-export function createEngine({ store, fetchRecord, handlers, subscriptions, automationUserId, logger, metrics, ttlMs = DEFAULT_TTL_MS, tries = 3, delayMs = 300 }) {
+export function createEngine({ store, fetchRecord, handlers, subscriptions, automationUserId, logger, metrics, webhookSecret = process.env.TITAN_WEBHOOK_SECRET, ttlMs = DEFAULT_TTL_MS, tries = 3, delayMs = 300 }) {
   // channel_id → subscription. Built once; the authority for tenant + handler.
   const byChannel = new Map(subscriptions.subscriptions.map((s) => [String(s.channel_id), s]));
 
@@ -67,10 +68,21 @@ export function createEngine({ store, fetchRecord, handlers, subscriptions, auto
       return { outcome: OUTCOMES.REJECTED, reason: "unknown_channel" };
     }
     // Reconciliation-sourced events are internally generated and carry no token.
-    if (source === "event" && !constantTimeEqual(String(token ?? ""), expectedToken(sub))) {
-      log.warn("rejected: token mismatch");
-      metrics.inc("engine.rejected", 1, { reason: "bad_token" });
-      return { outcome: OUTCOMES.REJECTED, reason: "bad_token" };
+    if (source === "event") {
+      let expected;
+      try {
+        expected = channelToken(channel_id, webhookSecret);
+      } catch {
+        // No secret configured — refuse to authenticate rather than accept blindly.
+        log.error("rejected: webhook secret not configured");
+        metrics.inc("engine.rejected", 1, { reason: "no_secret" });
+        return { outcome: OUTCOMES.REJECTED, reason: "no_secret" };
+      }
+      if (!constantTimeEqual(String(token ?? ""), expected)) {
+        log.warn("rejected: token mismatch");
+        metrics.inc("engine.rejected", 1, { reason: "bad_token" });
+        return { outcome: OUTCOMES.REJECTED, reason: "bad_token" };
+      }
     }
 
     const results = [];
@@ -190,11 +202,6 @@ export function createEngine({ store, fetchRecord, handlers, subscriptions, auto
   }
 
   return { handle, _byChannel: byChannel };
-}
-
-/** Token echoed by Zoho; must match what the provisioner set. ≤50 chars (Zoho limit). */
-export function expectedToken(sub) {
-  return `rq-${sub.name}`.slice(0, 50);
 }
 
 /** Timing-safe string compare — avoids leaking the token via response timing. */

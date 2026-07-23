@@ -21,6 +21,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { listWatches, createWatches, deleteWatches, planWatches, toWatchPayload } from "./services/notifications.mjs";
+import { channelToken } from "../titan/webhook-auth.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -29,6 +30,7 @@ async function main() {
   const rollback = process.argv.includes("--rollback");
   const config = JSON.parse(await readFile(path.join(ROOT, "config/automation-events.json"), "utf8"));
   const notifyUrl = process.env.ZOHO_NOTIFY_URL;
+  const secret = process.env.TITAN_WEBHOOK_SECRET;
 
   console.log(`\nEvent subscriptions — ${rollback ? "ROLLBACK" : "provisioning"} — ${commit ? "COMMIT" : "DRY-RUN"}\n`);
 
@@ -36,6 +38,12 @@ async function main() {
     console.error("✗ ZOHO_NOTIFY_URL is not set.\n" +
       "  Event-driven automation needs a public HTTPS endpoint (Catalyst function).\n" +
       "  Until Catalyst exists this cannot be provisioned — see ADR-006.\n");
+    process.exit(2);
+  }
+  if (!secret && !rollback) {
+    console.error("✗ TITAN_WEBHOOK_SECRET is not set.\n" +
+      "  Each channel's callback token is HMAC(secret, channel_id); without the secret the\n" +
+      "  webhook cannot authenticate deliveries. Generate one: openssl rand -hex 32\n");
     process.exit(2);
   }
 
@@ -77,7 +85,7 @@ async function main() {
     return;
   }
 
-  const payload = actionable.map((p) => toWatchPayload(p, notifyUrl, config.expiry_hours ?? 24));
+  const payload = actionable.map((p) => toWatchPayload(p, notifyUrl, config.expiry_hours ?? 24, channelToken(p.channel_id, secret)));
   const res = await createWatches(payload);
   const ok = res.filter((r) => r.ok).length;
   console.log(`\n  ${ok === res.length ? "✓" : "✗"} applied ${ok}/${res.length} change(s)`);

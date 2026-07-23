@@ -49,8 +49,17 @@ export function toZohoDateTime(ms, offsetMinutes = DEFAULT_OFFSET_MIN) {
     `T${p(shifted.getUTCHours())}:${p(shifted.getUTCMinutes())}:${p(shifted.getUTCSeconds())}${sign}${p(oh)}:${p(om)}`;
 }
 
+/** Zoho module api_names are identifiers; anything else is a config error or
+ *  an injection attempt into the COQL string. */
+const MODULE_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
+
 /** PURE: build the COQL for one module. Exported for testing. */
 export function buildQuery(module, sinceIso, { limit = 200, offset = 0 } = {}) {
+  // Guard the only two interpolated values. `module` comes from config and
+  // `sinceIso` from toZohoDateTime (digits/`:+-T` only), but validating here
+  // means a bad config can never smuggle a COQL fragment into the query.
+  if (!MODULE_NAME.test(module)) throw new Error(`Invalid module name for COQL: "${module}"`);
+  if (!/^[0-9T:+\-.]+$/.test(sinceIso)) throw new Error(`Invalid datetime for COQL: "${sinceIso}"`);
   // COQL requires an explicit field list; id + Modified_Time is all the engine
   // needs, because the engine re-hydrates the full record anyway.
   return `select id, Modified_Time from ${module} where Modified_Time > '${sinceIso}' order by Modified_Time asc limit ${offset},${limit}`;

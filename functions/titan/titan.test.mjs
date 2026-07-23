@@ -11,7 +11,8 @@ import assert from "node:assert/strict";
 
 import { createLogger, createMetrics, scrub } from "./logger.mjs";
 import { memoryStore, idempotencyKey, recordVersionKey } from "./store.mjs";
-import { createEngine, OUTCOMES, constantTimeEqual, isOurOwnWrite, expectedToken } from "./engine.mjs";
+import { createEngine, OUTCOMES, constantTimeEqual, isOurOwnWrite } from "./engine.mjs";
+import { channelToken } from "./webhook-auth.mjs";
 import { createReconciler, buildQuery, planWindow, toZohoDateTime } from "./reconcile.mjs";
 import { resolveAssignment, isStudentLead, onLeadCreate } from "./handlers/on-lead-create.mjs";
 import { parseZohoNotification } from "../catalyst/parse-notification.mjs";
@@ -24,6 +25,7 @@ const SUBS = {
   ],
 };
 const AUTOMATION_USER = "auto-999";
+const WEBHOOK_SECRET = "test-secret-please-ignore";
 const silent = () => createLogger({ level: "error", sink: () => {} });
 
 function harness({ record = { id: "L1", Modified_By: { id: "human-1" }, Modified_Time: "2026-07-20T10:00:00.000Z" }, handlers = {}, store = memoryStore() } = {}) {
@@ -35,13 +37,15 @@ function harness({ record = { id: "L1", Modified_By: { id: "human-1" }, Modified
     handlers: { onLeadCreate: async (r, c) => { calls.push({ r, c }); return "ok"; }, ...handlers },
     subscriptions: SUBS,
     automationUserId: AUTOMATION_USER,
+    webhookSecret: WEBHOOK_SECRET,
     logger: silent(),
     metrics,
     delayMs: 0,
   });
   return { engine, calls, metrics, store };
 }
-const evt = (over = {}) => ({ module: "Leads", ids: ["L1"], operation: "create", channel_id: "1001", token: "rq-speed-to-lead", server_time: 1000, ...over });
+// A valid event carries the HMAC token the provisioner would have set.
+const evt = (over = {}) => ({ module: "Leads", ids: ["L1"], operation: "create", channel_id: "1001", token: channelToken("1001", WEBHOOK_SECRET), server_time: 1000, ...over });
 
 // ---- logger ---------------------------------------------------------------
 test("logger scrubs PII at every depth and never emits it", () => {
@@ -91,9 +95,33 @@ test("constantTimeEqual compares safely and correctly", () => {
   assert.ok(!constantTimeEqual("abc", "abcd"));
 });
 
-test("expectedToken respects Zoho's 50-char token limit", () => {
-  const t = expectedToken({ name: "x".repeat(90) });
-  assert.ok(t.length <= 50, `token ${t.length} chars exceeds Zoho's 50-char maximum`);
+test("channelToken is unpredictable, deterministic, and within Zoho's 50-char limit", () => {
+  const a = channelToken("1001", WEBHOOK_SECRET);
+  assert.ok(a.length <= 50, `token ${a.length} chars exceeds Zoho's 50-char maximum`);
+  assert.equal(a, channelToken("1001", WEBHOOK_SECRET), "must be deterministic for verification");
+  assert.notEqual(a, channelToken("1002", WEBHOOK_SECRET), "different channels get different tokens");
+  assert.notEqual(a, channelToken("1001", "other-secret"), "depends on the secret");
+  // The old scheme was `rq-<name>` — a name-derived guess must NOT authenticate.
+  assert.notEqual(a, "rq-speed-to-lead");
+  assert.throws(() => channelToken("1001", ""), /required/);
+});
+
+test("R7: a predictable name-derived token is now rejected (regression: forgeable token)", async () => {
+  const { engine, calls } = harness();
+  const r = await engine.handle(evt({ token: "rq-speed-to-lead" }));
+  assert.equal(r.outcome, OUTCOMES.REJECTED);
+  assert.equal(r.reason, "bad_token");
+  assert.equal(calls.length, 0);
+});
+
+test("engine refuses to authenticate when no webhook secret is configured", async () => {
+  const engine = createEngine({
+    store: memoryStore(), fetchRecord: async () => ({ id: "L1" }),
+    handlers: { onLeadCreate: async () => "ok" }, subscriptions: SUBS,
+    automationUserId: AUTOMATION_USER, webhookSecret: "", logger: silent(), metrics: createMetrics(),
+  });
+  const r = await engine.handle({ module: "Leads", ids: ["L1"], operation: "create", channel_id: "1001", token: "anything", server_time: 1 });
+  assert.equal(r.reason, "no_secret", "must fail closed, never accept blindly");
 });
 
 test("R2: duplicate delivery is processed exactly once", async () => {
@@ -172,7 +200,7 @@ test("cross-path dedupe: reconciliation must NOT re-process an event-handled rec
 
 test("declared-but-missing handler fails loudly, never silently", async () => {
   const { engine, store } = harness();
-  const r = await engine.handle(evt({ channel_id: "1003", token: "rq-case-stage-change", module: "Deals" }));
+  const r = await engine.handle(evt({ channel_id: "1003", token: channelToken("1003", WEBHOOK_SECRET), module: "Deals" }));
   assert.equal(r.results[0].outcome, OUTCOMES.NO_HANDLER);
   assert.equal((await store.listDeadLetters()).length, 1);
 });
@@ -210,10 +238,15 @@ test("planWindow bounds the first run and overlaps subsequent ones", () => {
 });
 
 test("buildQuery is ordered and paged (deterministic sweeps)", () => {
-  const q = buildQuery("Leads", "2026-07-01T00:00:00.000Z", { limit: 50, offset: 100 });
+  const q = buildQuery("Leads", "2026-07-01T00:00:00+05:30", { limit: 50, offset: 100 });
   assert.match(q, /from Leads/);
   assert.match(q, /order by Modified_Time asc/);
   assert.match(q, /limit 100,50/);
+});
+
+test("buildQuery rejects injection in the module name and a bad datetime", () => {
+  assert.throws(() => buildQuery("Leads; drop", "2026-07-01T00:00:00+05:30"), /Invalid module/);
+  assert.throws(() => buildQuery("Leads", "2026-07-01T00:00:00.000Z' or '1'='1"), /Invalid datetime/);
 });
 
 test("reconciler counts MISSED records — the delivery-loss SLI", async () => {

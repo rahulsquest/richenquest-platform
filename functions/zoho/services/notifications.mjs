@@ -93,14 +93,20 @@ export function planWatches(config, live, notifyUrl, now = Date.now()) {
   return { plan, orphans };
 }
 
-/** Build the API payload for one planned subscription. */
-export function toWatchPayload(sub, notifyUrl, expiryHours) {
+/**
+ * Build the API payload for one planned subscription.
+ * @param {string} token  per-channel HMAC token (see functions/titan/webhook-auth.mjs).
+ *   Passed in rather than derived here, because it must be unpredictable — a
+ *   name-derived token would be forgeable (security finding 2026-07-24).
+ */
+export function toWatchPayload(sub, notifyUrl, expiryHours, token) {
+  if (!token) throw new Error("toWatchPayload requires a per-channel token (channelToken).");
   return {
     channel_id: String(sub.channel_id),
     events: sub.events,
     notify_url: notifyUrl,
     channel_expiry: new Date(Date.now() + expiryHours * 3600_000).toISOString(),
-    // Echoed back by Zoho on every delivery so the handler can authenticate it.
-    token: `rq-${sub.name}`,
+    // Echoed back by Zoho on every delivery so the engine can authenticate it.
+    token,
   };
 }

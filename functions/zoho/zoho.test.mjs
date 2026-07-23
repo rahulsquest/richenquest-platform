@@ -465,13 +465,14 @@ test("planWatches reports undeclared live channels as drift", () => {
   assert.deepEqual(orphans, ["9999"]);
 });
 
-test("toWatchPayload builds a valid channel with expiry and auth token", () => {
-  const p = toWatchPayload(EVENTS.subscriptions[0], URL_A, 24);
+test("toWatchPayload embeds the caller-supplied token and requires one", () => {
+  const p = toWatchPayload(EVENTS.subscriptions[0], URL_A, 24, "hmac-token-abc");
   assert.equal(p.channel_id, "1001");
   assert.equal(p.notify_url, URL_A);
   assert.deepEqual(p.events, ["Leads.create"]);
   assert.ok(Date.parse(p.channel_expiry) > Date.now(), "expiry must be in the future");
-  assert.equal(p.token, "rq-speed-to-lead"); // echoed back so handlers can authenticate deliveries
+  assert.equal(p.token, "hmac-token-abc"); // unpredictable HMAC, not a name-derived string
+  assert.throws(() => toWatchPayload(EVENTS.subscriptions[0], URL_A, 24), /requires a per-channel token/);
 });
 
 // ---- Cliq channel provisioning (duplicate-safety) -------------------------
