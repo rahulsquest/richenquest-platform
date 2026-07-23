@@ -1,8 +1,29 @@
 # ADR-006 — Automation is event-driven code, not console-configured workflow rules
 
-**Status:** Proposed (evidence-backed, 2026-07-23) — supersedes the workflow-rule mechanism
-assumed by File 01 §5 / AM0.4 §5. Does not change the *behaviour* those workflows specify,
-only where that behaviour lives.
+**Status:** Proposed → **AMENDED 2026-07-23** by the Titan architecture review
+([titan-event-architecture-review.md](../architecture/titan-event-architecture-review.md)).
+Supersedes the workflow-rule mechanism assumed by File 01 §5 / AM0.4 §5. Does not change the
+*behaviour* those workflows specify, only where that behaviour lives.
+
+> ## ⚠️ AMENDMENT — this ADR as originally written is INSUFFICIENT
+>
+> The design review validated the *mechanism* but found this ADR understated the risk. Official
+> Zoho documentation **does not state** delivery guarantees, retry behaviour, duplicate handling, or
+> ordering for `actions/watch`, and two official sources **contradict each other** on channel expiry
+> (v8 reference: max one week; Kaizen #14 and Vertical Solutions v6: max one day).
+>
+> Consequently, **pure event-driven (Architecture B) is rejected.** The accepted design is
+> **Architecture C (Hybrid)**: events as the low-latency path, plus a **scheduled reconciliation
+> sweep as the correctness authority**, plus one temporary native-workflow fallback retired only
+> after 30 days of measured delivery data.
+>
+> The reconciliation component is **not optional** and was absent from this ADR's original
+> "Consequences" section, which listed reconciliation as merely "load-bearing". It is the mechanism
+> by which the system is correct at all.
+>
+> Full analysis, risk register (R1–R14), architecture comparison, and phased roadmap:
+> [titan-event-architecture-review.md](../architecture/titan-event-architecture-review.md) ·
+> [titan-operations-and-roadmap.md](../architecture/titan-operations-and-roadmap.md)
 
 ## Context
 
