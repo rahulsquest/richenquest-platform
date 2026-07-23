@@ -18,6 +18,7 @@ import { zohoRequest } from "./client.mjs";
 import * as crm from "./services/crm.mjs";
 import * as flow from "./services/flow.mjs";
 import { buildFieldPayload } from "./services/crm-settings.mjs";
+import { patchEnv } from "./scripts/exchange-and-update.mjs";
 import { resolveValues, planProvision, planRollback, executeProvision, executeRollback } from "./provision-crm.mjs";
 import { planPipeline, discoverForecastIds, executePipeline } from "./provision-pipeline.mjs";
 import { provisionChannels } from "./services/cliq.mjs";
@@ -225,6 +226,30 @@ test("createOrUpdateLead upserts with dedupe fields and returns action+id", asyn
 });
 
 // ---- services/flow.mjs ---------------------------------------------------
+// ---- .env patching (silent corruption here would be very bad) -----------
+test("patchEnv replaces the key in place and preserves every other line", () => {
+  const before = "# comment\nZOHO_DC=in\nZOHO_REFRESH_TOKEN=old.value\nZOHO_SCOPES=a,b\n";
+  const after = patchEnv(before, "ZOHO_REFRESH_TOKEN", "new.value");
+  assert.match(after, /^ZOHO_REFRESH_TOKEN=new\.value$/m);
+  assert.ok(!after.includes("old.value"));
+  assert.ok(after.includes("# comment"), "comments must survive");
+  assert.ok(after.includes("ZOHO_DC=in") && after.includes("ZOHO_SCOPES=a,b"), "other keys must survive");
+  assert.equal(after.split("\n").length, before.split("\n").length, "line count must not change");
+});
+
+test("patchEnv appends when the key is absent, without duplicating newlines", () => {
+  const after = patchEnv("ZOHO_DC=in\n", "ZOHO_REFRESH_TOKEN", "v1");
+  assert.equal(after, "ZOHO_DC=in\nZOHO_REFRESH_TOKEN=v1\n");
+  assert.ok(!/\n\n/.test(after));
+});
+
+test("patchEnv does not match a key that is merely a prefix of another", () => {
+  const before = "ZOHO_REFRESH_TOKEN_BACKUP=keep\nZOHO_REFRESH_TOKEN=old\n";
+  const after = patchEnv(before, "ZOHO_REFRESH_TOKEN", "new");
+  assert.ok(after.includes("ZOHO_REFRESH_TOKEN_BACKUP=keep"), "prefix-sharing key must not be clobbered");
+  assert.match(after, /^ZOHO_REFRESH_TOKEN=new$/m);
+});
+
 // ---- provisioning: buildFieldPayload + resolveValues -------------------
 test("buildFieldPayload maps picklist/text/phone correctly", () => {
   const pick = buildFieldPayload({ label: "Market", type: "picklist", values: ["India", "Nepal"] });
