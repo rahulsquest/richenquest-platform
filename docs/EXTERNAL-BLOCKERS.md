@@ -3,6 +3,10 @@
 **Generated:** 2026-07-23 · **Status:** engineering is not the bottleneck; all remaining work is
 gated on external dependencies. Work through in priority order; items marked ∥ can run in parallel.
 
+> **Credential rule (founder instruction, 2026-07-23):** never paste passwords, Personal Access
+> Tokens, refresh tokens, or API secrets into chat. Every step below is designed so credential
+> material is created and stored **locally** and never transits the conversation.
+
 **Currently granted OAuth scopes** (verified at last token exchange):
 `ZohoCRM.modules.ALL · ZohoCRM.settings.ALL · ZohoCRM.users.ALL · ZohoCRM.org.ALL ·
 ZohoCliq.Channels.CREATE · ZohoCliq.Webhooks.CREATE`
@@ -14,21 +18,29 @@ ZohoCliq.Channels.CREATE · ZohoCliq.Webhooks.CREATE`
 **Why:** 42 commits of verified work exist on one laptop with no backup. Every other risk in this
 project has a designed mitigation; this one has none. It is also the cheapest to close.
 
-**Do this** — create an **empty private** repo (no README/.gitignore, or the push conflicts):
+**Do this — SSH, so no credential ever enters this conversation.** No SSH key exists on this machine
+(verified), so create one:
+
+```bash
+ssh-keygen -t ed25519 -C "kumar.rahulsuniverse@gmail.com" -f ~/.ssh/id_ed25519 -N ""
+pbcopy < ~/.ssh/id_ed25519.pub && echo "public key copied to clipboard"
+```
+
+Add it at `https://github.com/settings/ssh/new` → paste → *Add SSH key*.
+(The **public** key is safe to share; the private key never leaves your machine and I never see it.)
+
+Then create an **empty private** repo — no README or .gitignore, or the push conflicts:
 `https://github.com/new` → name `richenquest-platform` → **Private** → Create.
 
-Then create a token at `https://github.com/settings/tokens` → *Generate new token (classic)* →
-scope **`repo`** only → copy it.
+Give me only: **the repo's SSH URL** (`git@github.com:<you>/richenquest-platform.git`). That is not
+a secret.
 
-Give me: **the repo URL** and **the token** (or paste the token when git prompts — `osxkeychain` is
-configured, so it is stored once and never re-entered).
+**Time:** 4 min · **Blocks:** nothing — fully parallel
+**Then I:** add the remote, verify the SSH handshake, push `release/rc-1` and `main`, confirm the
+remote tree matches local, and re-scan every pushed object for secrets.
 
-**Time:** 3 min · **Blocks:** nothing — fully parallel
-**Then I:** add the remote, push `release/rc-1` and `main`, verify the remote tree matches local,
-and confirm no secret is present in any pushed object.
-
-> ⚠️ Do **not** paste the token into a public place. If you prefer, run
-> `git remote add origin <url>` yourself and I will push (git will prompt once).
+> **Alternative if you prefer HTTPS:** `brew install gh && gh auth login` — authenticates in your
+> browser and stores the credential in `osxkeychain` locally. Also fine; still no secret in chat.
 
 ---
 
