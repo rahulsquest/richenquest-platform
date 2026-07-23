@@ -5,8 +5,13 @@ serverless functions. The target is the **existing unused Catalyst project** —
 project supplies Advanced I/O + Cron + Data Store, which is all Titan needs, so no new project is
 required.
 
-**Status:** the logic is built and tested (83 tests); bundles assemble and self-verify locally. The
-only step that needs the live platform is `catalyst deploy` (requires `catalyst login`).
+**Status (2026-07-24): DEPLOYED to `Project-Rainfall` (Development).** Both functions are live:
+- `titan-webhook` (Advanced I/O) → `https://project-rainfall-60076829044.development.catalystserverless.in/server/titan-webhook/`
+- `titan-reconcile` (Cron)
+
+They will not process events until (a) the function **environment variables** are set in the
+Catalyst console and (b) the three **Data Store tables** exist — both are console actions (the env
+vars are credentials). See "Remaining console steps" below.
 
 ## Two functions
 
@@ -56,11 +61,28 @@ fake client. This seam is finalised on the first deploy.
 `ZOHO_CLIENT_ID/_SECRET/_REFRESH_TOKEN`, `ZOHO_DC=in`, `ZOHO_NOTIFY_URL` (the deployed webhook URL),
 `TITAN_WEBHOOK_SECRET` (must match the value used at provisioning), `TITAN_AUTOMATION_USER_ID`.
 
-## Deploy sequence (once `catalyst login` is done)
+## Reproducing the deploy
 
-1. `node functions/catalyst/build.mjs` → bundles.
-2. `catalyst init` in each `dist/<fn>/` linking the **unused** project (IN region); create the three
-   Data Store tables; set function env vars in the console.
-3. `catalyst deploy` → obtain the `titan-webhook` public URL.
-4. Set `ZOHO_NOTIFY_URL` + `TITAN_WEBHOOK_SECRET` locally → `provision-notifications.mjs` dry-run → commit.
-5. Roadmap Stage 1: one channel, 7-day delivery measurement.
+```bash
+node functions/catalyst/build.mjs                     # → dist/ (functions/ + catalyst.json)
+cd functions/catalyst/dist
+catalyst init --project 53691000000013024 --org 60076829044 --force   # writes .catalystrc
+(cd functions/titan-webhook && npm install) && (cd functions/titan-reconcile && npm install)
+catalyst deploy --only functions                      # --only functions never touches website hosting
+```
+
+## Remaining console steps (cannot be automated — credentials + console)
+
+1. **Function environment variables** — Catalyst console → project `Project-Rainfall` → Functions →
+   each function → Configuration → Environment Variables. Set: `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`,
+   `ZOHO_REFRESH_TOKEN`, `ZOHO_DC=in`, `TITAN_WEBHOOK_SECRET` (same value as local `.env`),
+   `TITAN_AUTOMATION_USER_ID=1292318000000457001`. The ZOHO values are the same as local `.env`.
+2. **Data Store tables** — console → Data Store → create: `titan_idempotency` (columns: `ROWID`,
+   `expiresAt` Number), `titan_meta` (`ROWID`, `value` Number), `titan_dead_letter` (`ROWID`,
+   payload columns / a single `json` Text column).
+
+## Then (I automate)
+
+`provision-notifications.mjs --commit` for **speed-to-lead only** (its handler exists; the other
+three subscriptions wait on their handlers) → roadmap Stage 1: one channel, 7-day delivery measurement
+via the reconciler's `missed` metric.

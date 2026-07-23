@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 
 import { createWebhookCore } from "./webhook-core.mjs";
 import { createReconcileCore } from "./reconcile-core.mjs";
@@ -77,29 +77,38 @@ test("reconcile core runs a committing sweep and returns the summary", async () 
 });
 
 // ---- bundle assembler -----------------------------------------------------
-test("build produces self-contained bundles whose imports resolve locally", async () => {
+test("build produces the Catalyst function layout with required files", async () => {
   const built = await build();
-  const names = built.map((b) => b.name).sort();
-  assert.deepEqual(names, ["titan-reconcile", "titan-webhook"]);
+  assert.deepEqual(built.map((b) => b.name).sort(), ["titan-reconcile", "titan-webhook"]);
 
   for (const b of built) {
-    // Each bundle must carry its entry, config, and the local copies its
-    // imports need — nothing may escape the function directory.
-    for (const f of ["handler.js", "catalyst-config.json", "config", "functions"]) {
-      await assert.doesNotReject(access(path.join(b.dest, f)), `${b.name} missing ${f}`);
+    for (const f of ["index.js", "catalyst-config.json", "package.json", "config", "lib"]) {
+      await assert.doesNotReject(access(path.join(b.dir, f)), `${b.name} missing ${f}`);
     }
-    await assert.doesNotReject(access(path.join(b.dest, "functions/titan/runtime.mjs")));
-    await assert.doesNotReject(access(path.join(b.dest, "functions/catalyst/webhook-core.mjs")));
-    await assert.doesNotReject(access(path.join(b.dest, "config/automation-events.json")));
+    await assert.doesNotReject(access(path.join(b.dir, "lib/titan/runtime.mjs")));
+    await assert.doesNotReject(access(path.join(b.dir, "lib/catalyst/webhook-core.mjs")));
+    await assert.doesNotReject(access(path.join(b.dir, "config/automation-events.json")));
+    // Test files must never ship in a deploy bundle.
+    await assert.rejects(access(path.join(b.dir, "lib/titan/titan.test.mjs")));
   }
 });
 
+test("catalyst-config.json matches the real scaffold schema", async () => {
+  const [webhook] = (await build()).filter((b) => b.name === "titan-webhook");
+  const cfg = JSON.parse(await readFile(path.join(webhook.dir, "catalyst-config.json"), "utf8"));
+  assert.equal(cfg.deployment.type, "advancedio");
+  assert.equal(cfg.deployment.stack, "node18");
+  assert.equal(cfg.execution.main, "index.js");
+  const pkg = JSON.parse(await readFile(path.join(webhook.dir, "package.json"), "utf8"));
+  assert.ok(pkg.dependencies["zcatalyst-sdk-node"], "SDK must be a declared dependency");
+});
+
 test("the assembled bundle's runtime imports + loads config from within the bundle", async () => {
-  const [webhookBundle] = (await build()).filter((b) => b.name === "titan-webhook");
-  // Importing the bundled runtime proves every relative import resolves inside
-  // the bundle AND that config/ is found at runtime.mjs's expected ROOT.
-  const { buildRuntime } = await import(path.join(webhookBundle.dest, "functions/titan/runtime.mjs"));
-  const { memoryStore } = await import(path.join(webhookBundle.dest, "functions/titan/store.mjs"));
+  const [webhook] = (await build()).filter((b) => b.name === "titan-webhook");
+  // Proves every relative import resolves inside the bundle AND config/ is
+  // found at runtime.mjs's two-level ROOT (lib/titan → function root → config/).
+  const { buildRuntime } = await import(path.join(webhook.dir, "lib/titan/runtime.mjs"));
+  const { memoryStore } = await import(path.join(webhook.dir, "lib/titan/store.mjs"));
   const rt = await buildRuntime({ store: memoryStore(), automationUserId: "u", webhookSecret: "s" });
   assert.ok(rt.engine && rt.reconciler, "buildRuntime must wire an engine + reconciler from the bundle");
   assert.ok(rt.subscriptions.subscriptions.length > 0, "config loaded from inside the bundle");

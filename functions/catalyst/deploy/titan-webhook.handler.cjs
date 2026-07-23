@@ -19,10 +19,10 @@ const app = express();
 app.use(express.json());
 
 app.post("/", async (req, res) => {
-  const { createWebhookCore } = await import("./functions/catalyst/webhook-core.mjs");
-  const { parseZohoNotification } = await import("./functions/catalyst/parse-notification.mjs");
-  const { buildRuntime } = await import("./functions/titan/runtime.mjs");
-  const { catalystStore } = await import("./functions/titan/store.mjs");
+  const { createWebhookCore } = await import("./lib/catalyst/webhook-core.mjs");
+  const { parseZohoNotification } = await import("./lib/catalyst/parse-notification.mjs");
+  const { buildRuntime } = await import("./lib/titan/runtime.mjs");
+  const { catalystStore } = await import("./lib/titan/store.mjs");
 
   const catalyst = require("zcatalyst-sdk-node").initialize(req);
 

@@ -6,9 +6,9 @@
 
 module.exports = async (event, context) => {
   try {
-    const { createReconcileCore } = await import("./functions/catalyst/reconcile-core.mjs");
-    const { buildRuntime } = await import("./functions/titan/runtime.mjs");
-    const { catalystStore } = await import("./functions/titan/store.mjs");
+    const { createReconcileCore } = await import("./lib/catalyst/reconcile-core.mjs");
+    const { buildRuntime } = await import("./lib/titan/runtime.mjs");
+    const { catalystStore } = await import("./lib/titan/store.mjs");
 
     const catalyst = require("zcatalyst-sdk-node").initialize(context);
     const ds = catalyst.datastore();
