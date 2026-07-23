@@ -1,100 +1,66 @@
-# Catalyst deployment plan (ready to execute at B3)
+# Catalyst deployment layer
 
-The Titan automation engine (`functions/titan/`) and Zoho clients (`functions/zoho/`) are built,
-tested (71 tests), and runtime-verified against production. This directory holds the **Catalyst
-deployment layer** — the thin adapter that hosts that tested code as serverless functions.
+Hosts the tested Titan engine (`functions/titan/`) + Zoho clients (`functions/zoho/`) as two Catalyst
+serverless functions. The target is the **existing unused Catalyst project** — a standard Catalyst
+project supplies Advanced I/O + Cron + Data Store, which is all Titan needs, so no new project is
+required.
 
-**Status:** structure verified against Catalyst's documented function layout; **end-to-end deploy is
-gated on B3** (Catalyst project + `catalyst login`). Nothing here is deployed. `parse-notification.mjs`
-is pure and already unit-tested; the wrapper templates below are finalised at deploy, when the SDK
-and project id are available to test against.
+**Status:** the logic is built and tested (83 tests); bundles assemble and self-verify locally. The
+only step that needs the live platform is `catalyst deploy` (requires `catalyst login`).
 
 ## Two functions
 
-| Function | Type | Trigger | Calls | Timeout |
+| Function | Type | Trigger | Core (tested) | Timeout |
 |---|---|---|---|---|
-| `titan-webhook` | Advanced I/O | Zoho `actions/watch` POST | `engine.handle()` | 30s — must ack in <1s |
-| `titan-reconcile` | Cron | every 15 min | `reconciler.sweep()` | 15 min |
+| `titan-webhook` | Advanced I/O | Zoho `actions/watch` POST | `webhook-core.mjs` → `engine.handle()` | 30s (acks <1s) |
+| `titan-reconcile` | Cron | every 15 min | `reconcile-core.mjs` → `reconciler.sweep()` | 15 min |
 
-## How the tested code plugs in
+## Files
 
-Both functions are **thin**. All logic is in `functions/titan/runtime.mjs` (the composition root),
-which is already tested. The webhook adapter does exactly three things:
+| File | Role | Tested? |
+|---|---|---|
+| `parse-notification.mjs` | Zoho webhook body → engine input (pure) | ✅ |
+| `webhook-core.mjs` | ack-first-then-dispatch logic (framework-agnostic) | ✅ |
+| `reconcile-core.mjs` | committing-sweep logic | ✅ |
+| `deploy/*.handler.cjs` | thin Catalyst SDK shells (Express / Cron + Data Store) | shell validated at deploy |
+| `build.mjs` | assembles self-contained deploy bundles | ✅ (assembly asserted) |
 
-1. `parseZohoNotification(req.body)` — pure, tested (`parse-notification.mjs`).
-2. verify + `engine.handle(notification)` — the engine applies every safety guard.
-3. **return 200 immediately** — Zoho's retry behaviour is undocumented (ADR-006), so we ack fast and
-   let reconciliation guarantee correctness.
+## The packaging problem this solves
 
-### `titan-webhook` — Advanced I/O (Express), documented shape
+Catalyst bundles **each function's own directory** — imports that escape it (`../../../`) are not
+included in the deployment package, and `runtime.mjs` also reads `config/` by filesystem path.
+`build.mjs` therefore produces `dist/<fn>/` mirroring the repo layout (`config/` +
+`functions/{titan,zoho,catalyst}` + a root `handler.js`), so every import resolves locally and
+config loads from inside the bundle. A test imports the *assembled* runtime and builds it, proving
+the bundle is self-contained before any deploy.
 
 ```
-functions/catalyst/titan-webhook/
-├── catalyst-config.json     # { "deployment": { "name":"titan-webhook", "stack":"nodejs18",
-│                            #     "type":"advancedio", "memory":256 } }
-├── handler.js               # entry point → requires ./server
-└── server/index.js          # Express app (below)
+node functions/catalyst/build.mjs   # → functions/catalyst/dist/<fn>/ (gitignored)
 ```
 
-```js
-// server/index.js — finalised at B3 (needs zcatalyst-sdk-node + Data Store, testable only on-platform)
-const express = require("express");
-const app = express();
-app.use(express.json());
+## The one seam validated only at deploy
 
-app.post("/", async (req, res) => {
-  // Dynamic import bridges CJS (Catalyst) → ESM (our engine).
-  const { buildRuntime } = await import("../../../titan/runtime.mjs");
-  const { parseZohoNotification } = await import("../../parse-notification.mjs");
-  const { catalystStore } = await import("../../../titan/store.mjs");
+The CJS shells (`deploy/*.handler.cjs`) wire Catalyst's SDK (Express request/response, `datastore()`)
+into the tested cores via dynamic `import()` of the ESM logic. That SDK wiring — and the Data Store
+adapter mapping onto the `catalystStore` contract in `store.mjs` — cannot be exercised without the
+live runtime. Everything it calls is tested; the adapter contract itself is contract-tested against a
+fake client. This seam is finalised on the first deploy.
 
-  const parsed = parseZohoNotification(req.body);
-  if (!parsed.ok) return res.status(202).json({ ignored: parsed.reason }); // ack, never retry junk
+## Data Store tables (created at deploy)
 
-  const catalyst = require("zcatalyst-sdk-node").initialize(req);
-  const store = catalystStore(dataStoreClient(catalyst)); // adapter already contract-tested
-  const { engine } = await buildRuntime({ store, automationUserId: process.env.TITAN_AUTOMATION_USER_ID });
-
-  // Ack FIRST, process after — correctness comes from reconciliation, not this response.
-  res.status(200).json({ received: true });
-  engine.handle(parsed.notification).catch((e) => console.error(JSON.stringify({ level: "error", msg: "engine", error: e.message })));
-});
-module.exports = app;
-```
-
-### `titan-reconcile` — Cron
-
-```js
-// index.js — finalised at B3
-module.exports = async (event, context) => {
-  const { buildRuntime } = await import("../../titan/runtime.mjs");
-  const { catalystStore } = await import("../../titan/store.mjs");
-  const catalyst = require("zcatalyst-sdk-node").initialize(context);
-  const store = catalystStore(dataStoreClient(catalyst));
-  const { reconciler } = await buildRuntime({ store, automationUserId: process.env.TITAN_AUTOMATION_USER_ID });
-  const summary = await reconciler.sweep({ dryRun: false });
-  context.closeWithSuccess(JSON.stringify(summary));
-};
-```
-
-## Data Store tables (created at B3)
-
-The `catalystStore` adapter (in `store.mjs`, contract-tested) expects three tables:
-`titan_idempotency` (key, expiresAt), `titan_meta` (name, value — reconciliation checkpoints),
-`titan_dead_letter` (append-only). Schema created via the Catalyst console or CLI at deploy.
+`titan_idempotency` (key, expiresAt) · `titan_meta` (name, value — reconciliation checkpoints) ·
+`titan_dead_letter` (append-only). Created via the Catalyst console/CLI.
 
 ## Environment (Catalyst function env vars — never in code)
 
-Same names as `.env`: `ZOHO_CLIENT_ID/_SECRET/_REFRESH_TOKEN`, `ZOHO_DC=in`, plus
-`ZOHO_NOTIFY_URL` (the deployed webhook URL), `TITAN_WEBHOOK_SECRET` (HMAC secret for the callback
-token — **must match** the value used at provisioning), and `TITAN_AUTOMATION_USER_ID` (the CRM user
-our writes run as — powers the loop-breaker).
+`ZOHO_CLIENT_ID/_SECRET/_REFRESH_TOKEN`, `ZOHO_DC=in`, `ZOHO_NOTIFY_URL` (the deployed webhook URL),
+`TITAN_WEBHOOK_SECRET` (must match the value used at provisioning), `TITAN_AUTOMATION_USER_ID`.
 
-## Deploy sequence (at B3)
+## Deploy sequence (once `catalyst login` is done)
 
-1. `catalyst init` in this directory → link the `titan` project (IN region).
-2. Create the three Data Store tables.
-3. Set function env vars (from the local `.env`, entered in the Catalyst console — no secret in chat).
-4. `catalyst deploy` → obtain the `titan-webhook` public URL.
-5. Set `ZOHO_NOTIFY_URL` locally → `provision-notifications.mjs` dry-run → commit.
-6. Roadmap Stage 1: one channel, 7-day delivery measurement.
+1. `node functions/catalyst/build.mjs` → bundles.
+2. `catalyst init` in each `dist/<fn>/` linking the **unused** project (IN region); create the three
+   Data Store tables; set function env vars in the console.
+3. `catalyst deploy` → obtain the `titan-webhook` public URL.
+4. Set `ZOHO_NOTIFY_URL` + `TITAN_WEBHOOK_SECRET` locally → `provision-notifications.mjs` dry-run → commit.
+5. Roadmap Stage 1: one channel, 7-day delivery measurement.
