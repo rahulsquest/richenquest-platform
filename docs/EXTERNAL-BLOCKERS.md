@@ -7,6 +7,15 @@ gated on external dependencies. Work through in priority order; items marked ∥
 > Tokens, refresh tokens, or API secrets into chat. Every step below is designed so credential
 > material is created and stored **locally** and never transits the conversation.
 
+## ✅ RESOLVED
+
+- **B2 — OAuth re-consent** (2026-07-23): token re-minted locally; `notifications.ALL`, `coql.READ`,
+  `Cliq.Channels.READ` verified granted by capability probe; prior scopes intact.
+- **B1 — Git remote** (2026-07-24): separate repo strategy chosen (legacy site stays in its own
+  repo). Pushed via **SSH** to `git@github.com:rahulsquest/richenquest-platform.git` — verified empty
+  first, both branches match SHA-for-SHA, tags pushed, no secret-bearing files in the remote tree.
+  The 46-commit single-point-of-failure risk is now closed.
+
 **Currently granted OAuth scopes** (verified at last token exchange):
 `ZohoCRM.modules.ALL · ZohoCRM.settings.ALL · ZohoCRM.users.ALL · ZohoCRM.org.ALL ·
 ZohoCliq.Channels.CREATE · ZohoCliq.Webhooks.CREATE`
