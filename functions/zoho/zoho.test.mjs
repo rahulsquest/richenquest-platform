@@ -23,6 +23,7 @@ import { resolveValues, planProvision, planRollback, executeProvision, executeRo
 import { planPipeline, discoverForecastIds, executePipeline } from "./provision-pipeline.mjs";
 import { provisionChannels } from "./services/cliq.mjs";
 import { planWatches, toWatchPayload } from "./services/notifications.mjs";
+import { splitName, planUsers, executeUsers, defaultProfilePolicy } from "./provision-users.mjs";
 
 // Test-local fake credentials (never real).
 process.env.ZOHO_DC = "in";
@@ -579,4 +580,48 @@ test("addNote sends Parent_Id as a json object and throws on row error", async (
     : jsonRes(200, { data: [{ status: "error", code: "INVALID_DATA", message: "bad" }] })));
   try { await assert.rejects(() => crm.addNote("Leads", "L1", "T", "c"), /addNote failed: INVALID_DATA/); }
   finally { restore2(); }
+});
+
+// ---- user provisioning (AM0.2) -------------------------------------------
+test("splitName handles single and multi-word names (last_name mandatory)", () => {
+  assert.deepEqual(splitName("Harsh"), { first_name: "", last_name: "Harsh" });
+  assert.deepEqual(splitName("Rahul Kumar"), { first_name: "Rahul", last_name: "Kumar" });
+});
+
+test("planUsers maps crm_role→role, applies least-privilege profiles, and blocks on missing email", () => {
+  const roster = [
+    { name: "Rahul Kumar", crm_role: "CEO", email: "r@x.com" },
+    { name: "Harsh", crm_role: "Manager / Operations", email: "h@x.com" },
+    { name: "Kunal", crm_role: "Counselor" }, // no email
+    { name: "Zed", crm_role: "Nonexistent", email: "z@x.com" },
+  ];
+  const roleIds = new Map([["CEO", "r1"], ["Manager", "r2"], ["Counselor", "r3"]]);
+  const profileIds = new Map([["Administrator", "p1"], ["Standard", "p2"]]);
+  const plan = planUsers(roster, [{ email: "r@x.com" }], roleIds, profileIds, defaultProfilePolicy);
+  const by = Object.fromEntries(plan.map((p) => [p.name, p]));
+  assert.equal(by["Rahul Kumar"].action, "exists");                 // already a user
+  assert.equal(by["Harsh"].action, "create");
+  assert.equal(by["Harsh"].roleName, "Manager");                    // base role from "Manager / Operations"
+  assert.equal(by["Harsh"].profileName, "Standard");                // least privilege (not CEO)
+  assert.equal(by["Harsh"].payload.role.id, "r2");
+  assert.equal(by["Kunal"].action, "blocked");                      // no email
+  assert.match(by["Kunal"].reason, /no email/);
+  assert.equal(by["Zed"].action, "blocked");                        // unknown role
+  assert.match(by["Zed"].reason, /no CRM role/);
+});
+
+test("executeUsers dry-run creates nothing; commit creates only the 'create' rows", async () => {
+  const plan = [
+    { name: "A", email: "a@x", action: "create", roleName: "Manager", profileName: "Standard", payload: {} },
+    { name: "B", email: "b@x", action: "exists" },
+    { name: "C", action: "blocked", reason: "no email" },
+  ];
+  let calls = 0;
+  const api = { createUser: async () => (calls++, { ok: true }) };
+  const dry = await executeUsers(plan, api, { commit: false });
+  assert.equal(calls, 0);
+  assert.equal(dry.wouldCreate, 1);
+  const live = await executeUsers(plan, api, { commit: true });
+  assert.equal(calls, 1);
+  assert.equal(live.created, 1); assert.equal(live.exists, 1); assert.equal(live.blocked, 1);
 });
