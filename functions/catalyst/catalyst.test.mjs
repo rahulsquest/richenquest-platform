@@ -92,6 +92,49 @@ test("reconcile core posts to #ops-alerts on gaps, and a Cliq failure never fail
   await assert.doesNotReject(() => gappy({ post: async () => { throw new Error("cliq down"); } })({}));
 });
 
+test("reconcile core writes a liveness heartbeat (started → ok) each run", async () => {
+  const beats = [];
+  const core = createReconcileCore({
+    buildRuntime: async () => ({
+      reconciler: { sweep: async () => ({ missed: 0, failed: 0 }) },
+      logger: { warn: () => {}, error: () => {} }, cliq: { post: async () => {} }, maintainWatches: async () => ({ renewed: 0 }),
+    }),
+    makeStore: () => ({ setCheckpoint: async (k, v) => beats.push({ k, v }) }), automationUserId: "u",
+  });
+  await core({});
+  const hb = beats.filter((b) => b.k === "reconcile:heartbeat");
+  assert.equal(hb.length, 2, "one heartbeat before work, one after");
+  assert.equal(hb[0].v.phase, "started");
+  assert.equal(hb[1].v.phase, "ok");
+  assert.equal(hb[1].v.missed, 0);
+  assert.equal(typeof hb[1].v.at, "number");
+});
+
+test("reconcile core records an 'error' heartbeat when the sweep throws, then rethrows", async () => {
+  const beats = [];
+  const core = createReconcileCore({
+    buildRuntime: async () => ({
+      reconciler: { sweep: async () => { throw new Error("sweep boom"); } },
+      logger: { warn: () => {}, error: () => {} }, cliq: { post: async () => {} }, maintainWatches: async () => ({ renewed: 0 }),
+    }),
+    makeStore: () => ({ setCheckpoint: async (k, v) => beats.push({ k, v }) }), automationUserId: "u",
+  });
+  await assert.rejects(() => core({}), /sweep boom/);
+  const phases = beats.filter((b) => b.k === "reconcile:heartbeat").map((b) => b.v.phase);
+  assert.deepEqual(phases, ["started", "error"], "heartbeat present even on failure");
+});
+
+test("reconcile core tolerates a store without checkpoint support (bare store)", async () => {
+  const core = createReconcileCore({
+    buildRuntime: async () => ({
+      reconciler: { sweep: async () => ({ missed: 0, failed: 0 }) },
+      logger: { warn: () => {}, error: () => {} }, cliq: { post: async () => {} }, maintainWatches: async () => ({ renewed: 0 }),
+    }),
+    makeStore: () => ({}), automationUserId: "u",
+  });
+  await assert.doesNotReject(() => core({}), "a heartbeat write must never break the sweep");
+});
+
 // ---- bundle assembler -----------------------------------------------------
 test("build produces the Catalyst function layout with required files", async () => {
   const built = await build();

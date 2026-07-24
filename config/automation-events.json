@@ -1,9 +1,9 @@
 {
   "_note": "Event-driven automation subscriptions (ADR-006). Each entry becomes a Zoho CRM change-notification channel that pushes record events to our Catalyst function, replacing console-configured workflow rules. Provisioned by functions/zoho/provision-notifications.mjs. The notify_url is NOT stored here — it is environment-specific and comes from ZOHO_NOTIFY_URL, so the same config drives dev/staging/prod.",
 
-  "_channel_expiry": "Zoho notification channels EXPIRE. renewal_hours must be comfortably shorter than expiry_hours so a renewal job always runs before a channel lapses; if a channel lapses, automation stops SILENTLY. Renewal is an operational requirement, not an optimisation.",
+  "_channel_expiry": "Zoho notification channels EXPIRE. renewal_hours must be comfortably shorter than expiry_hours so a renewal job always runs before a channel lapses; if a channel lapses, automation stops SILENTLY. Renewal is an operational requirement, not an optimisation. renewal_hours=12 (widened from 6 on 2026-07-25): the renewal window is now the final 12h of the 24h TTL, so it spans active daytime hours and cannot fall entirely within a single quiet overnight stretch — the failure mode observed 2026-07-25 where the 6h window (21:41–03:41 IST) went un-renewed. The 12h post-renewal buffer still prevents renew-storms. Monitored via the reconcile heartbeat (/verify-scheduling → reconcile_heartbeat.age_seconds).",
   "expiry_hours": 24,
-  "renewal_hours": 6,
+  "renewal_hours": 12,
 
   "subscriptions": [
     {

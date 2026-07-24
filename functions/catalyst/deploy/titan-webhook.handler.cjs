@@ -118,6 +118,18 @@ app.get("/verify-scheduling", async (req, res) => {
     const a = dataStoreAdapter(catalyst);
     const count = async (t) => { try { return (await a.list(t)).length; } catch { return -1; } };
     out.counts = { meta: await count("titan_meta"), idempotency: await count("titan_idempotency"), dead_letter: await count("titan_dead_letter") };
+    // Reconcile liveness heartbeat — the cron writes this each run. A stale
+    // age_seconds (>> the 15-min cron interval) or a null value means scheduled
+    // execution has stopped, even though nothing has errored. This is the
+    // silent-failure detector for the whole self-healing layer.
+    try {
+      const raw = await a.get("titan_meta", "reconcile:heartbeat");
+      // setCheckpoint stores the value wrapped as { value: <hb> }; unwrap it.
+      const v = raw && typeof raw === "object" && "value" in raw ? raw.value : raw;
+      out.reconcile_heartbeat = v
+        ? { ...v, at_iso: v.at ? new Date(v.at).toISOString() : null, age_seconds: v.at ? Math.round((Date.now() - v.at) / 1000) : null }
+        : null;
+    } catch (e) { out.reconcile_heartbeat = "err: " + e.message; }
     // Live watch channels + expiry (renewal observable).
     try {
       const { listWatches } = await import("./lib/zoho/services/notifications.mjs");
