@@ -76,6 +76,22 @@ export function memoryStore() {
         .sort((a, b) => (a.event_id < b.event_id ? -1 : 1));
     },
 
+    /**
+     * Per-subject chain commitments for the daily digest. Returns heads only —
+     * never payloads — because what is built from this gets published.
+     */
+    async chainHeads() {
+      return [...bySubject.entries()]
+        .filter(([, log]) => log.length > 0)
+        .map(([subject_id, log]) => ({
+          subject_id,
+          seq: log.at(-1).seq,
+          events: log.length,
+          head: log.at(-1).hash,
+        }))
+        .sort((a, b) => (a.subject_id < b.subject_id ? -1 : 1));
+    },
+
     /** Test-only seam: lets a test simulate tampering that a real store forbids. */
     _raw: bySubject,
   };
