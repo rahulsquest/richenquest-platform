@@ -1,0 +1,141 @@
+/* ============================================================
+   Orbit — the hero illustration (components/visual-orbit.html).
+
+   All motion is transform/opacity only, so it stays on the compositor
+   and costs no layout work on a mid-range Android. The whole thing is
+   one inline SVG: no image request, resolution-independent, and it
+   recolors itself from brand tokens.
+   ============================================================ */
+
+.orbit {
+  position: relative;
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.orbit__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ---------- Rings ---------- */
+.orbit__ring {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .orbit__ring--1 { animation: orbit-spin 38s linear infinite; }
+  .orbit__ring--2 { animation: orbit-spin 52s linear infinite reverse; }
+  .orbit__ring--3 { animation: orbit-spin 64s linear infinite; }
+}
+
+@keyframes orbit-spin {
+  to { rotate: 360deg; }
+}
+
+/* ---------- The ascending arc ---------- */
+/* Drawn on first paint with a dash sweep, then left static. */
+.orbit__arc {
+  stroke-dasharray: 460;
+  stroke-dashoffset: 0;
+}
+
+.orbit__arrow {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .orbit__arc {
+    animation: arc-draw 1.8s var(--ease-emphasized) both;
+  }
+  .orbit__arrow {
+    animation: reveal-fade 500ms var(--ease-out) 1.5s both;
+  }
+}
+
+@keyframes arc-draw {
+  from { stroke-dashoffset: 460; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ---------- Nodes ---------- */
+.orbit__node {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .orbit__node { animation: node-pulse 3.2s var(--ease-in-out) infinite; }
+  .orbit__node--b { animation-delay: -0.9s; }
+  .orbit__node--c { animation-delay: -1.7s; }
+  .orbit__node--d { animation-delay: -2.4s; }
+}
+
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.55; scale: 1; }
+  50% { opacity: 1; scale: 1.45; }
+}
+
+/* ---------- Floating chips ---------- */
+.orbit__chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  color: var(--color-inverse-ink);
+  background: rgb(255 255 255 / 0.09);
+  border: 1px solid var(--glass-dark-border);
+  box-shadow: var(--shadow-lg);
+  max-width: none;
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .orbit__chip {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  }
+}
+
+.orbit__chip-meta {
+  font-weight: var(--weight-regular);
+  font-size: var(--text-xs);
+  color: var(--brand-cyan);
+}
+
+.orbit__flag {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Positions: kept off the sphere's centre so the globe stays readable. */
+.orbit__chip--a { top: 12%; right: -2%; }
+.orbit__chip--b { bottom: 18%; left: -4%; }
+.orbit__chip--c { bottom: 2%; right: 8%; }
+
+/* On small screens the chips crowd the art — show only one, centred low. */
+@media (max-width: 39.99em) {
+  .orbit {
+    max-width: 22rem;
+  }
+  .orbit__chip--a,
+  .orbit__chip--c {
+    display: none;
+  }
+  .orbit__chip--b {
+    left: 50%;
+    bottom: 0;
+    translate: -50% 0;
+  }
+}

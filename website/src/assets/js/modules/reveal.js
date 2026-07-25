@@ -7,6 +7,10 @@ export function initReveal() {
   if (elements.length === 0) return;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   if (!("IntersectionObserver" in window)) return;
+  // Where the browser supports native scroll-driven animations, components/motion.css
+  // owns the reveal outright. Running both would leave two systems writing the same
+  // opacity — so this module stands down and becomes the fallback path only.
+  if (window.CSS?.supports?.("animation-timeline: view()")) return;
 
   const observer = new IntersectionObserver(
     (entries) => {

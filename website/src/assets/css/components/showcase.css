@@ -1,0 +1,402 @@
+/* ============================================================
+   Showcase — bento grids, floating tiles, premium card family.
+
+   These carry the "product company" read: asymmetric composition,
+   generous internal padding, hairline borders, and depth that comes
+   from light rather than from heavy drop shadows.
+   ============================================================ */
+
+/* ---------- Bento grid ---------- */
+/* Mobile: a single column (never a cramped mosaic on a 360px screen).
+   ≥40em: 2 columns. ≥64em: 6-column canvas for true asymmetry.       */
+.bento {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40em) {
+  .bento {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+@media (min-width: 64em) {
+  .bento {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  /* Span helpers — composition is declared in markup, not guessed. */
+  .bento__item--2 { grid-column: span 2; }
+  .bento__item--3 { grid-column: span 3; }
+  .bento__item--4 { grid-column: span 4; }
+  .bento__item--6 { grid-column: span 6; }
+  .bento__item--tall { grid-row: span 2; }
+}
+
+/* ---------- Tile ---------- */
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  isolation: isolate;
+  height: 100%;
+}
+
+.tile__icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-md);
+  background: var(--gradient-brand-soft);
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-brand);
+  margin-block-end: var(--space-2);
+}
+
+.tile__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-ink);
+}
+
+.tile__body {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  max-width: 42ch;
+}
+
+.tile__footer {
+  margin-block-start: auto;
+  padding-block-start: var(--space-4);
+}
+
+/* Tile variants */
+.tile--tint {
+  background: var(--gradient-brand-soft);
+  border-color: transparent;
+}
+
+.tile--dark {
+  background: var(--gradient-ink);
+  border-color: var(--color-inverse-border);
+  color: var(--color-inverse-ink);
+}
+
+.tile--dark .tile__title { color: var(--color-inverse-ink); }
+.tile--dark .tile__body { color: var(--color-inverse-ink-soft); }
+.tile--dark .tile__icon {
+  background: rgb(255 255 255 / 0.08);
+  border-color: var(--color-inverse-border);
+  color: var(--brand-cyan);
+}
+
+.tile--brand {
+  background: var(--gradient-brand-vivid);
+  border-color: transparent;
+  color: #fff;
+}
+
+.tile--brand .tile__title { color: #fff; }
+.tile--brand .tile__body { color: rgb(255 255 255 / 0.88); }
+.tile--brand .tile__icon {
+  background: rgb(255 255 255 / 0.16);
+  border-color: rgb(255 255 255 / 0.28);
+  color: #fff;
+}
+
+/* Feature tiles get a soft brand wash that intensifies on hover. */
+@media (prefers-reduced-motion: no-preference) {
+  .tile--interactive {
+    transition: transform var(--duration-base) var(--ease-out),
+                box-shadow var(--duration-base) var(--ease-out),
+                border-color var(--duration-base) var(--ease-out);
+  }
+  .tile--interactive:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-brand-soft);
+  }
+}
+
+/* A quiet gradient bloom in the tile's corner — depth without weight. */
+.tile--bloom::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 16rem;
+  aspect-ratio: 1;
+  top: -8rem;
+  right: -6rem;
+  border-radius: 50%;
+  background: var(--gradient-aurora-3);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ---------- Stat display ---------- */
+.stat-row {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 64em) {
+  .stat-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 2px solid transparent;
+  border-image: var(--gradient-brand) 1;
+}
+
+.stat__value {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-ink);
+  line-height: 1.1;
+}
+
+.stat__label {
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  max-width: 24ch;
+}
+
+.surface--dark .stat__value,
+.surface--ink .stat__value { color: var(--color-inverse-ink); }
+.surface--dark .stat__label,
+.surface--ink .stat__label { color: var(--color-inverse-ink-soft); }
+
+/* ---------- Pill / chip ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-ink-soft);
+}
+
+.pill--glass {
+  background: var(--glass-dark-bg);
+  border-color: var(--glass-dark-border);
+  color: var(--color-inverse-ink-soft);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .pill--glass {
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+  }
+}
+
+.pill--brand {
+  background: var(--color-brand-soft);
+  border-color: transparent;
+  color: var(--color-brand-strong);
+}
+
+/* A small live dot for "in development" / "active" states. */
+.pill__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--brand-cyan);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pill__dot--live {
+    animation: pulse-dot 2.4s var(--ease-in-out) infinite;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgb(34 211 238 / 0.5); }
+  50% { opacity: 0.75; box-shadow: 0 0 0 6px rgb(34 211 238 / 0); }
+}
+
+/* ---------- Process rail (numbered journey) ---------- */
+.rail {
+  display: grid;
+  gap: var(--space-6);
+  counter-reset: rail;
+}
+
+@media (min-width: 64em) {
+  .rail--horizontal {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+.rail__step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-6);
+  counter-increment: rail;
+}
+
+/* The connecting gradient line, drawn above each step's number. */
+.rail__step::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  opacity: 0.28;
+}
+
+.rail__step[data-active]::before {
+  opacity: 1;
+}
+
+.rail__num {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+  letter-spacing: var(--tracking-wide);
+}
+
+.rail__num::before {
+  content: "0" counter(rail);
+}
+
+.rail__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-snug);
+}
+
+.rail__body {
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.surface--dark .rail__title { color: var(--color-inverse-ink); }
+.surface--dark .rail__body { color: var(--color-inverse-ink-soft); }
+.surface--dark .rail__num { color: var(--brand-cyan); }
+
+/* ---------- Quote / founder message ---------- */
+.quote {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 44rem;
+}
+
+.quote__text {
+  font-family: var(--font-serif-display);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-ink);
+  text-wrap: balance;
+  max-width: none;
+}
+
+.surface--dark .quote__text,
+.surface--ink .quote__text { color: var(--color-inverse-ink); }
+
+.quote__attrib {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.surface--dark .quote__attrib { color: var(--color-inverse-ink-soft); }
+
+.quote__mark {
+  width: 2.5rem;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  flex-shrink: 0;
+}
+
+/* ---------- Split layout (text + visual) ---------- */
+.split {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+@media (min-width: 64em) {
+  .split {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
+  }
+  .split--wide-start { grid-template-columns: 1.15fr 0.85fr; }
+  .split--wide-end { grid-template-columns: 0.85fr 1.15fr; }
+  /* Flip visual order without touching DOM order (keeps reading order sane). */
+  .split__visual--first { order: -1; }
+}
+
+.split__text {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+/* ---------- Checklist ---------- */
+.checklist {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.checklist__mark {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin-block-start: 0.15rem;
+  border-radius: 50%;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
+.surface--dark .checklist li { color: var(--color-inverse-ink-soft); }
+.surface--dark .checklist__mark {
+  background: rgb(255 255 255 / 0.1);
+  color: var(--brand-cyan);
+}

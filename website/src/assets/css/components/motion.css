@@ -1,0 +1,253 @@
+/* ============================================================
+   Motion system — premium feel at zero JS cost.
+
+   Strategy (ADR-001: no animation library, no framework):
+     · Native CSS scroll-driven animations (`animation-timeline: view()`)
+       drive reveals where supported — the compositor does the work,
+       there is no scroll listener, and nothing blocks the main thread.
+     · Where unsupported (older Android WebView, Firefox), modules/reveal.js
+       adds `.is-revealed` via IntersectionObserver — same visual result.
+     · Everything collapses to "already visible" under reduced motion.
+
+   Rule: motion must never gate content. Every animated element is
+   fully readable at its end state, and the end state is the default
+   whenever motion is unavailable or unwanted.
+   ============================================================ */
+
+/* ---------- Scroll reveal: native path ---------- */
+/* Only inside this @supports block do we dare start elements hidden —
+   if the browser understands view() timelines, it will always run them. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      /* `cover` ranges are used deliberately: they are reachable for ANY element
+         height. An `entry 0% → entry 100%` range never completes for elements
+         taller than the viewport, which would strand content at opacity 0 —
+         the one failure mode a reveal must never have. */
+      animation-range: cover 0% cover 22%;
+    }
+
+    /* Directional variants for editorial layouts. */
+    [data-reveal="left"] { animation-name: reveal-left; }
+    [data-reveal="right"] { animation-name: reveal-right; }
+    [data-reveal="scale"] { animation-name: reveal-scale; }
+    [data-reveal="fade"] { animation-name: reveal-fade; }
+
+    /* Stagger: children of a [data-reveal-group] cascade in sequence.
+       Pure CSS — nth-child delays mapped onto the same view() timeline
+       via animation-range offsets (delay does not apply to timelines). */
+    [data-reveal-group] > * {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 20%;
+    }
+    [data-reveal-group] > :nth-child(2) { animation-range: cover 2% cover 23%; }
+    [data-reveal-group] > :nth-child(3) { animation-range: cover 4% cover 26%; }
+    [data-reveal-group] > :nth-child(4) { animation-range: cover 6% cover 29%; }
+    [data-reveal-group] > :nth-child(5) { animation-range: cover 8% cover 32%; }
+    [data-reveal-group] > :nth-child(6) { animation-range: cover 10% cover 35%; }
+  }
+}
+
+@keyframes reveal-rise {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-left {
+  from { opacity: 0; transform: translate3d(-32px, 0, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-right {
+  from { opacity: 0; transform: translate3d(32px, 0, 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-scale {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------- Hero entrance (above the fold — time-based, not scroll) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  [data-enter] {
+    animation: reveal-rise var(--duration-slower) var(--ease-emphasized) both;
+  }
+  [data-enter="1"] { animation-delay: 60ms; }
+  [data-enter="2"] { animation-delay: 140ms; }
+  [data-enter="3"] { animation-delay: 220ms; }
+  [data-enter="4"] { animation-delay: 300ms; }
+  [data-enter="5"] { animation-delay: 380ms; }
+  [data-enter="6"] { animation-delay: 460ms; }
+}
+
+/* ---------- Parallax (scroll-driven, compositor-only) ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-parallax] {
+      animation: parallax-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+      will-change: transform;
+    }
+    [data-parallax="slow"] { --parallax-distance: 24px; }
+    [data-parallax="fast"] { --parallax-distance: 72px; }
+  }
+}
+
+@keyframes parallax-drift {
+  from { transform: translate3d(0, var(--parallax-distance, 44px), 0); }
+  to { transform: translate3d(0, calc(var(--parallax-distance, 44px) * -1), 0); }
+}
+
+/* ---------- Ambient drift — aurora blobs, floating objects ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .is-floating {
+    animation: float-soft calc(var(--duration-ambient) / 3) var(--ease-in-out) infinite alternate;
+  }
+  .is-floating--delayed { animation-delay: -4s; }
+  .is-floating--slow { animation-duration: var(--duration-ambient); }
+}
+
+@keyframes float-soft {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -14px, 0); }
+}
+
+@keyframes aurora-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(4%, -3%, 0) scale(1.08); }
+  66% { transform: translate3d(-3%, 3%, 0) scale(0.96); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* ---------- Marquee (destination / proof ribbons) ---------- */
+.marquee {
+  --marquee-duration: 42s;
+  display: flex;
+  overflow: hidden;
+  gap: var(--space-6);
+  /* Fade the edges so items enter and leave, never cut abruptly. */
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-6);
+  padding-inline-end: var(--space-6);
+  min-width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marquee__track {
+    animation: marquee-scroll var(--marquee-duration) linear infinite;
+  }
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
+}
+
+/* Under reduced motion the track simply sits still and scrolls manually. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .marquee__track:last-child {
+    display: none; /* the duplicate exists only to make looping seamless */
+  }
+}
+
+@keyframes marquee-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+
+/* ---------- Micro-interaction: lift ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .lift {
+    transition: transform var(--duration-base) var(--ease-out),
+                box-shadow var(--duration-base) var(--ease-out);
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+}
+
+/* ---------- Micro-interaction: sheen sweep (primary CTAs) ---------- */
+.sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.28) 50%, transparent 80%);
+  translate: -120% 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheen:hover::after,
+  .sheen:focus-visible::after {
+    animation: sheen-sweep 900ms var(--ease-out);
+  }
+}
+
+@keyframes sheen-sweep {
+  to { translate: 120% 0; }
+}
+
+/* ---------- Gradient text (headline accents) ---------- */
+.text-gradient {
+  background: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  /* Keeps the glyphs legible if background-clip fails anywhere. */
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animated variant — a slow, quiet shimmer for the single hero accent. */
+@media (prefers-reduced-motion: no-preference) {
+  .text-gradient--live {
+    background-size: 220% 100%;
+    animation: gradient-pan 12s var(--ease-in-out) infinite alternate;
+  }
+}
+
+@keyframes gradient-pan {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+/* ---------- Smooth scrolling + view transitions ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Cross-document view transitions where supported — page changes cross-fade
+   instead of flashing white. Progressive enhancement; ignored elsewhere. */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: reveal-fade var(--duration-base) var(--ease-out) reverse;
+  }
+  ::view-transition-new(root) {
+    animation: reveal-fade var(--duration-slow) var(--ease-out);
+  }
+}

@@ -114,6 +114,84 @@ function routeFor(relPage) {
   return { url: `/${base}/`, out: `${base}/index.html`, inSitemap: true };
 }
 
+/**
+ * Minify CSS — comment stripping + whitespace collapsing, nothing clever.
+ *
+ * Why this exists: the source stylesheets are heavily commented on purpose (the
+ * comments are the design system's documentation), but those bytes have no
+ * business on a mid-range Android over 4G. Stripping them keeps the source
+ * readable AND the payload small — and it keeps us inside the stylesheet budget
+ * asserted in lighthouserc.json.
+ *
+ * Deliberately conservative (ADR-002: build features stay auditable):
+ *   · quote- and url()-aware, so comment-like or space-significant sequences
+ *     inside strings and data URIs are never touched;
+ *   · collapses whitespace runs and trims it around structural punctuation;
+ *   · does NOT reorder, merge, rename, or drop any declaration.
+ */
+export function minifyCss(css) {
+  let out = "";
+  let i = 0;
+  while (i < css.length) {
+    const c = css[i];
+
+    // Strings — copied verbatim, including any /* */ inside them.
+    if (c === '"' || c === "'") {
+      const quote = c;
+      let j = i + 1;
+      while (j < css.length && !(css[j] === quote && css[j - 1] !== "\\")) j++;
+      out += css.slice(i, j + 1);
+      i = j + 1;
+      continue;
+    }
+
+    // url(...) — may hold a data URI whose spaces are significant AND which can
+    // itself contain ")" (e.g. an inline SVG filter referencing url(#n)). So a
+    // quoted URL is scanned to its closing quote first, never to the first ")".
+    if (css.startsWith("url(", i)) {
+      const q = css[i + 4];
+      let end;
+      if (q === '"' || q === "'") {
+        let j = i + 5;
+        while (j < css.length && !(css[j] === q && css[j - 1] !== "\\")) j++;
+        end = css.indexOf(")", j);
+      } else {
+        end = css.indexOf(")", i);
+      }
+      if (end !== -1) {
+        out += css.slice(i, end + 1);
+        i = end + 1;
+        continue;
+      }
+    }
+
+    // Comments — dropped.
+    if (c === "/" && css[i + 1] === "*") {
+      const end = css.indexOf("*/", i + 2);
+      i = end === -1 ? css.length : end + 2;
+      continue;
+    }
+
+    // Whitespace runs → a single space (removed entirely around punctuation).
+    if (/\s/.test(c)) {
+      let j = i;
+      while (j < css.length && /\s/.test(css[j])) j++;
+      const prev = out.at(-1);
+      const next = css[j];
+      if (prev && next && !"{}:;,>~+".includes(prev) && !"{}:;,>~+".includes(next)) out += " ";
+      i = j;
+      continue;
+    }
+
+    // Structural punctuation — drop any space we just emitted before it.
+    if ("{}:;,".includes(c) && out.at(-1) === " ") out = out.slice(0, -1);
+
+    out += c;
+    i++;
+  }
+  return out.replace(/;}/g, "}").trim();
+}
+
 /** Concatenate CSS in cascade order: tokens → base → components/* → pages/* (File 10 §4). */
 async function buildCss() {
   const cssDir = path.join(SRC, "assets", "css");
@@ -129,7 +207,7 @@ async function buildCss() {
     if (!existsSync(file)) continue;
     css += `/* ─── ${rel.split(path.sep).join("/")} ─── */\n` + (await readFile(file, "utf8")) + "\n";
   }
-  return css;
+  return minifyCss(css);
 }
 
 export async function build() {

@@ -1,0 +1,88 @@
+<!-- component: visual-orbit — the hero's focal illustration.
+
+     An orbital globe rendered as inline SVG (so it inherits brand tokens and
+     animates via CSS at zero request cost), with real HTML chips floating
+     around it. The chips are text, not image — they stay selectable,
+     translatable, and readable by screen readers.
+
+     Motif: the ascending arc through the globe echoes the arrow in the
+     RichenQuest mark. Decorative only — aria-hidden on the SVG; the chips
+     carry the meaning.
+     ============================================================ -->
+<div class="orbit" role="img" aria-label="A globe circled by study destinations RichenQuest supports across Europe and beyond">
+  <svg class="orbit__svg" viewBox="0 0 520 520" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="orbit-brand" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0%" stop-color="#22d3ee"/>
+        <stop offset="46%" stop-color="#2563eb"/>
+        <stop offset="100%" stop-color="#6d28d9"/>
+      </linearGradient>
+      <linearGradient id="orbit-sphere" x1="0.2" y1="0" x2="0.8" y2="1">
+        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.30"/>
+        <stop offset="55%" stop-color="#2563eb" stop-opacity="0.14"/>
+        <stop offset="100%" stop-color="#6d28d9" stop-opacity="0.26"/>
+      </linearGradient>
+      <radialGradient id="orbit-glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.45"/>
+        <stop offset="60%" stop-color="#2563eb" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Ambient glow behind the sphere -->
+    <circle cx="260" cy="260" r="248" fill="url(#orbit-glow)"/>
+
+    <!-- Orbit rings: three ellipses at different tilts, each drifting slowly -->
+    <g fill="none" stroke="url(#orbit-brand)" stroke-linecap="round">
+      <ellipse class="orbit__ring orbit__ring--1" cx="260" cy="260" rx="236" ry="92"
+               stroke-width="1.5" opacity="0.55"/>
+      <ellipse class="orbit__ring orbit__ring--2" cx="260" cy="260" rx="230" ry="120"
+               stroke-width="1.25" opacity="0.4" transform="rotate(58 260 260)"/>
+      <ellipse class="orbit__ring orbit__ring--3" cx="260" cy="260" rx="222" ry="150"
+               stroke-width="1" opacity="0.3" transform="rotate(-42 260 260)"/>
+    </g>
+
+    <!-- The sphere -->
+    <circle cx="260" cy="260" r="132" fill="url(#orbit-sphere)"
+            stroke="url(#orbit-brand)" stroke-width="1.5" opacity="0.95"/>
+
+    <!-- Meridians + parallels: the globe grid from the logo mark -->
+    <g fill="none" stroke="url(#orbit-brand)" stroke-width="1" opacity="0.42">
+      <ellipse cx="260" cy="260" rx="44" ry="132"/>
+      <ellipse cx="260" cy="260" rx="90" ry="132"/>
+      <path d="M128 260h264M144 208h232M144 312h232M168 166h184M168 354h184"/>
+    </g>
+
+    <!-- The ascending arc — the arrow motif from the logo, drawn through
+         the sphere and rising out of it. Dash animation gives it life. -->
+    <path class="orbit__arc"
+          d="M96 392C150 300 214 236 300 190c34-18 66-28 104-32"
+          fill="none" stroke="url(#orbit-brand)" stroke-width="3.5"
+          stroke-linecap="round"/>
+    <path class="orbit__arrow" d="M382 148l24 10-11 23"
+          fill="none" stroke="url(#orbit-brand)" stroke-width="3.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Destination nodes riding the orbits -->
+    <g class="orbit__nodes">
+      <circle class="orbit__node" cx="496" cy="260" r="6" fill="#22d3ee"/>
+      <circle class="orbit__node orbit__node--b" cx="120" cy="196" r="5" fill="#6d28d9"/>
+      <circle class="orbit__node orbit__node--c" cx="336" cy="404" r="5" fill="#2563eb"/>
+      <circle class="orbit__node orbit__node--d" cx="176" cy="352" r="4" fill="#22d3ee"/>
+    </g>
+  </svg>
+
+  <!-- Floating chips: real text over the illustration -->
+  <p class="orbit__chip orbit__chip--a is-floating">
+    <span class="orbit__flag" aria-hidden="true">🇩🇪</span> Germany
+    <span class="orbit__chip-meta">€0 tuition</span>
+  </p>
+  <p class="orbit__chip orbit__chip--b is-floating is-floating--delayed">
+    <span class="orbit__flag" aria-hidden="true">🇮🇪</span> Ireland
+    <span class="orbit__chip-meta">2-yr stay-back</span>
+  </p>
+  <p class="orbit__chip orbit__chip--c is-floating is-floating--slow">
+    <span class="orbit__flag" aria-hidden="true">🇮🇹</span> Italy
+    <span class="orbit__chip-meta">Team on ground</span>
+  </p>
+</div>

@@ -49,6 +49,13 @@ jobs:
       - name: Validate automation event subscriptions
         run: node scripts/validate-automation-events.mjs
 
+      # The destination matcher ranks students on facts inlined in matcher.js.
+      # This fails the build if they drift from src/data/destinations/*.json,
+      # so a corrected tuition figure can never leave the tool ranking on
+      # stale data while the published guide says something else.
+      - name: Validate matcher data is in sync
+        run: node scripts/validate-matcher-data.mjs
+
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"

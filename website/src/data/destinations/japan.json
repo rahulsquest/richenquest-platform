@@ -10,5 +10,23 @@
  "intakes_note": "language-school routes start quarterly",
  "work": "Up to 28 hrs/week",
  "poststudy": "Job-hunting visa up to 12 months",
- "hook": "Asia's quality-plus-opportunity corridor"
+ "hook": "Asia's quality-plus-opportunity corridor",
+ "match": {
+  "_derived": "Machine-comparable mirror of the display strings above (matcher only). Derived, never independently sourced — if a display string changes, update this too. Note: converted from the file JPY figures at the rate implied by its own ¥535,800 ≈ €3,300.",
+  "tuition_eur_year": [
+   3300,
+   3300
+  ],
+  "living_eur_month": [
+   620,
+   930
+  ],
+  "intake_months": [
+   4,
+   9
+  ],
+  "work_hours_week": 28,
+  "poststudy_months": 12,
+  "english": "moderate"
+ }
 }

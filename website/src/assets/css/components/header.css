@@ -7,7 +7,18 @@
   top: 0;
   z-index: var(--z-header);
   background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+/* Frosted masthead — content blurs beneath it as the page scrolls. Only
+   applied where backdrop-filter exists; elsewhere the opaque surface above
+   stands, so legibility never depends on the effect. */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .site-header {
+    background: rgb(255 255 255 / 0.82);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
+  }
 }
 
 .site-header__inner {
@@ -169,5 +180,26 @@
 
   .site-nav__cta {
     margin-block-start: 0;
+  }
+}
+
+/* Tool link — the matcher gets a brand-tinted treatment so it reads as a
+   product entry point, not another content page (redesign 2026-07-25). */
+.site-nav__link--tool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+}
+
+.site-nav__link--tool:hover {
+  color: var(--color-accent-strong);
+}
+
+@media (pointer: coarse) {
+  .site-header__toggle {
+    min-width: 44px;
+    min-height: 44px;
   }
 }

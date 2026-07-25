@@ -1,8 +1,10 @@
 <!-- component: cta-band — sitewide conversion band. Real workflows only
      (founder decision 8): WhatsApp, email, phone. Swap primary CTA to the
      Zoho Bookings link the moment the org is live (one edit here). -->
-<section class="cta-band">
+<section class="cta-band grain">
+  <div class="aurora" aria-hidden="true"></div>
   <div class="container cta-band__inner">
+    <p class="kicker">Start here</p>
     <h2 class="cta-band__title">Book your free consultation</h2>
     <p class="cta-band__text">{{ claims.phrasings.helping_since }} Talk to a counselor who knows the road — no fees, no pressure, honest answers.</p>
     <div class="cluster">
@@ -15,6 +17,10 @@
         Email {{ site.email }}
       </a>
     </div>
+    <p class="cta-band__alt">
+      Not ready to talk yet?
+      <a href="/match/">Find your destination in about a minute</a> — free, no sign-up.
+    </p>
     <p class="cta-band__phones">
       Or call: <a href="{{ site.phone_in_href }}">{{ site.phone_in }}</a> (India) ·
       <a href="{{ site.phone_it_href }}">{{ site.phone_it }}</a> (Italy)
