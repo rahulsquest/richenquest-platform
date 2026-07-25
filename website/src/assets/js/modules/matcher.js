@@ -40,6 +40,35 @@ const DESTINATIONS = [
     work_hours_week: 16, poststudy_months: 12, english: "wide" },
 ];
 
+/**
+ * DISCLOSURE — Constitution Article 5.4.
+ *
+ * Every recommendation carries its disclosure at the point it is made, not in a
+ * policy page elsewhere. This mirrors src/data/disclosure.json; the register is
+ * the source of truth and `scripts/validate-disclosure-data.mjs` fails CI if
+ * these drift.
+ *
+ * `RELATED` is empty because RichenQuest currently holds no signed commercial
+ * agreement with any institution. That is a fact about today, not a permanent
+ * state — the moment an agreement is added to the register and to this list,
+ * every result involving it starts disclosing automatically. Nothing about the
+ * rendering needs to change, which is the point: disclosure is not a feature
+ * someone remembers to add.
+ */
+const DISCLOSURE = {
+  none: "We hold no commercial relationship with this destination or any institution in it.",
+  prefix: "Disclosure: we hold a commercial relationship with",
+};
+
+/** Destination slugs where a disclosable relationship exists. Empty today. */
+const RELATED = Object.freeze({});
+
+/** The disclosure line for a destination — never optional, never omitted. */
+export function disclosureFor(slug) {
+  const rel = RELATED[slug];
+  return rel ? `${DISCLOSURE.prefix} ${rel}.` : DISCLOSURE.none;
+}
+
 /** Budget bands in EUR per year, all-in (tuition + 12 months of living). */
 const BUDGET_BANDS = {
   low: { max: 12000, label: "under €12,000" },
@@ -184,6 +213,10 @@ function resultMarkup(d, index) {
       </div>
       <ul class="match-result__reasons">${reasons}</ul>
       ${cautions}
+      <p class="match-result__disclosure">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-shield"></use></svg>
+        <span>${esc(disclosureFor(d.slug))}</span>
+      </p>
       <a class="btn btn--ghost btn--sm" href="/destinations/${esc(d.slug)}/">
         Full ${esc(d.name)} guide
       </a>

@@ -60,3 +60,19 @@ test("an em-dash clause boundary also scopes the negation", () => {
     false
   );
 });
+
+test("the Standards page can enumerate banned phrases without tripping the guard", () => {
+  // This page's whole purpose is to list what we refuse to say. If the guard
+  // flagged it, the honest page would be the one that fails to build.
+  const text = "No manufactured urgency — no countdowns, no limited seats.";
+  const i = text.indexOf("limited seats");
+  assert.equal(isNegated(text, i), true);
+
+  const t2 = "No university described as our partner until an agreement is signed.";
+  assert.equal(isNegated(t2, t2.indexOf("partner")), true);
+});
+
+test("but the same phrases are still caught when used as a real claim", () => {
+  const text = "Limited seats available for the September intake.";
+  assert.equal(isNegated(text, text.indexOf("Limited seats")), false);
+});

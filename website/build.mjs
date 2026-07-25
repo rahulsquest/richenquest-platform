@@ -241,12 +241,97 @@ async function buildCss() {
   return { shared: minifyCss(shared), pages };
 }
 
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+/**
+ * TRUST INFRASTRUCTURE — Constitution enforcement rendered by the build.
+ *
+ * Turns the Evidence Register into `{{ fact.<id> }}` tokens that emit the
+ * figure together with its provenance mark and a link to its evidence. A page
+ * author cannot publish a number without its source, because the only way to
+ * get the number is to ask for the claim — and an unknown id fails the build.
+ *
+ * `{{ factValue.<id> }}` gives the bare value for places markup cannot go
+ * (meta descriptions, title attributes). It carries no provenance, so it is
+ * never used in body copy.
+ *
+ * The same registers are read by the matcher and, later, by the dashboard, CRM
+ * and partner portal — so a figure means the same thing in every interface.
+ */
+function buildTrustTokens(data) {
+  const fact = {};
+  const factValue = {};
+  const claims = data.evidence?.claims ?? {};
+
+  for (const [id, c] of Object.entries(claims)) {
+    if (c.status === "retired") continue;
+    const unverified = c.status !== "verified";
+    const label = unverified
+      ? "Verification status for this figure"
+      : "Source and verification for this figure";
+    fact[id] =
+      `<span class="fact${unverified ? " fact--unverified" : ""}">${esc(c.value)}` +
+      `<a class="fact__src" href="/standards/#${esc(id)}">` +
+      `<span class="visually-hidden">${label}</span></a></span>`;
+    factValue[id] = c.value;
+  }
+
+  // Generated content for /standards/. Derived, never hand-written, so the
+  // published standards can never drift from what the registers actually say.
+  const rows = Object.entries(claims)
+    .filter(([, c]) => c.status !== "retired")
+    .map(([id, c]) => {
+      const verified = c.status === "verified";
+      return `<article class="evi" id="${esc(id)}">
+  <div class="evi__head">
+    <h3 class="evi__value">${esc(c.value)}</h3>
+    <p class="evi__statement">${esc(c.statement)}</p>
+    <span class="evi__status evi__status--${verified ? "ok" : "open"}">${verified ? "Verified" : "Not yet verifiable"}</span>
+  </div>
+  <dl class="ledger evi__meta">
+    <div class="ledger__row"><dt class="ledger__label">Basis</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value ledger__value--muted">${esc(c.basis)}</dd></div>
+    <div class="ledger__row"><dt class="ledger__label">Verified by</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(c.verified_by ?? "— not yet verified")}</dd></div>
+    <div class="ledger__row"><dt class="ledger__label">Verified on</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(c.verified_on ?? "—")}</dd></div>
+    <div class="ledger__row"><dt class="ledger__label">Review by</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(c.review_by)}</dd></div>
+  </dl>
+</article>`;
+    })
+    .join("\n");
+
+  const counts = Object.values(claims).filter((c) => c.status !== "retired");
+  const unverifiedCount = counts.filter((c) => c.status !== "verified").length;
+
+  const rel = data.disclosure?.relationships ?? [];
+  const disclosureBlock = rel.length
+    ? `<dl class="ledger">${rel
+        .map(
+          (r) =>
+            `<div class="ledger__row"><dt class="ledger__label">${esc(r.counterparty)}</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(r.basis)}</dd></div>`
+        )
+        .join("")}</dl>`
+    : `<p class="note">${esc(data.disclosure?._relationships_note ?? "")}</p>`;
+
+  return {
+    fact,
+    factValue,
+    generated: {
+      evidenceEntries: rows,
+      evidenceCount: String(counts.length),
+      evidenceUnverifiedCount: String(unverifiedCount),
+      disclosureEntries: disclosureBlock,
+      disclosureReviewed: String(data.disclosure?.last_reviewed ?? "—"),
+    },
+  };
+}
+
 export async function build() {
   const started = Date.now();
   await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
 
   const data = await loadData();
+  const trust = buildTrustTokens(data);
 
   // Assets + cache-bust hash (content-derived so unchanged deploys keep caches warm)
   const { shared: css, pages: pageCss } = await buildCss();
@@ -293,6 +378,7 @@ export async function build() {
       : "";
     const ctx = {
       ...data,
+      ...trust,
       page: { ...meta, url: route.url, cssLink },
       build: { hash, year: String(new Date().getFullYear()) },
     };

@@ -1,0 +1,22 @@
+{
+  "_rules": "THE DISCLOSURE REGISTER — every commercial relationship RichenQuest holds, and the basis of each. Constitution Article 5.4 requires this to be public AND surfaced at the point of recommendation, not buried in a policy page. Interface-agnostic: the website renders it, the matcher checks it before showing a result, and the CRM, dashboard and partner portal read the same file. Adding a relationship here is what makes it disclosable; a relationship that exists commercially but is absent here is a governance breach, not an oversight.",
+
+  "_policy": {
+    "independence": "No recommendation may be influenced, in fact or appearance, by any relationship listed here. A recommendation is independent when it can be reproduced from documented criteria that reference no commercial term (Constitution 5.1).",
+    "compensation_firewall": "No individual's pay, bonus, quota or review at RichenQuest varies according to which institution, country, employer or programme a person selects (Constitution 5.3). The company may hold differential arrangements; the adviser never feels them.",
+    "identical_terms": "Any payment from an institution is at a published rate identical across all institutions — no volume tiers, no bonuses, no preferential placement (Constitution 13.1).",
+    "steering_refused": "Requests for preferential placement, quotas or focus are declined and recorded here. We decline the request, not the relationship (Constitution 5.6)."
+  },
+
+  "last_reviewed": "2026-07-25",
+
+  "_relationships_note": "EMPTY BY FACT, NOT BY OMISSION. RichenQuest currently holds no signed commercial agreement with any university, employer, institution or government. This mirrors claims.json → partnerships.signed, which is also empty. The machinery below is live: when the first agreement is signed it is added here, and every interface begins disclosing it automatically at the point of recommendation, with no code change.",
+  "relationships": [],
+
+  "steering_requests_declined": [],
+
+  "_revenue_note": "Today RichenQuest is funded by fees paid by the individuals it advises. That fee is published (evidence.json → standard-package-fee).",
+
+  "no_relationship_statement": "We hold no commercial relationship with this destination or any institution in it.",
+  "relationship_statement_prefix": "Disclosure: we hold a commercial relationship with"
+}

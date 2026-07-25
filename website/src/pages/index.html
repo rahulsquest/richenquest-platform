@@ -69,21 +69,25 @@ description: Study abroad counseling, admissions, scholarships and visa guidance
      ============================================================ -->
 <section class="section--tight proof-strip" aria-label="RichenQuest at a glance">
   <div class="container">
+    <!-- Every figure here is rendered from the Evidence Register via {{ fact.* }},
+         so each carries its provenance mark automatically and links to the record
+         on /standards/. A number that is not in the register cannot appear at all
+         — the build fails on an unknown claim id (Constitution 6.3). -->
     <div class="stat-row" data-reveal-group>
       <div class="stat">
-        <span class="stat__value">1,000+</span>
+        <span class="stat__value">{{ fact.students-guided }}</span>
         <span class="stat__label">students guided since {{ claims.company.team_active_since }}</span>
       </div>
       <div class="stat">
-        <span class="stat__value">33</span>
-        <span class="stat__label">study destinations — Europe first, and beyond</span>
+        <span class="stat__value">{{ fact.destination-guides-published }}</span>
+        <span class="stat__label">destination guides with full cost, intake and post-study data</span>
       </div>
       <div class="stat">
-        <span class="stat__value">India · Italy</span>
+        <span class="stat__value">{{ fact.counsellor-countries }}</span>
         <span class="stat__label">counselors on the ground in both countries</span>
       </div>
       <div class="stat">
-        <span class="stat__value">Two-check</span>
+        <span class="stat__value">{{ fact.document-check }}</span>
         <span class="stat__label">every document reviewed by two people before it leaves our office</span>
       </div>
     </div>

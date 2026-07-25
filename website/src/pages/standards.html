@@ -1,0 +1,161 @@
+<!--meta
+title: Standards — what we publish, and what we can prove | RichenQuest
+description: Every figure RichenQuest publishes, with its basis, who verified it and when. Plus our disclosure register of commercial relationships. Generated from our evidence registers, not written by hand.
+-->
+<!-- THE STANDARDS PAGE — the destination of every provenance mark on the site.
+     Its contents are GENERATED from src/data/evidence.json and
+     src/data/disclosure.json at build time ({{ generated.* }}), so the
+     published standards can never drift from what the registers actually say.
+     Editing this page cannot change a figure; only the register can. -->
+
+<section class="page-hero">
+  <div class="container page-hero__inner">
+    <p class="kicker">Standards</p>
+    <h1>What we publish, and what we can <em>prove</em></h1>
+    <p class="page-hero__lede">
+      Every figure on this website appears in the register below with its basis, who
+      verified it, and when it is next due for review. Where we cannot yet produce the
+      record, we say so here rather than quietly leaving the number up.
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container container--narrow">
+    <hr class="rule">
+    <p class="kicker">How this page works</p>
+    <h2>Generated, not written</h2>
+    <p>
+      This page is produced from our evidence registers when the site is built. Nobody can
+      edit a figure here — a claim can only change in the register, and changing it there
+      requires a new verification date. If a number appears anywhere on this website, it
+      is because it appears below.
+    </p>
+    <p class="note">
+      We currently publish {{ generated.evidenceCount }} figures, of which
+      {{ generated.evidenceUnverifiedCount }} cannot yet be fully evidenced. Those are
+      marked below and on the page where they appear. We would rather show you that
+      number than round it away.
+    </p>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--narrow">
+    <hr class="rule">
+    <p class="kicker">The evidence register</p>
+    <h2>Every published figure</h2>
+
+{{ generated.evidenceEntries }}
+
+  </div>
+</section>
+
+<section class="section surface--alt">
+  <div class="container container--narrow">
+    <hr class="rule">
+    <p class="kicker">The disclosure register</p>
+    <h2>Who pays us, and on what basis</h2>
+    <p>
+      Constitution Article 5.4 requires every commercial relationship to be published here
+      <em>and</em> surfaced at the moment a recommendation is made — not buried in a policy
+      page. This register is the source both of those use.
+    </p>
+
+{{ generated.disclosureEntries }}
+
+    <p class="standards__reviewed">Register last reviewed: <span class="tnum">{{ generated.disclosureReviewed }}</span></p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container container--narrow">
+    <hr class="rule">
+    <p class="kicker">How independence is protected</p>
+    <h2>The structure behind the advice</h2>
+    <p>
+      We work with universities, employers and institutions, and intend to work with more.
+      What follows is the structure that keeps those relationships out of the advice you
+      receive.
+    </p>
+
+<!-- @include components/diagram-independence.html -->
+
+    <dl class="ledger standards__policy">
+      <div class="ledger__row">
+        <dt class="ledger__label">Independence</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value ledger__value--muted">A recommendation is independent when it can be reproduced from documented criteria that reference no commercial term.</dd>
+      </div>
+      <div class="ledger__row">
+        <dt class="ledger__label">Compensation firewall</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value ledger__value--muted">No one&rsquo;s pay, bonus or review here varies according to which institution, country or programme you choose.</dd>
+      </div>
+      <div class="ledger__row">
+        <dt class="ledger__label">Identical terms</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value ledger__value--muted">Any payment from an institution is at a published rate identical across all institutions. No volume tiers, no preferential placement.</dd>
+      </div>
+      <div class="ledger__row">
+        <dt class="ledger__label">Steering requests</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value ledger__value--muted">Requests for preferential placement are declined and recorded. We decline the request, not the relationship.</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="container container--narrow">
+    <hr class="rule">
+    <p class="kicker">What we will not say</p>
+    <h2>Claims we do not make</h2>
+    <p>
+      These are enforced by our build: the site will not publish if any of them appear.
+      They are checked on every change, not on request.
+    </p>
+    <ul class="checklist">
+      <li>
+        <span class="checklist__mark" aria-hidden="true">
+          <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+        </span>
+        <span>No visa or admission success percentages — we have no dataset that would make one honest.</span>
+      </li>
+      <li>
+        <span class="checklist__mark" aria-hidden="true">
+          <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+        </span>
+        <span>No university described as our partner until an agreement is signed.</span>
+      </li>
+      <li>
+        <span class="checklist__mark" aria-hidden="true">
+          <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+        </span>
+        <span>No student count beyond the figures in the register above.</span>
+      </li>
+      <li>
+        <span class="checklist__mark" aria-hidden="true">
+          <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+        </span>
+        <span>No testimonial or photograph without written consent from the person in it.</span>
+      </li>
+      <li>
+        <span class="checklist__mark" aria-hidden="true">
+          <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+        </span>
+        <span>No guarantee of any outcome we do not control.</span>
+      </li>
+      <li>
+        <span class="checklist__mark" aria-hidden="true">
+          <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+        </span>
+        <span>No manufactured urgency — no countdowns, no &ldquo;limited seats&rdquo;.</span>
+      </li>
+    </ul>
+    <p class="note">
+      If you find something on this site that breaches the above, tell us and we will
+      correct it publicly, with the date, rather than quietly editing it away.
+    </p>
+  </div>
+</section>

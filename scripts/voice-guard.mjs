@@ -36,6 +36,10 @@ const RULES = [
     id: "overclaim",
     why: "Brand System §2.2 — superlatives we cannot evidence (Constitution 6.3)",
     re: /\b(world[-\s]?class|best[-\s]?in[-\s]?class|premier|unparalleled|revolutionary|cutting[-\s]edge|state[-\s]of[-\s]the[-\s]art)\b/gi,
+    // The Standards page's job is to LIST the phrases we refuse to use, so every
+    // banned-vocabulary rule must tolerate a denial. An exemption for that page
+    // would be a hole; negation-awareness is the general fix.
+    allowNegated: true,
   },
   {
     id: "guarantee",
@@ -50,16 +54,28 @@ const RULES = [
     id: "hype",
     why: "Brand System §2.2 — hype language; say the specific thing instead",
     re: /\b(unlock|supercharge|game[-\s]chang(?:ing|er)|life[-\s]changing|dream\s+destination|transform\s+your\s+life)\b/gi,
+    // The Standards page's job is to LIST the phrases we refuse to use, so every
+    // banned-vocabulary rule must tolerate a denial. An exemption for that page
+    // would be a hole; negation-awareness is the general fix.
+    allowNegated: true,
   },
   {
     id: "urgency",
     why: "Constitution 6.10 — we do not manufacture urgency or scarcity",
     re: /\b(hurry|act\s+now|limited\s+seats?|don'?t\s+miss\s+out|last\s+chance|only\s+\d+\s+(seats?|spots?|places?)\s+left|book\s+before\s+it'?s\s+too\s+late)\b/gi,
+    // The Standards page's job is to LIST the phrases we refuse to use, so every
+    // banned-vocabulary rule must tolerate a denial. An exemption for that page
+    // would be a hole; negation-awareness is the general fix.
+    allowNegated: true,
   },
   {
     id: "vague-scale",
     why: "Brand System §2.3 — give the figure, not an impression of size",
     re: /\b(thousands\s+of\s+(students|people|families)|countless|innumerable|trusted\s+by\s+thousands)\b/gi,
+    // The Standards page's job is to LIST the phrases we refuse to use, so every
+    // banned-vocabulary rule must tolerate a denial. An exemption for that page
+    // would be a hole; negation-awareness is the general fix.
+    allowNegated: true,
   },
   {
     id: "unearned-tech",

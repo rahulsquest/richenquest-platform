@@ -26,6 +26,19 @@ jobs:
       - name: Voice guard (Brand System vocabulary)
         run: node scripts/voice-guard.mjs
 
+      # TRUST INFRASTRUCTURE. claims-guard is a deny-list and cannot catch a
+      # figure nobody thought to ban — which is how an unsourced "33
+      # destinations" sat on the homepage from the RC-1 cut. This inverts it:
+      # every headline figure must be able to produce its evidence, every
+      # provenance mark must resolve to a real entry, and no claim may be past
+      # its review date (Constitution 6.3, 21.2).
+      - name: Evidence guard (every figure can produce its record)
+        run: node scripts/evidence-guard.mjs
+
+      # A recommendation must never render without its disclosure (Article 5.4).
+      - name: Disclosure register in sync with the matcher
+        run: node scripts/validate-disclosure-data.mjs
+
       # Guard + build-tool unit tests. The CSS minifier is covered here because
       # a malformed value (e.g. a clamp() whose "+" lost its spaces) is silently
       # discarded by browsers — structure checks cannot catch it.
