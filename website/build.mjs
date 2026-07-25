@@ -173,18 +173,27 @@ export function minifyCss(css) {
     }
 
     // Whitespace runs → a single space (removed entirely around punctuation).
+    //
+    // ONLY `{ } : ; ,` may lose their adjacent whitespace. The combinators
+    // `+ - > ~` must NOT: inside calc()/clamp()/min()/max() a `+` or `-` is an
+    // operator that CSS requires to be surrounded by whitespace. Stripping it
+    // turns `clamp(2.4rem, 1.6rem + 3.6vw, 3.5rem)` into an invalid value, and
+    // the browser then discards the whole declaration — silently. That bug
+    // shipped once and took out the entire fluid type scale; the few bytes
+    // saved are not worth re-earning it.
+    const TIGHT = "{}:;,";
     if (/\s/.test(c)) {
       let j = i;
       while (j < css.length && /\s/.test(css[j])) j++;
       const prev = out.at(-1);
       const next = css[j];
-      if (prev && next && !"{}:;,>~+".includes(prev) && !"{}:;,>~+".includes(next)) out += " ";
+      if (prev && next && !TIGHT.includes(prev) && !TIGHT.includes(next)) out += " ";
       i = j;
       continue;
     }
 
     // Structural punctuation — drop any space we just emitted before it.
-    if ("{}:;,".includes(c) && out.at(-1) === " ") out = out.slice(0, -1);
+    if (TIGHT.includes(c) && out.at(-1) === " ") out = out.slice(0, -1);
 
     out += c;
     i++;

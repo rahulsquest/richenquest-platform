@@ -5,10 +5,7 @@
      JS hooks: data-nav-toggle (modules/nav.js), data-disclosure (modules/disclosure.js). -->
 <header class="site-header">
   <div class="container site-header__inner">
-    <a class="site-header__brand" href="/" aria-label="{{ site.name }} — home">
-      {{ site.name }}
-      <span class="site-header__tagline">{{ site.tagline }}</span>
-    </a>
+<!-- @include components/brand-logo.html -->
     <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
       <span class="visually-hidden">Menu</span>
       <svg class="icon site-header__icon-open" aria-hidden="true"><use href="/assets/img/icons.svg#icon-menu"></use></svg>

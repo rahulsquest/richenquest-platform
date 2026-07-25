@@ -226,15 +226,10 @@
   flex-shrink: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .pill__dot--live {
-    animation: pulse-dot 2.4s var(--ease-in-out) infinite;
-  }
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgb(34 211 238 / 0.5); }
-  50% { opacity: 0.75; box-shadow: 0 0 0 6px rgb(34 211 238 / 0); }
+/* The live dot is STATIC. A coloured dot already conveys the state; pulsing it
+   forever is decoration that never resolves (Brand System §3.8). */
+.pill__dot--live {
+  background: var(--brand-cyan);
 }
 
 /* ---------- Process rail (numbered journey) ---------- */

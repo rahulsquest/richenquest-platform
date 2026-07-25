@@ -217,18 +217,10 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Animated variant — a slow, quiet shimmer for the single hero accent. */
-@media (prefers-reduced-motion: no-preference) {
-  .text-gradient--live {
-    background-size: 220% 100%;
-    animation: gradient-pan 12s var(--ease-in-out) infinite alternate;
-  }
-}
-
-@keyframes gradient-pan {
-  from { background-position: 0% 50%; }
-  to { background-position: 100% 50%; }
-}
+/* NOTE: the animated shimmer variant (.text-gradient--live) was REMOVED in the
+   2026-07-25 brand recalibration. Text that continuously animates performs
+   rather than confirms, and a headline that never settles cannot be read
+   calmly (Brand System §3.8). The gradient on the accent word is static. */
 
 /* ---------- Smooth scrolling + view transitions ---------- */
 @media (prefers-reduced-motion: no-preference) {

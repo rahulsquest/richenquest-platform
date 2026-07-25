@@ -41,8 +41,11 @@
   --color-accent-strong: #5b21b6;  /* accent hover                      */
 
   /* ---------- Signature gradients ---------- */
-  /* The logo gradient. Use for: brand marks, key CTAs, accent rules,
-     text-clip headlines. Angle mirrors the mark's own sweep.          */
+  /* THE GRADIENT IS A SIGNATURE, NOT A SURFACE (Brand System §3.1).
+     Permitted: the brand mark, a 2px rule, a single primary action, a small
+     focused accent. NOT permitted: full-bleed washes behind content. A brand
+     that gradients everything reads as a 2020s AI startup, not an institution
+     intended to last to 2051.                                          */
   --gradient-brand: linear-gradient(120deg, #22d3ee 0%, #2563eb 46%, #6d28d9 100%);
   --gradient-brand-soft: linear-gradient(120deg, #ecfeff 0%, #eff6ff 50%, #f5f3ff 100%);
   --gradient-brand-vivid: linear-gradient(120deg, #06b6d4 0%, #3b82f6 40%, #6d28d9 92%);
@@ -56,11 +59,13 @@
   --color-hero-accent: #93b4f8;    /* serif accent word on dark         */
 
   /* ---------- Color: neutrals ---------- */
-  --color-ink: #16233a;            /* headings, primary text            */
+  --color-ink: #111827;            /* headings, primary text (16.1:1)   */
   --color-ink-soft: #46536e;       /* secondary text (≥4.5:1 on white)  */
   --color-ink-faint: #6b7691;      /* placeholders, disabled text       */
   --color-surface: #ffffff;
-  --color-surface-alt: #f6f8fc;    /* alternate section background      */
+  /* Near-neutral, deliberately: a blue-tinted "alt" surface tints the whole
+     site and reads as tech-startup rather than calm (Brand System §3.2).  */
+  --color-surface-alt: #f5f6f8;    /* alternate section background      */
   --color-surface-sunken: #e9edf5; /* wells, pressed states             */
   --color-surface-tint: #f5f3ff;   /* violet-tinted premium well        */
   --color-border: #d8dfeb;
@@ -109,9 +114,11 @@
   --text-lg: 1.125rem;
   --text-xl: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
   --text-2xl: clamp(1.5rem, 1.2rem + 1.6vw, 2.05rem);
-  --text-3xl: clamp(1.9rem, 1.4rem + 2.6vw, 2.85rem);
-  --text-display: clamp(2.35rem, 1.5rem + 4vw, 4rem);
-  --text-hero: clamp(2.6rem, 1.4rem + 5.4vw, 5rem);   /* flagship only */
+  --text-3xl: clamp(1.9rem, 1.4rem + 2.2vw, 2.6rem);
+  /* Display type tops out at ~3.5rem on purpose. Larger is shouting, and
+     shouting is not calm (Brand System §3.3).                          */
+  --text-display: clamp(2.2rem, 1.5rem + 3vw, 3.15rem);
+  --text-hero: clamp(2.4rem, 1.6rem + 3.6vw, 3.5rem);  /* flagship only */
 
   --leading-tight: 1.08;           /* display headlines                 */
   --leading-snug: 1.28;
@@ -159,10 +166,10 @@
   --shadow-xl: 0 24px 60px -12px rgb(15 27 61 / 0.28);
   --shadow-float: 0 32px 80px -20px rgb(15 27 61 / 0.35);
   --shadow-inset-hairline: inset 0 1px 0 rgb(255 255 255 / 0.6);
-  /* Colored glows — for CTAs and focal cards on dark surfaces.        */
-  --glow-brand: 0 18px 48px -14px rgb(37 99 235 / 0.55);
-  --glow-violet: 0 18px 48px -14px rgb(109 40 217 / 0.5);
-  --glow-cyan: 0 18px 48px -14px rgb(34 211 238 / 0.45);
+  /* Coloured glow. RESTRICTED: at most one element per page, and only where
+     it marks the single primary action. Glow used decoratively is the fastest
+     way to look flashy (Brand System §3.1).                            */
+  --glow-brand: 0 12px 32px -14px rgb(37 99 235 / 0.4);
 
   /* ---------- Motion ---------- */
   /* ease-out for entrances; spring for playful micro-interactions.    */

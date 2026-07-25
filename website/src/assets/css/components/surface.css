@@ -65,13 +65,15 @@
   border-radius: 50%;
 }
 
+/* Opacities recalibrated 2026-07-25 (Brand System §3.1): the aurora is now a
+   faint depth cue on the single deep surface, not a coloured light show.  */
 .aurora::before {
   width: min(62vw, 40rem);
   aspect-ratio: 1;
   top: -8%;
   left: -6%;
   background: var(--gradient-aurora-1);
-  opacity: 0.55;
+  opacity: 0.22;
 }
 
 .aurora::after {
@@ -80,7 +82,7 @@
   right: -8%;
   bottom: -18%;
   background: var(--gradient-aurora-2);
-  opacity: 0.6;
+  opacity: 0.26;
 }
 
 /* Optional third bloom for wide hero canvases. */
@@ -92,20 +94,12 @@
   top: 26%;
   border-radius: 50%;
   background: var(--gradient-aurora-3);
-  opacity: 0.5;
+  opacity: 0.2;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .aurora::before {
-    animation: aurora-drift var(--duration-ambient) var(--ease-in-out) infinite;
-  }
-  .aurora::after {
-    animation: aurora-drift calc(var(--duration-ambient) * 1.35) var(--ease-in-out) infinite reverse;
-  }
-  .aurora__accent {
-    animation: aurora-drift calc(var(--duration-ambient) * 1.7) var(--ease-in-out) infinite;
-  }
-}
+/* The blooms are STATIC. A continuously drifting background performs rather
+   than confirms, and it costs compositor work on a mid-range phone for the
+   entire time the page is open (Brand System §3.8, Constitution 17.7). */
 
 /* ---------- Grain ---------- */
 /* An SVG turbulence tile (~250 bytes inline, no network request). It
@@ -172,10 +166,11 @@
     var(--gradient-brand) border-box;
 }
 
-/* ---------- Glow ---------- */
+/* ---------- Glow ----------
+   One per page, on the single primary action only (Brand System §3.1). The
+   violet and cyan variants were removed in the brand recalibration: three
+   glow colours is decoration, not emphasis. */
 .glow { box-shadow: var(--glow-brand); }
-.glow--violet { box-shadow: var(--glow-violet); }
-.glow--cyan { box-shadow: var(--glow-cyan); }
 
 /* ---------- Section rhythm ---------- */
 .section {

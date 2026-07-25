@@ -1,0 +1,78 @@
+/* component: brand — the masthead lockup (components/brand-logo.html).
+
+   Sized to accept EITHER the typographic wordmark used today OR the real
+   artwork later, at the same optical weight, so swapping the asset needs no
+   layout change (Brand System §3.4).
+
+   This is also the one place the brand gradient appears in the chrome — as a
+   2px rule, not a wash. Gradient as signature, not surface (Brand System §3.1). */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--color-ink);
+  /* Clear space: nothing may enter this padding (Brand System §3.4). */
+  padding-block: var(--space-2);
+}
+
+.brand:hover {
+  color: var(--color-ink);
+}
+
+/* The wordmark — set with the care a logotype deserves. */
+.brand__wordmark {
+  font-size: 1.375rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.021em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* The signature: the logo's cyan→blue→violet ramp, at 2px. */
+.brand__rule {
+  width: 2px;
+  align-self: stretch;
+  min-height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+  flex-shrink: 0;
+}
+
+.brand__descriptor {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.25;
+  color: var(--color-ink-soft);
+  max-width: 9rem;
+}
+
+/* When the real artwork lands, it drops in here at the same optical size. */
+.brand__mark {
+  display: block;
+  height: 2.25rem;
+  width: auto;
+}
+
+/* On the deep surface (footer, dark bands) the lockup inverts. */
+.surface--dark .brand,
+.surface--ink .brand,
+.site-footer .brand {
+  color: var(--color-inverse-ink);
+}
+
+.surface--dark .brand__descriptor,
+.surface--ink .brand__descriptor,
+.site-footer .brand__descriptor {
+  color: var(--color-inverse-ink-soft);
+}
+
+/* Below the tablet breakpoint the descriptor is dropped rather than wrapped —
+   a lockup that reflows is a lockup that has been distorted. */
+@media (max-width: 39.99em) {
+  .brand__rule,
+  .brand__descriptor {
+    display: none;
+  }
+}

@@ -21,6 +21,17 @@ jobs:
       - name: Claims guard (Verified Claims Library — docs/08, ADR-005)
         run: node scripts/claims-guard.mjs
 
+      # Is this how RichenQuest SPEAKS? (claims-guard asks whether it is TRUE.)
+      # Brand System §2.2, enforced per Constitution Article 11.2.
+      - name: Voice guard (Brand System vocabulary)
+        run: node scripts/voice-guard.mjs
+
+      # Guard + build-tool unit tests. The CSS minifier is covered here because
+      # a malformed value (e.g. a clamp() whose "+" lost its spaces) is silently
+      # discarded by browsers — structure checks cannot catch it.
+      - name: Guard and build unit tests
+        run: node --test "scripts/**/*.test.mjs" "website/build.test.mjs"
+
       - name: Internal link & asset check
         run: node scripts/check-links.mjs
 
