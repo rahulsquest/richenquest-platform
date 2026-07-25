@@ -16,7 +16,10 @@
  *           → business → append → audit → log → response
  */
 
-import { createContext, withContext, enrichContext, timeSpan, elapsed, executionPath, contextFields } from "./context.mjs";
+import {
+  createContext, withContext, currentContext, enrichContext, timeSpan, elapsed,
+  executionPath, contextFields,
+} from "./context.mjs";
 import { log as defaultLog } from "./logging.mjs";
 import { metrics as defaultMetrics } from "./metrics.mjs";
 import { securityHeaders, corsHeaders, bearerToken, ipKey } from "./security.mjs";
@@ -123,17 +126,24 @@ export function defineEndpoint(spec) {
 
         /* 4. authorise */
         await timeSpan("authorise", async () => {
+          // Grants are resolved and STORED ON STATE regardless of whether the
+          // endpoint declares an authorise handler: later stages build the viewer
+          // from them, and passing them only to authorise left `business` with
+          // undefined grants — which silently produced an EMPTY projection rather
+          // than a refusal.
+          state.grants = deps.resolveGrants ? await deps.resolveGrants(state.claims, req) : [];
+          state.viewer = { grants: state.grants };
           if (!spec.authorise) return "none";
-          const grants = deps.resolveGrants ? await deps.resolveGrants(state.claims, req) : [];
-          state.viewer = { grants };
-          return spec.authorise({ ...state, grants, ctx });
+          return spec.authorise({ ...state, grants: state.grants, ctx: currentContext() });
         });
 
         /* 5. consent */
         await timeSpan("consent", async () => {
           if (!consentPurpose) return "not_required";
           if (!deps.consentFor) throw new InternalError("consent dependency not wired");
-          const decision = await deps.consentFor(ctx.subject_id, consentPurpose, {
+          // currentContext(), not the captured ctx: authentication enriched the
+          // snapshot, and the closure still holds the pre-enrichment one.
+          const decision = await deps.consentFor(currentContext().subject_id, consentPurpose, {
             actorKind: state.claims?.role === "ai_service" ? "ai" : "human",
           });
           if (!decision.allowed) throw new ConsentDenied(decision);
@@ -152,24 +162,24 @@ export function defineEndpoint(spec) {
         /* 7. evidence */
         await timeSpan("evidence", async () => {
           if (!spec.evidence) return "not_required";
-          state.evidence = await spec.evidence({ ...state, ctx });
+          state.evidence = await spec.evidence({ ...state, ctx: currentContext() });
           return Array.isArray(state.evidence) ? state.evidence.length : 0;
         });
 
         /* 8. disclosure */
         await timeSpan("disclosure", async () => {
           if (!spec.disclosure) return "not_required";
-          state.disclosure = await spec.disclosure({ ...state, ctx });
+          state.disclosure = await spec.disclosure({ ...state, ctx: currentContext() });
           return state.disclosure?.register_version ?? null;
         });
 
         /* 9. business */
-        state.result = await timeSpan("business", () => spec.business({ ...state, ctx }));
+        state.result = await timeSpan("business", () => spec.business({ ...state, ctx: currentContext() }));
 
         /* 10. append */
         await timeSpan("append", async () => {
           if (!spec.append) return "no_event";
-          state.event = await spec.append({ ...state, ctx });
+          state.event = await spec.append({ ...state, ctx: currentContext() });
           if (state.event?.type) metrics.eventAppended(state.event.type);
           return state.event?.event_id ?? null;
         });
@@ -177,7 +187,7 @@ export function defineEndpoint(spec) {
         /* 11. audit */
         await timeSpan("audit", async () => {
           if (!spec.audit) return "none";
-          return spec.audit({ ...state, ctx, outcome: "allowed" });
+          return spec.audit({ ...state, ctx: currentContext(), outcome: "allowed" });
         });
 
         /* 12. log */
@@ -201,19 +211,28 @@ export function defineEndpoint(spec) {
 async function handleFailure(raw, { state, ctx, headers, deps, logger, metrics, route, method, spec }) {
   const err = toPlatformError(raw);
 
-  metrics.requestFailed(route, err.code);
-  if (err.status === 403) metrics.permissionDenied(route, ctx.actor_role ?? "unknown");
-  if (err.status === 400) {
-    for (const issue of err.issues ?? []) metrics.validationFailed(route, issue.field);
+  // TELEMETRY MUST NEVER BREAK ERROR HANDLING.
+  // A metrics call once threw on a data-derived label (`evidence[0].ref`) from
+  // inside this handler, escaping it and converting a clean 400 into a 500 with
+  // the real error lost. Instrumentation is best-effort by definition; the
+  // response is not.
+  try {
+    metrics.requestFailed(route, err.code);
+    if (err.status === 403) metrics.permissionDenied(route, currentContext()?.actor_role ?? "unknown");
+    if (err.status === 400) {
+      for (const issue of err.issues ?? []) metrics.validationFailed(route, issue.field);
+    }
+    if (err.code?.startsWith("CONSENT_")) metrics.consentDenied(route, err.code);
+    if (err.status === 429) metrics.rateLimited(route);
+  } catch (metricErr) {
+    logger.error("metrics.record_failed", { original_code: err.code, metric_error: String(metricErr.message) });
   }
-  if (err.code?.startsWith("CONSENT_")) metrics.consentDenied(route, err.code);
-  if (err.status === 429) metrics.rateLimited(route);
 
   // An audit event is appended for refusals that the record should carry —
   // access.denied is part of a person's history, not just our logs.
   if (err.audit === AUDIT.AUDIT_EVENT && spec.audit) {
     try {
-      await spec.audit({ ...state, ctx, outcome: "denied", error: err });
+      await spec.audit({ ...state, ctx: currentContext() ?? ctx, outcome: "denied", error: err });
     } catch (auditErr) {
       // Never let audit failure mask the original error.
       logger.error("audit.append_failed", { original_code: err.code, audit_error: String(auditErr.message) });
@@ -221,7 +240,7 @@ async function handleFailure(raw, { state, ctx, headers, deps, logger, metrics, 
   }
 
   if (err.isSecurityEvent || err.audit === AUDIT.ALERT) {
-    logger.security(`request.${err.code.toLowerCase()}`, err, { path: executionPath(ctx) });
+    logger.security(`request.${err.code.toLowerCase()}`, err, { path: executionPath(currentContext() ?? ctx) });
   }
 
   logger.request({ status: err.status, error: err, securityOutcome: err.isSecurityEvent ? "denied" : "error" });

@@ -22,7 +22,7 @@ import {
 } from "./context.mjs";
 import { createLogger, redact } from "./logging.mjs";
 import { t, validateInput, validateEvidence, validateDisclosure, validateRules, rule } from "./validate.mjs";
-import { createMetrics } from "./metrics.mjs";
+import { createMetrics, sanitiseLabel } from "./metrics.mjs";
 import {
   securityHeaders, corsHeaders, issueCsrfToken, verifyCsrf, sessionCookie, csrfCookie,
   parseCookies, bearerToken, createRateLimiter, memoryCounterStore, ipKey, RATE_TIERS,
@@ -661,4 +661,76 @@ test("assertEndpointComplete catches specification gaps at boot", () => {
     }),
     true
   );
+});
+
+/* ═════════════════════════════════════════════════════════ REGRESSIONS ═══ */
+
+test("regression: context enrichment survives across pipeline stages", async () => {
+  // enterWith() inside a nested async callback did not propagate to the caller's
+  // continuation, so subject_id set during authenticate was null by the consent
+  // stage — every write returned CONSENT_NO_SUBJECT.
+  await withContext(createContext({ route: "/x" }), async () => {
+    await timeSpan("authenticate", async () => {
+      enrichContext({ subject_id: "sub_a", actor_id: "usr_k" });
+      return "ok";
+    });
+    await timeSpan("later_stage", async () => {
+      assert.equal(currentContext().subject_id, "sub_a", "enrichment must be visible to later stages");
+      assert.equal(currentContext().actor_id, "usr_k");
+      return "ok";
+    });
+  });
+});
+
+test("regression: a data-derived metric label is sanitised, not rejected", () => {
+  // `evidence[0].ref` contains characters the strict label guard rejects. Throwing
+  // crashed the error handler and turned a clean 400 into a 500.
+  const m = createMetrics();
+  assert.doesNotThrow(() => m.validationFailed("/v1/x", "evidence[0].ref"));
+  assert.doesNotThrow(() => m.validationFailed("/v1/x", "weird field!name"));
+  assert.equal(sanitiseLabel("evidence[0].ref"), "evidence.ref");
+  assert.equal(sanitiseLabel("evidence[7].ref"), "evidence.ref", "indices must not create separate series");
+  assert.equal(sanitiseLabel(""), "unknown");
+  // The strict guard still protects hand-written labels.
+  assert.throws(() => m.increment("x", { role: "not a role!" }), /not a bounded label value/);
+});
+
+test("regression: telemetry failure cannot break error handling", async () => {
+  const { token } = issueToken({ sub: "usr_k", role: "counsellor" }, SECRET);
+  const brokenMetrics = {
+    ...createMetrics(),
+    requestFailed() { throw new Error("metrics backend unreachable"); },
+  };
+  const handler = defineEndpoint({
+    route: "/v1/t", method: "POST",
+    schema: { note: t.string({ min: 5 }) },
+    authorise: async () => true,
+    business: async () => ({}),
+    append: async () => ({ event_id: "x", type: "counselling.note_added" }),
+  });
+
+  const res = await handler(
+    { headers: { authorization: `Bearer ${token}` }, body: { note: "hi" } },
+    endpointDeps({ metrics: brokenMetrics })
+  );
+  assert.equal(res.status, 400, "the caller still gets the real error");
+  assert.equal(res.body.error.issues[0].field, "note");
+});
+
+test("regression: grants reach the business stage, not only authorise", async () => {
+  // Passing grants only to authorise left business with undefined, which produced
+  // an EMPTY projection instead of a refusal — a silent failure that looks like
+  // "this person has no history".
+  const { token } = issueToken({ sub: "u", role: "partner", partner_id: "partner:x" }, SECRET);
+  let seen = "unset";
+  const handler = defineEndpoint({
+    route: "/v1/t", method: "GET",
+    authorise: async () => true,
+    business: async ({ grants }) => { seen = grants; return {}; },
+  });
+  await handler(
+    { headers: { authorization: `Bearer ${token}` } },
+    endpointDeps({ resolveGrants: async () => [{ grantee: "partner:x" }] })
+  );
+  assert.ok(Array.isArray(seen) && seen.length === 1, "business must receive resolved grants");
 });

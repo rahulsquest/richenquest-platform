@@ -19,6 +19,20 @@ const LATENCY_BUCKETS_MS = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10_0
 
 const LABEL_VALUE = /^[A-Za-z0-9_:./-]{1,64}$/;
 
+/**
+ * Coerce a data-derived string into a bounded label value.
+ * Array indices are removed rather than escaped: `evidence[0].ref` and
+ * `evidence[7].ref` are the same problem and must not be two time series.
+ */
+export function sanitiseLabel(value) {
+  return (
+    String(value ?? "unknown")
+      .replace(/\[\d+\]/g, "")
+      .replace(/[^A-Za-z0-9_:./-]/g, "_")
+      .slice(0, 64) || "unknown"
+  );
+}
+
 export function createMetrics() {
   const counters = new Map(); // name|labels → number
   const histograms = new Map(); // name|labels → {buckets:number[], sum, count}
@@ -75,7 +89,15 @@ export function createMetrics() {
     },
     requestFailed: (route, code) => increment("request_failures_total", { route, code }),
     permissionDenied: (route, role) => increment("permission_failures_total", { route, role }),
-    validationFailed: (route, field) => increment("validation_failures_total", { route, field }),
+    /**
+     * Field names come from DATA (a validation issue), not from a hand-written
+     * call site, so they are sanitised rather than rejected. `evidence[0].ref`
+     * becomes `evidence.ref`: the array index is dropped because it is unbounded
+     * cardinality, and the strict guard on increment() stays in place for labels a
+     * developer types. Throwing here once crashed the error handler itself and
+     * turned a clean 400 into a 500.
+     */
+    validationFailed: (route, field) => increment("validation_failures_total", { route, field: sanitiseLabel(field) }),
     consentDenied: (route, code) => increment("consent_failures_total", { route, code }),
     rateLimited: (route) => increment("rate_limited_total", { route }),
     eventAppended: (type) => increment("events_appended_total", { type }),

@@ -57,6 +57,11 @@ jobs:
       - name: Test serverless functions
         run: node --test "functions/**/*.test.mjs"
 
+      # Career Record API over a real HTTP transport (node:http on an ephemeral
+      # port) — headers, body parsing, status codes, pipeline execution.
+      - name: API integration tests
+        run: node --test "functions/record/api/integration.test.mjs"
+
       # Configuration Validation quality gate (Execution Lock v1.0): tenant
       # config must satisfy the CRM/automation invariants before it drives a build.
       - name: Validate tenant configuration

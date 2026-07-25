@@ -72,29 +72,36 @@ export function createContext({ headers = {}, route = "unknown", method = "GET",
   });
 }
 
-/** Run `fn` with `ctx` bound for the whole async subtree. */
+/**
+ * Run `fn` with `ctx` bound for the whole async subtree.
+ *
+ * The store holds a mutable CONTAINER whose `current` is an immutable context
+ * snapshot. That indirection exists for a specific reason: `enterWith()` called
+ * inside a nested async callback does NOT reliably propagate back to the caller's
+ * continuation, so enrichment performed in one pipeline stage was invisible to the
+ * next. The container is shared by reference, so a snapshot swap is seen
+ * everywhere, while each snapshot stays frozen against concurrent mutation.
+ */
 export function withContext(ctx, fn) {
-  return storage.run(ctx, fn);
+  return storage.run({ current: ctx }, fn);
 }
 
 /** Current context, or null outside a request. Never throws — logging must not. */
 export function currentContext() {
-  return storage.getStore() ?? null;
+  return storage.getStore()?.current ?? null;
 }
 
 /**
  * Attach identity once authentication has resolved it.
  *
- * Returns a NEW frozen context and rebinds the store, because a context that can
- * be mutated in place is a context that can be mutated by the wrong request under
- * concurrency.
+ * Replaces the snapshot rather than mutating it: a context that can be mutated in
+ * place is a context that can be mutated by the wrong request under concurrency.
  */
 export function enrichContext(patch) {
-  const ctx = currentContext();
-  if (!ctx) return null;
-  const next = Object.freeze({ ...ctx, ...patch, spans: ctx.spans });
-  storage.enterWith(next);
-  return next;
+  const container = storage.getStore();
+  if (!container) return null;
+  container.current = Object.freeze({ ...container.current, ...patch, spans: container.current.spans });
+  return container.current;
 }
 
 /**
