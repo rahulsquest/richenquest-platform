@@ -1,0 +1,296 @@
+/* ============================================================
+   THE RECORD — RichenQuest's signature visual language.
+
+   The test every element here passes: remove the logo, and the page is
+   still recognisably ours.
+
+   The organising idea is that RichenQuest keeps a RECORD, not a brochure.
+   Records have ruled lines, aligned figures, citations, margin notes and
+   deliberate separations. That vocabulary renders our philosophy directly —
+   clarity, evidence, structure, calm — and it is ownable in this category
+   precisely because a competitor cannot adopt it without being able to back
+   it up.
+
+   Five devices. Nothing else is signature; everything else is plumbing.
+
+     1. .rule        the gradient-headed hairline — our section mark
+     2. .fact        the provenance mark — every figure carries its source
+     3. .ledger      aligned label/value rows with leaders — figures as record
+     4. .separated   Article 5 made visible — the advisory/commercial firewall
+     5. .note        marginalia — a dignified place for what we do not know
+
+   BANNED here and everywhere (Brand System §3.1, Phase 2 direction):
+   gradients as surfaces · glass cards · coloured glows · orbit graphics ·
+   world maps · floating circles · isometric illustration.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. THE RULE — our section mark.
+   A full-width hairline whose first 2.5rem carries the brand ramp. It is
+   the smallest possible expression of the logo, and it is the element that
+   makes a page recognisable without the logo present.
+   Use: above a section heading, at the top of a record block, between
+   groups. Never more than one per visual group.
+   ------------------------------------------------------------ */
+.rule {
+  position: relative;
+  height: 1px;
+  border: 0;
+  margin: 0;
+  background: var(--color-border);
+}
+
+.rule::before {
+  content: "";
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-start: 0;
+  width: 2.5rem;
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+}
+
+.rule--center::before {
+  inset-inline-start: 50%;
+  translate: -50% 0;
+}
+
+.surface--dark .rule,
+.surface--ink .rule {
+  background: var(--color-inverse-border);
+}
+
+/* ------------------------------------------------------------
+   2. THE PROVENANCE MARK — the most important device in the system.
+
+   Every published figure carries a visible link to its evidence. This is
+   Constitution 6.3 rendered as a UI element: a claim and its source are one
+   object, not a claim with a disclaimer somewhere else.
+
+   Markup:
+     <span class="fact">1,000+<a class="fact__src" href="/standards/#guided">
+       <span class="visually-hidden">Source for this figure</span></a></span>
+
+   COPY RULE: if a number cannot take a .fact__src, it may not be published.
+   ------------------------------------------------------------ */
+.fact {
+  /* The dotted underline reads as "annotated", the way a citation does in a
+     well-set document — not as a link, not as an error. */
+  border-block-end: 1px dotted var(--color-border-strong);
+  white-space: nowrap;
+}
+
+.fact__src {
+  display: inline-block;
+  margin-inline-start: 0.15em;
+  width: 0.9em;
+  height: 0.9em;
+  vertical-align: super;
+  font-size: 0.62em;
+  line-height: 0.9;
+  text-align: center;
+  border-radius: 50%;
+  text-decoration: none;
+  color: var(--color-accent);
+  border: 1px solid currentColor;
+}
+
+.fact__src::before {
+  content: "✓";
+}
+
+.fact__src:hover,
+.fact__src:focus-visible {
+  color: #fff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.surface--dark .fact,
+.surface--ink .fact {
+  border-block-end-color: var(--color-inverse-ink-faint);
+}
+
+.surface--dark .fact__src,
+.surface--ink .fact__src {
+  color: var(--brand-cyan);
+}
+
+/* An unverifiable figure is marked as such rather than quietly published. */
+.fact--unverified {
+  border-block-end-style: dashed;
+}
+
+.fact--unverified .fact__src::before {
+  content: "?";
+}
+
+/* ------------------------------------------------------------
+   3. THE LEDGER — figures presented as a record, not as marketing.
+   Label on the left, value on the right, a leader rule between them,
+   tabular numerals so columns of figures align optically.
+   Use for: costs, deadlines, requirements, disclosure entries, pricing.
+   ------------------------------------------------------------ */
+.ledger {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.ledger__row {
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr minmax(0, auto);
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--color-border-soft);
+}
+
+.ledger__row:last-child {
+  border-block-end: 0;
+}
+
+.ledger__label {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+/* The leader: the device that makes this read as a record rather than a
+   two-column list. Decorative, so it is hidden from assistive tech. */
+.ledger__leader {
+  border-block-end: 1px dotted var(--color-border);
+  translate: 0 -0.25em;
+}
+
+.ledger__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  text-align: end;
+}
+
+.ledger__value--muted {
+  font-weight: var(--weight-regular);
+  color: var(--color-ink-soft);
+}
+
+.surface--dark .ledger__row,
+.surface--ink .ledger__row { border-block-end-color: var(--color-inverse-border); }
+.surface--dark .ledger__label,
+.surface--ink .ledger__label { color: var(--color-inverse-ink-soft); }
+.surface--dark .ledger__value,
+.surface--ink .ledger__value { color: var(--color-inverse-ink); }
+.surface--dark .ledger__leader,
+.surface--ink .ledger__leader { border-block-end-color: var(--color-inverse-border); }
+
+/* On narrow screens the leader is dropped and the value moves below the
+   label — a leader that spans 30px is noise, not structure. */
+@media (max-width: 39.99em) {
+  .ledger__row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+  .ledger__leader {
+    display: none;
+  }
+  .ledger__value {
+    text-align: start;
+  }
+}
+
+/* ------------------------------------------------------------
+   4. THE SEPARATION — Constitution Article 5.2 made visible.
+
+   Wherever advisory content and commercial content appear together, they are
+   separated by a labelled hairline. The GAP is the message: the two lanes
+   never touch. This is the only place in the system where a border is
+   allowed to be emphatic.
+   ------------------------------------------------------------ */
+.separated {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.separated__lane {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.separated__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* The commercial lane is deliberately quieter: it exists, it is disclosed,
+   and it is visibly not in the decision path. */
+.separated__lane--commercial {
+  color: var(--color-ink-soft);
+}
+
+@media (min-width: 64em) {
+  .separated {
+    grid-template-columns: 1fr 1px 1fr;
+    gap: var(--space-8);
+    align-items: stretch;
+  }
+  .separated__divider {
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--color-border-strong) 0 6px,
+      transparent 6px 12px
+    );
+  }
+}
+
+/* Below the desktop breakpoint the divider becomes horizontal so the
+   separation is never lost — it is the point of the component. */
+@media (max-width: 63.99em) {
+  .separated__divider {
+    height: 1px;
+    background: repeating-linear-gradient(
+      to right,
+      var(--color-border-strong) 0 6px,
+      transparent 6px 12px
+    );
+  }
+}
+
+/* ------------------------------------------------------------
+   5. MARGINALIA — where uncertainty lives.
+
+   Constitution 6.3 and 24.3 require us to publish what we do not know. A
+   company that says so needs somewhere dignified to say it. The serif italic
+   is the brand's second voice, used only here and in pull-quotes.
+   ------------------------------------------------------------ */
+.note {
+  border-inline-start: 2px solid var(--color-border);
+  padding-inline-start: var(--space-4);
+  font-family: var(--font-serif-display);
+  font-style: italic;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--color-ink-soft);
+  max-width: 46ch;
+}
+
+.note--uncertain {
+  border-inline-start-color: var(--color-accent);
+}
+
+.surface--dark .note,
+.surface--ink .note {
+  border-inline-start-color: var(--color-inverse-border);
+  color: var(--color-inverse-ink-soft);
+}
+
+/* ------------------------------------------------------------
+   Tabular numerals utility — any figure the reader may compare.
+   ------------------------------------------------------------ */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}

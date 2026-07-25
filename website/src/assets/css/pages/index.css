@@ -305,3 +305,11 @@
   font-size: var(--text-sm);
   color: var(--color-inverse-ink-faint);
 }
+
+/* Independence section — the diagram is the content, so the section gets no
+   competing surface. It sits on paper, where a record belongs. */
+.integrity__more {
+  margin-block-start: var(--space-8);
+  text-align: center;
+  max-width: none;
+}

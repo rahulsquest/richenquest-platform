@@ -201,22 +201,44 @@ export function minifyCss(css) {
   return out.replace(/;}/g, "}").trim();
 }
 
-/** Concatenate CSS in cascade order: tokens → base → components/* → pages/* (File 10 §4). */
+/**
+ * Build CSS in cascade order: tokens → base → components/* (shared), then each
+ * pages/<name>.css as its OWN file (File 10 §4).
+ *
+ * Why page CSS is split out (changed 2026-07-25): previously every page-specific
+ * stylesheet was concatenated into one bundle, so every visitor downloaded the
+ * homepage's CSS, the matcher's CSS, and — worst — the internal style guide's
+ * CSS, on every page. That does not scale: each new page taxed all the others,
+ * and the shared bundle would grow past the stylesheet budget in
+ * lighthouserc.json as the site grew.
+ *
+ * Now: one shared, long-cached site.css, plus an optional page-<name>.css
+ * linked only where it exists. Convention: src/assets/css/pages/<x>.css pairs
+ * with src/pages/<x>.html.
+ *
+ * Returns { shared, pages: Map<pageRelHtml, minifiedCss> }.
+ */
 async function buildCss() {
   const cssDir = path.join(SRC, "assets", "css");
   const ordered = ["tokens.css", "base.css"];
-  for (const group of ["components", "pages"]) {
-    for (const f of await listFiles(path.join(cssDir, group), ".css")) {
-      ordered.push(path.join(group, f));
-    }
+  for (const f of await listFiles(path.join(cssDir, "components"), ".css")) {
+    ordered.push(path.join("components", f));
   }
-  let css = "";
+
+  let shared = "";
   for (const rel of ordered) {
     const file = path.join(cssDir, rel);
     if (!existsSync(file)) continue;
-    css += `/* ─── ${rel.split(path.sep).join("/")} ─── */\n` + (await readFile(file, "utf8")) + "\n";
+    shared += `/* ─── ${rel.split(path.sep).join("/")} ─── */\n` + (await readFile(file, "utf8")) + "\n";
   }
-  return minifyCss(css);
+
+  const pages = new Map();
+  for (const f of await listFiles(path.join(cssDir, "pages"), ".css")) {
+    const css = minifyCss(await readFile(path.join(cssDir, "pages", f), "utf8"));
+    if (css) pages.set(f.replace(/\.css$/, ".html"), css);
+  }
+
+  return { shared: minifyCss(shared), pages };
 }
 
 export async function build() {
@@ -227,16 +249,23 @@ export async function build() {
   const data = await loadData();
 
   // Assets + cache-bust hash (content-derived so unchanged deploys keep caches warm)
-  const css = await buildCss();
+  const { shared: css, pages: pageCss } = await buildCss();
   let jsConcat = "";
   const jsDir = path.join(SRC, "assets", "js");
   for (const rel of await listFiles(jsDir, ".js")) {
     jsConcat += await readFile(path.join(jsDir, rel), "utf8");
   }
-  const hash = createHash("sha256").update(css + jsConcat).digest("hex").slice(0, 8);
+  const hash = createHash("sha256")
+    .update(css + [...pageCss.values()].join("") + jsConcat)
+    .digest("hex")
+    .slice(0, 8);
 
   await mkdir(path.join(OUT, "assets", "css"), { recursive: true });
   await writeFile(path.join(OUT, "assets", "css", "site.css"), css);
+  for (const [pageRel, pcss] of pageCss) {
+    const name = pageRel.replace(/\.html$/, "").split(path.sep).join("-");
+    await writeFile(path.join(OUT, "assets", "css", `page-${name}.css`), pcss);
+  }
   if (existsSync(jsDir)) await cp(jsDir, path.join(OUT, "assets", "js"), { recursive: true });
   for (const dir of ["img", "fonts"]) {
     const from = path.join(SRC, "assets", dir);
@@ -255,9 +284,16 @@ export async function build() {
     const where = `pages/${rel.split(path.sep).join("/")}`;
     const { meta, body } = parseMeta(await readFile(path.join(SRC, "pages", rel), "utf8"), where);
     const route = routeFor(rel);
+    // Optional page stylesheet. Emitted as a whole <link> element (or an empty
+    // string) because the template engine has no conditionals by design
+    // (ADR-002) — and a page without its own CSS should make no extra request.
+    const pageCssName = rel.replace(/\.html$/, "").split(path.sep).join("-");
+    const cssLink = pageCss.has(rel)
+      ? `<link rel="stylesheet" href="/assets/css/page-${pageCssName}.css?v=${hash}">`
+      : "";
     const ctx = {
       ...data,
-      page: { ...meta, url: route.url },
+      page: { ...meta, url: route.url, cssLink },
       build: { hash, year: String(new Date().getFullYear()) },
     };
 

@@ -1,0 +1,97 @@
+<!-- component: diagram-independence — Constitution Article 5, made visible.
+
+     After the logo, this is the company's most important image. It has one
+     job: make a reader understand in under fifteen seconds that commercial
+     relationships exist, are disclosed, and never enter the decision path.
+
+     Built as HTML rather than a flat SVG on purpose. The decision path IS an
+     ordered list, so assistive technology gets real semantics; the text stays
+     selectable and translatable; and it reflows on a phone instead of
+     shrinking into illegibility.
+
+     THE GAP IS THE MESSAGE. Do not close it, do not draw an arrow across it,
+     and do not soften the divider. -->
+<figure class="indep">
+  <div class="indep__grid">
+
+    <!-- ── The decision path ───────────────────────────────── -->
+    <div class="indep__lane">
+      <p class="separated__label">The decision path</p>
+      <ol class="indep__path">
+        <li class="indep__step">
+          <span class="indep__node" aria-hidden="true"></span>
+          <span class="indep__step-body">
+            <span class="indep__step-title">You</span>
+            <span class="indep__step-note">Your goals, grades and budget</span>
+          </span>
+        </li>
+        <li class="indep__step indep__step--key">
+          <span class="indep__node" aria-hidden="true"></span>
+          <span class="indep__step-body">
+            <span class="indep__step-title">Independent evaluation</span>
+            <span class="indep__step-note">By a named adviser whose pay does not change with your choice</span>
+          </span>
+        </li>
+        <li class="indep__step indep__step--key">
+          <span class="indep__node" aria-hidden="true"></span>
+          <span class="indep__step-body">
+            <span class="indep__step-title">Evidence</span>
+            <span class="indep__step-note">Published cost, intake, work and post-study data</span>
+          </span>
+        </li>
+        <li class="indep__step">
+          <span class="indep__node" aria-hidden="true"></span>
+          <span class="indep__step-body">
+            <span class="indep__step-title">Recommendation</span>
+            <span class="indep__step-note">Reproducible from criteria that reference no commercial term</span>
+          </span>
+        </li>
+        <li class="indep__step">
+          <span class="indep__node" aria-hidden="true"></span>
+          <span class="indep__step-body">
+            <span class="indep__step-title">Your options</span>
+            <span class="indep__step-note">Every institution that fits — related to us or not</span>
+          </span>
+        </li>
+        <li class="indep__step indep__step--end">
+          <span class="indep__node" aria-hidden="true"></span>
+          <span class="indep__step-body">
+            <span class="indep__step-title">Your decision</span>
+            <span class="indep__step-note">Yours alone, including "not this year"</span>
+          </span>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ── The firewall ────────────────────────────────────── -->
+    <div class="indep__firewall">
+      <span class="indep__firewall-line" aria-hidden="true"></span>
+      <span class="indep__firewall-label">No influence crosses this line</span>
+      <span class="indep__firewall-line" aria-hidden="true"></span>
+    </div>
+
+    <!-- ── Commercial relationships ────────────────────────── -->
+    <div class="indep__lane indep__lane--commercial">
+      <p class="separated__label">Commercial relationships</p>
+      <ul class="indep__commercial">
+        <li>Universities</li>
+        <li>Employers</li>
+        <li>Institutions &amp; governments</li>
+        <li>Research partners</li>
+      </ul>
+      <p class="note">
+        These fund the company and are published in the disclosure register.
+        Terms are identical across institutions, and no one&rsquo;s pay here changes
+        with the destination you choose.
+      </p>
+    </div>
+  </div>
+
+  <!-- No link here on purpose: the component stays self-contained, and the
+       embedding page supplies its own context. The dedicated Standards and
+       Disclosure Register surfaces arrive in Phase 3. -->
+  <figcaption class="indep__caption">
+    How independence works at RichenQuest. Our recommendations are reproducible
+    from criteria that reference no commercial term.
+  </figcaption>
+</figure>
