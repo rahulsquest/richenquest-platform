@@ -174,22 +174,38 @@ export function conformanceSuite(name, makeStore, caps = {}) {
   });
 
   if (concurrentAppendIsAtomic) {
-    test(`[${name}] concurrent appends at the same position: exactly one wins`, async () => {
+    test(`[${name}] concurrent appends never share a position and the chain stays valid`, async () => {
       const store = await makeStore();
       await appendEvent(store, { subjectId: S, type: "profile.created", actor: COUNSELLOR, payload: {} });
 
-      // Both writers read head=1 and both try seq=2. The store must serialise.
-      const results = await Promise.allSettled([
-        appendEvent(store, { subjectId: S, type: "counselling.note_added", actor: COUNSELLOR, payload: { w: 1 } }),
-        appendEvent(store, { subjectId: S, type: "counselling.note_added", actor: COUNSELLOR, payload: { w: 2 } }),
-      ]);
-      const ok = results.filter((r) => r.status === "fulfilled");
-      const failed = results.filter((r) => r.status === "rejected");
+      // Ten parallel appends. NOTE: they do not all contend for the same seq —
+      // each reads the head itself, so with real async I/O some observe a newer
+      // head and legitimately take a later position. Asserting "exactly one wins"
+      // was wrong: it held only for synchronous in-memory stores and failed
+      // against real PostgreSQL, where 6 of 10 succeeded with distinct seqs.
+      //
+      // The invariant that actually matters, and that must hold everywhere:
+      // no two events ever occupy the same position, and the chain verifies.
+      const results = await Promise.allSettled(
+        Array.from({ length: 10 }, (_, i) =>
+          appendEvent(store, { subjectId: S, type: "counselling.note_added", actor: COUNSELLOR, payload: { w: i } })
+        )
+      );
 
-      assert.equal(ok.length, 1, "exactly one concurrent writer may win");
-      assert.equal(failed.length, 1);
-      assert.equal(failed[0].reason.code, "SEQ_CONFLICT");
-      assert.equal((await verifySubject(store, S)).ok, true, "the chain must remain valid after a conflict");
+      const won = results.filter((r) => r.status === "fulfilled");
+      const lost = results.filter((r) => r.status === "rejected");
+
+      assert.ok(won.length >= 1, "at least one concurrent writer must succeed");
+      for (const l of lost) {
+        assert.equal(l.reason.code, "SEQ_CONFLICT", "a loser must get a retryable conflict, never corruption");
+      }
+
+      const events = await store.read(S);
+      const seqs = events.map((e) => e.seq);
+      assert.equal(new Set(seqs).size, seqs.length, "no two events may share a position");
+      assert.deepEqual(seqs, [...seqs].sort((a, b) => a - b), "positions must be contiguous and ordered");
+      assert.equal(events.length, won.length + 1, "every winner is stored exactly once");
+      assert.equal((await verifySubject(store, S)).ok, true, "the chain must survive a real race");
     });
   } else {
     test(`[${name}] DECLARED LIMITATION: compare-and-set is advisory, conflicts are detected not prevented`, async () => {

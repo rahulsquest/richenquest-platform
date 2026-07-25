@@ -1,0 +1,14 @@
+{
+  "name": "richenquest-db-integration",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Test-only workspace. Isolated from website/ (zero-dependency by ADR-002) so integration tooling can never leak into the shipped site.",
+  "devDependencies": {
+    "pg": "^8.13.1",
+    "embedded-postgres": "18.4.0-beta.17"
+  },
+  "scripts": {
+    "test": "node --test postgres.integration.test.mjs"
+  }
+}
