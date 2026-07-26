@@ -1,4 +1,11 @@
-# Changelog
+# Changelog — website milestones (historical)
+
+> **Superseded 2026-07-26.** The canonical changelog for the whole platform is
+> **[docs/CHANGELOG.md](docs/CHANGELOG.md)**, which covers the website, the Zoho integration,
+> Titan automation and the Career Record platform under one semantic version line.
+>
+> This file is kept unchanged below as the original record of the M0–M3 website milestones.
+> It is no longer updated. Nothing here has been deleted.
 
 All notable changes to the RichenQuest platform. Format: [Keep a Changelog](https://keepachangelog.com).
 

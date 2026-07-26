@@ -96,6 +96,15 @@ export function issueToken(claims, secret, { ttlSeconds = DEFAULT_TTL_SECONDS, n
     role: claims.role,
     subject_id: claims.subject_id ?? null,
     partner_id: claims.partner_id ?? null,
+    /**
+     * Operations role, for the Founder Operations console. Carried here rather
+     * than in a second token so one login serves both services, and INSIDE the
+     * signed payload so it cannot be edited by the holder to grant themselves
+     * `manager`. This module does not interpret it — functions/ops/permissions.mjs
+     * validates it against the declared roles and refuses an unknown one, which
+     * keeps the operations vocabulary out of the identity layer.
+     */
+    ops_role: claims.ops_role ?? null,
     scopes: claims.scopes ?? [],
     iat,
     exp: iat + ttlSeconds,

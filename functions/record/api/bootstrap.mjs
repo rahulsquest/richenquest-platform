@@ -19,6 +19,7 @@
 
 import { migrate, status } from "../../../db/migrate.mjs";
 import { postgresEventStore, assertSchema } from "../adapters/postgres.mjs";
+import { postgresVaultStore, assertVaultSchema } from "../adapters/vault-postgres.mjs";
 import { identityVault } from "../identity/vault.mjs";
 import { createDependencies, createRouter } from "./service.mjs";
 import { createServer } from "./transport.mjs";
@@ -145,7 +146,13 @@ export async function prepareDatabase(client, { runMigrations = true, logger = c
   // The gate. The append path relies on these constraints to detect concurrent
   // writes; without them, conflicts are lost silently rather than loudly.
   await assertSchema(client);
-  logger.log?.("✓ startup: schema constraints verified");
+
+  // The same reasoning for identity. A missing vault schema does not fail loudly
+  // at startup — it fails on the first person whose data key cannot be stored,
+  // and an erasure request that finds no key to destroy reports success having
+  // destroyed nothing.
+  await assertVaultSchema(client);
+  logger.log?.("✓ startup: schema constraints verified (log + vault)");
 
   return version;
 }
@@ -156,12 +163,16 @@ export async function prepareDatabase(client, { runMigrations = true, logger = c
  *
  * @param {object} deps
  * @param {object} deps.pool          a pg Pool (or anything with .query)
- * @param {object} deps.vaultStore    VaultStore implementation
+ * @param {object} [deps.vaultStore]  VaultStore; defaults to the PostgreSQL one
  * @param {object} deps.keyProvider   KEK provider (see identity/kms.mjs)
  * @param {object} [deps.registers]   { evidence, disclosure }
  */
 export async function startApi({ pool, vaultStore, keyProvider, registers, env = process.env, logger = createLogger() } = {}) {
   const config = readConfig(env);
+  // Defaulted rather than required: the only other VaultStore in the codebase is
+  // the in-memory one, and a deployment that reached production holding identity
+  // in process memory would look healthy right up until it restarted.
+  const vault = vaultStore ?? postgresVaultStore(pool);
 
   await pool.query(`SET statement_timeout = ${Number(config.statementTimeoutMs)}`).catch(() => {
     // Not fatal: some managed providers disallow SET at session level via a
@@ -173,7 +184,7 @@ export async function startApi({ pool, vaultStore, keyProvider, registers, env =
 
   const dependencies = createDependencies({
     store: postgresEventStore(pool),
-    vault: identityVault(vaultStore, keyProvider),
+    vault: identityVault(vault, keyProvider),
     secret: config.tokenSecret,
     evidenceRegister: registers?.evidence,
     disclosureRegister: registers?.disclosure,

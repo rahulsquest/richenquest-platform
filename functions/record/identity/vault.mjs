@@ -23,9 +23,21 @@
  *  · KEK is versioned, so rotation is possible without rewriting history.
  *  · Erasure is verified by attempting a read afterwards, not assumed.
  *
- * VERIFICATION STATUS: unit-tested. NOT integration-tested — the production KEK
- * must come from a real KMS (§11.3); the env-var provider here is for development
- * and is refused when NODE_ENV=production.
+ * KEY PROVIDER INTERFACE
+ * The vault delegates DEK wrapping to a key provider — never handling KEK material
+ * itself, so a real KMS (which never surrenders its master key) fits the same
+ * interface as the development env provider:
+ *
+ *   provider.currentVersion
+ *   provider.wrapDataKey(subjectId, dek)       → { version, material }
+ *   provider.unwrapDataKey(subjectId, wrapped) → dek
+ *
+ * `material` is opaque to the vault and stored verbatim in vault_keys. The env
+ * provider below implements it with local AES-GCM; the production KMS provider
+ * (identity/kms.mjs, wired to Google Cloud KMS via identity/kms-gcp.mjs)
+ * implements it with encrypt/decrypt calls that keep the KEK inside the HSM.
+ *
+ * VERIFICATION STATUS: unit-tested; env provider refused when NODE_ENV=production.
  */
 
 import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "node:crypto";
@@ -74,16 +86,24 @@ export function envKeyProvider(env = process.env) {
   if (key.length !== KEY_BYTES) {
     throw new VaultError("BAD_KEK", `RECORD_VAULT_KEK must be ${KEY_BYTES} bytes base64-encoded, got ${key.length}`);
   }
+  const version = env.RECORD_VAULT_KEK_VERSION ?? "v1";
   return {
-    currentVersion: env.RECORD_VAULT_KEK_VERSION ?? "v1",
-    async unwrapKey(version) {
-      if (version !== (env.RECORD_VAULT_KEK_VERSION ?? "v1")) {
-        throw new VaultError("UNKNOWN_KEK_VERSION", `no KEK available for version "${version}"`);
-      }
-      return key;
+    currentVersion: version,
+    /**
+     * Seal the DEK under the env KEK. This is the same AES-GCM the vault used to
+     * perform itself before the operation moved to the provider — the bytes are
+     * unchanged, so a real KMS and this stand-in produce interchangeable wrapped
+     * keys as far as the vault is concerned.
+     */
+    async wrapDataKey(subjectId, dek) {
+      const sealed = seal(dek.toString("base64"), key, dekAad(subjectId));
+      return { version, material: JSON.stringify(sealed) };
     },
-    async wrapKey() {
-      return key;
+    async unwrapDataKey(subjectId, wrapped) {
+      if (wrapped?.version !== version) {
+        throw new VaultError("UNKNOWN_KEK_VERSION", `no KEK available for version "${wrapped?.version}"`);
+      }
+      return Buffer.from(open(JSON.parse(wrapped.material), key, dekAad(subjectId)), "base64");
     },
   };
 }
@@ -108,12 +128,20 @@ function open({ iv, ct, tag }, key, aad) {
 /** AAD binds a ciphertext to exactly one subject and one field. */
 const aadFor = (subjectId, field) => `richenquest.vault.v1|${subjectId}|${field}`;
 
+/**
+ * AAD binding a WRAPPED DATA KEY to its subject. Exported so every key provider —
+ * the env one above and the KMS one in kms.mjs — binds identically, and a wrapped
+ * DEK lifted from one record can never be unwrapped under another, whether the
+ * wrapping was done by local AES-GCM or by Cloud KMS.
+ */
+export const dekAad = (subjectId) => aadFor(subjectId, "__dek__");
+
 /* --------------------------------------------------------------- store --- */
 
 /**
  * @typedef {{
- *   putKey(subjectId: string, wrapped: object): Promise<void>,
- *   getKey(subjectId: string): Promise<object|null>,
+ *   putKey(subjectId: string, wrapped: {version: string, material: string}): Promise<void>,
+ *   getKey(subjectId: string): Promise<{version: string, material: string}|null>,
  *   destroyKey(subjectId: string): Promise<boolean>,
  *   putField(subjectId: string, field: string, blob: object): Promise<void>,
  *   getField(subjectId: string, field: string): Promise<object|null>,
@@ -140,20 +168,59 @@ export function memoryVaultStore() {
 
 /* --------------------------------------------------------------- vault --- */
 
-export function identityVault(store, keyProvider) {
+export function identityVault(store, keyProvider, { dekCacheTtlMs = 0 } = {}) {
+  /**
+   * Optional short-lived cache of UNWRAPPED data keys, keyed by subject.
+   *
+   * With a real KMS every unwrap is a network round trip, so reading N fields (an
+   * export, getAll) would otherwise cost N KMS calls. The cache collapses them to
+   * one. It is OFF by default (ttl 0): the conservative choice for the erasure
+   * guarantee is to retain no plaintext key beyond a single operation. Production
+   * may enable a short ttl and accept that a key can live in memory for that long
+   * — the same trade the KMS documentation calls out, recorded rather than hidden.
+   * erase() and rotateKek() purge synchronously, so a cached key never outlives
+   * the destruction or re-wrapping of its stored form within this process.
+   */
+  const dekCache = new Map();
+  const cacheGet = (s) => {
+    if (dekCacheTtlMs <= 0) return null;
+    const hit = dekCache.get(s);
+    if (!hit) return null;
+    if (Date.now() > hit.expires) {
+      hit.dek.fill(0);
+      dekCache.delete(s);
+      return null;
+    }
+    return hit.dek;
+  };
+  const cachePut = (s, dek) => {
+    if (dekCacheTtlMs > 0) dekCache.set(s, { dek, expires: Date.now() + dekCacheTtlMs });
+  };
+  const cachePurge = (s) => {
+    const hit = dekCache.get(s);
+    if (hit) hit.dek.fill(0);
+    dekCache.delete(s);
+  };
+
   /** Fetch and unwrap a subject's DEK, creating one on first write. */
   async function dek(subjectId, { create = false } = {}) {
+    const cached = cacheGet(subjectId);
+    if (cached) return cached;
+
     const wrapped = await store.getKey(subjectId);
     if (!wrapped) {
       if (!create) throw new SubjectErased(subjectId);
-      const kek = await keyProvider.wrapKey();
+      // The vault generates the DEK; the provider wraps it — under a local KEK in
+      // development, or inside a KMS that never surrenders its master key in
+      // production. The vault stores the opaque result and never sees a KEK.
       const fresh = randomBytes(KEY_BYTES);
-      const sealed = seal(fresh.toString("base64"), kek, aadFor(subjectId, "__dek__"));
-      await store.putKey(subjectId, { version: keyProvider.currentVersion, ...sealed });
+      await store.putKey(subjectId, await keyProvider.wrapDataKey(subjectId, fresh));
+      cachePut(subjectId, fresh);
       return fresh;
     }
-    const kek = await keyProvider.unwrapKey(wrapped.version);
-    return Buffer.from(open(wrapped, kek, aadFor(subjectId, "__dek__")), "base64");
+    const key = await keyProvider.unwrapDataKey(subjectId, wrapped);
+    cachePut(subjectId, key);
+    return key;
   }
 
   return {
@@ -209,6 +276,11 @@ export function identityVault(store, keyProvider) {
      * recoverable, so a store that silently ignored destroyKey cannot pass.
      */
     async erase(subjectId, { reason = "subject request" } = {}) {
+      // Purge any cached plaintext DEK BEFORE destroying the wrapped key, so the
+      // verification reads below cannot succeed from a still-cached key and report
+      // a false "erased".
+      cachePurge(subjectId);
+
       const fieldsBefore = await store.listFields(subjectId);
       const existed = await store.destroyKey(subjectId);
       if (!existed) throw new SubjectErased(subjectId);
@@ -250,13 +322,12 @@ export function identityVault(store, keyProvider) {
       if (!wrapped) throw new SubjectErased(subjectId);
       if (wrapped.version === keyProvider.currentVersion) return { rotated: false, version: wrapped.version };
 
-      const oldKek = await keyProvider.unwrapKey(wrapped.version);
-      const plainDek = open(wrapped, oldKek, aadFor(subjectId, "__dek__"));
-      const newKek = await keyProvider.wrapKey();
-      await store.putKey(subjectId, {
-        version: keyProvider.currentVersion,
-        ...seal(plainDek, newKek, aadFor(subjectId, "__dek__")),
-      });
+      // Unwrap under the old KEK version, re-wrap under the current one. The DEK
+      // itself is unchanged, so every field ciphertext stays valid — rotation is
+      // O(subjects), not O(data).
+      const plainDek = await keyProvider.unwrapDataKey(subjectId, wrapped);
+      await store.putKey(subjectId, await keyProvider.wrapDataKey(subjectId, plainDek));
+      cachePurge(subjectId);
       return { rotated: true, from: wrapped.version, to: keyProvider.currentVersion };
     },
   };

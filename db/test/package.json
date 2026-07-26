@@ -9,6 +9,7 @@
     "embedded-postgres": "18.4.0-beta.17"
   },
   "scripts": {
-    "test": "node --test *.integration.test.mjs"
+    "test": "node --test *.integration.test.mjs",
+    "perf": "node --test performance.integration.test.mjs"
   }
 }

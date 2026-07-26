@@ -42,8 +42,10 @@ jobs:
       # Guard + build-tool unit tests. The CSS minifier is covered here because
       # a malformed value (e.g. a clamp() whose "+" lost its spaces) is silently
       # discarded by browsers — structure checks cannot catch it.
-      - name: Guard and build unit tests
-        run: node --test "scripts/**/*.test.mjs" "website/build.test.mjs"
+      # The website/*.test.mjs glob also picks up dashboard.test.mjs, which covers
+      # the Student Dashboard's session handling, API contract and derivations.
+      - name: Guard, build and dashboard unit tests
+        run: node --test "scripts/**/*.test.mjs" "website/*.test.mjs"
 
       - name: Internal link & asset check
         run: node scripts/check-links.mjs
@@ -61,6 +63,12 @@ jobs:
       # port) — headers, body parsing, status codes, pipeline execution.
       - name: API integration tests
         run: node --test "functions/record/api/integration.test.mjs"
+
+      # Founder Operations API over a real HTTP transport. Runs separately from the
+      # glob above so a failure here is attributed to the operations platform
+      # rather than lost among 300+ unit tests.
+      - name: Operations API integration tests
+        run: node --test "functions/ops/api/integration.test.mjs"
 
       # Configuration Validation quality gate (Execution Lock v1.0): tenant
       # config must satisfy the CRM/automation invariants before it drives a build.
@@ -91,3 +99,26 @@ jobs:
 
       - name: Lighthouse CI (budgets in lighthouserc.json)
         run: npx --yes @lhci/cli@0.14.0 autorun
+
+  # Real-PostgreSQL integration, in its own job so the fast gate above stays fast.
+  # embedded-postgres provisions an official postgres binary, so this needs no
+  # hosted database and no service container. Confined to db/test/ with its own
+  # lockfile, which is why the website's zero-dependency guarantee (ADR-002) is
+  # unaffected.
+  #
+  # Covers: the PostgreSQL event-store adapter, the migration runner and startup
+  # gate, and the Student Portal end-to-end against the real API over real HTTP.
+  database-and-portal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install the test-only workspace
+        run: npm --prefix db/test ci
+
+      - name: Integration tests against a real PostgreSQL server
+        run: npm --prefix db/test test

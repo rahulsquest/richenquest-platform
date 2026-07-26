@@ -7,10 +7,10 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHmac, randomBytes } from "node:crypto";
+import { createHmac, createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 import {
-  identityVault, memoryVaultStore, envKeyProvider, VaultError, SubjectErased, KEY_BYTES,
+  identityVault, memoryVaultStore, envKeyProvider, dekAad, VaultError, SubjectErased, KEY_BYTES,
 } from "./vault.mjs";
 import {
   consentState, consentCheck, ageAt, grantConsentEvent, withdrawConsentEvent,
@@ -129,18 +129,31 @@ test("vault: erasing an already-erased subject is refused, not silently ok", asy
 
 test("vault: KEK rotation re-wraps the key without touching field ciphertexts", async () => {
   const store = memoryVaultStore();
-  const oldKek = randomBytes(KEY_BYTES);
-  const newKek = randomBytes(KEY_BYTES);
+  // Two KEKs, wrapping via AES-GCM under whichever is current. This is the same
+  // interface the env and KMS providers implement — wrap/unwrap a DEK, not hand
+  // back KEK material — so the rotation logic is exercised exactly as in prod.
+  const keks = { v1: randomBytes(KEY_BYTES), v2: randomBytes(KEY_BYTES) };
   let current = "v1";
+  const aad = (s) => Buffer.from(dekAad(s), "utf8");
 
   const provider = {
     get currentVersion() { return current; },
-    async unwrapKey(v) {
-      if (v === "v1") return oldKek;
-      if (v === "v2") return newKek;
-      throw new VaultError("UNKNOWN_KEK_VERSION", v);
+    async wrapDataKey(subjectId, dek) {
+      const iv = randomBytes(12);
+      const c = createCipheriv("aes-256-gcm", keks[current], iv);
+      c.setAAD(aad(subjectId));
+      const ct = Buffer.concat([c.update(dek), c.final()]);
+      return { version: current, material: Buffer.concat([iv, c.getAuthTag(), ct]).toString("base64") };
     },
-    async wrapKey() { return current === "v1" ? oldKek : newKek; },
+    async unwrapDataKey(subjectId, wrapped) {
+      const kek = keks[wrapped.version];
+      if (!kek) throw new VaultError("UNKNOWN_KEK_VERSION", wrapped.version);
+      const blob = Buffer.from(wrapped.material, "base64");
+      const d = createDecipheriv("aes-256-gcm", kek, blob.subarray(0, 12));
+      d.setAAD(aad(subjectId));
+      d.setAuthTag(blob.subarray(12, 28));
+      return Buffer.concat([d.update(blob.subarray(28)), d.final()]);
+    },
   };
 
   const vault = identityVault(store, provider);

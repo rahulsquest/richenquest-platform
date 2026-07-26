@@ -61,6 +61,44 @@ export async function coql(selectQuery) {
 }
 
 /**
+ * Update fields on an existing record. Zoho returns a row-level status, so a
+ * partial failure is surfaced rather than mistaken for success — the same
+ * treatment createOrUpdateLead and addNote already give it.
+ */
+export async function updateRecord(module, id, fields) {
+  const json = await zohoRequest("crm", `/${encodeURIComponent(module)}/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    apiVersion: "v8",
+    body: { data: [fields] },
+  });
+  const row = json.data?.[0];
+  if (row?.status === "error") throw new Error(`updateRecord failed: ${row.code} ${row.message}`);
+  return { id: row?.details?.id ?? id };
+}
+
+/** Create a record in any module (Tasks, Contacts, Accounts …). */
+export async function createRecord(module, fields) {
+  const json = await zohoRequest("crm", `/${encodeURIComponent(module)}`, {
+    method: "POST",
+    apiVersion: "v8",
+    body: { data: [fields] },
+  });
+  const row = json.data?.[0];
+  if (row?.status === "error") throw new Error(`createRecord failed: ${row.code} ${row.message}`);
+  return { id: row?.details?.id };
+}
+
+/** Notes attached to a record, newest first — the correspondence trail. */
+export async function listNotes(parentModule, parentId, { limit = 50 } = {}) {
+  const json = await zohoRequest(
+    "crm",
+    `/${encodeURIComponent(parentModule)}/${encodeURIComponent(parentId)}/Notes`,
+    { apiVersion: "v8", query: { per_page: limit, sort_by: "Created_Time", sort_order: "desc" } }
+  );
+  return json.data ?? [];
+}
+
+/**
  * Add a note to any record (e.g. an automation audit trail on a Lead).
  * Parent_Id must be a json object { module:{api_name}, id } — a bare id is
  * rejected with INVALID_DATA. Throws on a row-level error so a failure surfaces

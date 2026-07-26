@@ -1,0 +1,60 @@
+<!--meta
+title: Operations | RichenQuest
+description: Internal operations console — leads, students, tasks and analytics.
+layout: console
+sitemap: false
+-->
+<!-- Founder Operations console.
+
+     Every panel is filled from the operations API (functions/ops) at runtime.
+     There is no sample content in this file and no fallback dataset in the
+     client: if the API is unreachable, the console says so. An operations tool
+     that shows plausible-but-wrong numbers is worse than one that shows an
+     error, because decisions get made on it.
+
+     Views are created client-side from the server's capability manifest, so the
+     markup here is limited to the gate states — which must work before any
+     script has decided anything. -->
+
+<!-- ── gate: operations API not configured ────────────────────────────────── -->
+<section class="app-gate" data-app="gate-unconfigured" hidden>
+  <div class="app-gate__card">
+    <h1 class="app-gate__title">The console is not connected yet</h1>
+    <p class="app-gate__text">
+      The operations service has no address configured for this build, so there is
+      nothing to read from. This is a deployment setting, not a problem with your data.
+    </p>
+    <p class="app-gate__text app-gate__text--muted">
+      Set <code>ops_api.base_url</code> in <code>website/src/data/platform.json</code> and rebuild.
+    </p>
+  </div>
+</section>
+
+<!-- ── gate: no session ───────────────────────────────────────────────────── -->
+<section class="app-gate" data-app="gate-signin" hidden>
+  <div class="app-gate__card">
+    <h1 class="app-gate__title">Sign in to Operations</h1>
+    <p class="app-gate__text" data-app="signin-reason">
+      Sign in with the operator link to open the console.
+    </p>
+    <p class="app-gate__text app-gate__text--muted">
+      Operator links are short-lived and issued per person. We hold no password for
+      you — there is no password to lose, and none for anyone else to steal.
+    </p>
+  </div>
+</section>
+
+<!-- ── the console ────────────────────────────────────────────────────────── -->
+<div class="app-shell ops-shell" data-app="shell" hidden></div>
+
+<noscript>
+  <section class="app-gate">
+    <div class="app-gate__card">
+      <h1 class="app-gate__title">The console needs JavaScript</h1>
+      <p class="app-gate__text">
+        Operational data is fetched from a protected service when you open this page,
+        rather than published into it — so it cannot be shown without scripting enabled.
+      </p>
+    </div>
+  </section>
+</noscript>

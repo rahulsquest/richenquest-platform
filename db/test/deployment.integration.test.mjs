@@ -21,12 +21,22 @@ import {
   assertServerVersion, prepareDatabase, readConfig, StartupError,
   MIN_POSTGRES_MAJOR, TESTED_POSTGRES_VERSION,
 } from "../../functions/record/api/bootstrap.mjs";
+import { randomBytes } from "node:crypto";
 import { kmsKeyProvider, fakeKmsClient, KmsError } from "../../functions/record/identity/kms.mjs";
-import { identityVault, memoryVaultStore } from "../../functions/record/identity/vault.mjs";
+import { identityVault, memoryVaultStore, SubjectErased, KEY_BYTES } from "../../functions/record/identity/vault.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REAL_MIGRATIONS = path.join(HERE, "..", "migrations");
 const PORT = 55000 + Math.floor(Math.random() * 900);
+
+/**
+ * Derived from the migrations directory, never hardcoded. These tests assert how
+ * the RUNNER behaves — applies each once, serialises concurrent runs, changes
+ * nothing on a dry run — and none of that depends on how many migrations exist.
+ * Pinning a count here just means every future migration breaks three tests that
+ * were not testing the count.
+ */
+const ALL_VERSIONS = (await loadMigrations(REAL_MIGRATIONS)).map((m) => m.version);
 
 let engine, pool, dataDir;
 
@@ -62,11 +72,11 @@ test("[deploy] applies the real migrations and is idempotent", async () => {
   const db = await freshDb("m_apply");
   try {
     const first = await migrate(db, { logger: {} });
-    assert.deepEqual(first.applied, ["001"]);
+    assert.deepEqual(first.applied, ALL_VERSIONS);
 
     const second = await migrate(db, { logger: {} });
     assert.deepEqual(second.applied, [], "re-running must apply nothing");
-    assert.equal(second.alreadyApplied, 1);
+    assert.equal(second.alreadyApplied, ALL_VERSIONS.length);
 
     const s = await status(db);
     assert.equal(s.pending.length, 0);
@@ -136,10 +146,10 @@ test("[deploy] concurrent migration runs are serialised by the advisory lock", a
     // up-to-date schema rather than colliding.
     const [ra, rb] = await Promise.all([migrate(a, { logger: {} }), migrate(b, { logger: {} })]);
     const appliedCount = ra.applied.length + rb.applied.length;
-    assert.equal(appliedCount, 1, "only one instance may apply a migration");
+    assert.equal(appliedCount, ALL_VERSIONS.length, "each migration is applied exactly once across both instances");
 
     const ledger = await a.query("SELECT count(*)::int AS n FROM schema_migrations");
-    assert.equal(ledger.rows[0].n, 1);
+    assert.equal(ledger.rows[0].n, ALL_VERSIONS.length);
   } finally {
     await a.end();
     await b.end();
@@ -150,7 +160,7 @@ test("[deploy] dry-run reports pending work and changes nothing", async () => {
   const db = await freshDb("m_dry");
   try {
     const res = await migrate(db, { dryRun: true, logger: {} });
-    assert.deepEqual(res.pending, ["001"]);
+    assert.deepEqual(res.pending, ALL_VERSIONS);
     assert.equal(res.dryRun, true);
     const tables = await db.query("SELECT tablename FROM pg_tables WHERE tablename = 'events'");
     assert.equal(tables.rows.length, 0, "dry-run must not create anything");
@@ -250,38 +260,37 @@ test("[deploy] configuration is validated before anything connects", () => {
   );
 });
 
-/* ══════════════════════════════════════════════ KMS abstraction only ════ */
+/* ═══════════════════════════════════════════════ KMS — deployment wiring ══ */
+// The KMS provider's behaviour — envelope round trip, subject AAD binding,
+// rotation, crypto-shredding, failure opacity — is covered exhaustively by
+// functions/record/identity/kms.test.mjs, and against real PostgreSQL by
+// db/test/vault.integration.test.mjs. Here we assert only what belongs to the
+// deployment story: that a KMS-backed vault is what production wires and that it
+// round-trips, and that a KMS outage stays opaque.
 
-test("[deploy] KMS provider satisfies the vault's key-provider interface", async () => {
-  // NOT a claim that any real KMS works. This proves only that the abstraction
-  // fits the interface the vault requires.
-  const provider = kmsKeyProvider(fakeKmsClient(), { keyId: "arn:fake:key/1", version: "v1" });
+test("[deploy] a KMS-backed vault is what production wires, and it round-trips", async () => {
+  const provider = kmsKeyProvider(fakeKmsClient(), {
+    keyId: "projects/p/locations/l/keyRings/r/cryptoKeys/vault-kek",
+    version: "v1",
+  });
   const vault = identityVault(memoryVaultStore(), provider);
 
-  await vault.put("sub_kms", "legal_name", "Aarav Kumar");
+  await vault.putAll("sub_kms", { legal_name: "Aarav Kumar", dob: "2004-03-11" });
   assert.equal(await vault.get("sub_kms", "legal_name"), "Aarav Kumar");
+  assert.equal((await provider.healthCheck()).ok, true, "the readiness probe passes");
 
   const receipt = await vault.erase("sub_kms");
-  assert.equal(receipt.fields_shredded, 1);
+  assert.equal(receipt.fields_shredded, 2);
+  await assert.rejects(() => vault.get("sub_kms", "legal_name"), (e) => e instanceof SubjectErased);
 });
 
-test("[deploy] KMS failures never leak provider detail", async () => {
-  const provider = kmsKeyProvider(fakeKmsClient({ failing: true }), { keyId: "arn:fake:key/1" });
-  await assert.rejects(
-    () => provider.wrapKey(),
-    (e) => e instanceof KmsError && e.code === "KMS_UNAVAILABLE"
-  );
-
-  const unknown = kmsKeyProvider(fakeKmsClient(), { keyId: "k", version: "v2" });
-  await assert.rejects(() => unknown.unwrapKey("v1"), (e) => e.code === "UNKNOWN_KEK_VERSION");
-});
-
-test("[deploy] KMS provider rejects a malformed client and purges cached keys", async () => {
+test("[deploy] a KMS outage is refused opaquely, and a malformed client is refused at construction", async () => {
   assert.throws(() => kmsKeyProvider({}, { keyId: "k" }), (e) => e.code === "BAD_CLIENT");
   assert.throws(() => kmsKeyProvider(fakeKmsClient(), {}), (e) => e.code === "NO_KEY_ID");
 
-  const provider = kmsKeyProvider(fakeKmsClient(), { keyId: "k" });
-  await provider.wrapKey();
-  assert.equal(provider.purgeCache(), 1, "cached key material must be droppable after an erasure");
-  assert.equal((await provider.healthCheck()).ok, true);
+  const provider = kmsKeyProvider(fakeKmsClient({ failing: true }), { keyId: "k" });
+  await assert.rejects(
+    () => provider.wrapDataKey("sub_kms", randomBytes(KEY_BYTES)),
+    (e) => e instanceof KmsError && e.code === "KMS_UNAVAILABLE"
+  );
 });

@@ -286,6 +286,15 @@ export function toPlatformError(err) {
       ? new AuthorisationError(err.message)
       : new AuthenticationError(err.message, code);
   }
+  if (err?.name === "PermissionError") {
+    // The operations permission model (functions/ops/permissions.mjs) stays free
+    // of platform types for the same reason auth.mjs does, so its refusals are
+    // mapped here. A refusal that arrived as a 500 would be indistinguishable
+    // from a bug — and worse, would read as retryable.
+    if (err.status === 401) return new AuthenticationError(err.message, code);
+    if (err.status === 403) return new AuthorisationError(err.message);
+    return new InternalError(err.message, err);
+  }
   if (err?.name === "SubjectErased") {
     // Erasure is a legitimate terminal state, not a fault.
     return new NotFoundError("record", { concealing: "erased subject" });

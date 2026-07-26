@@ -1,20 +1,16 @@
-# Deployment — Career Record API
+# Deployment — Career Record database mechanics
+
+> **Scope.** This file covers database-specific mechanics only. The canonical deployment
+> reference — environments, the full environment-variable table, infrastructure requirements
+> and rollback — is **[docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md)**.
 
 PostgreSQL is the **only** system of record. Catalyst is the application runtime
 and integration layer; it is never the primary data store.
 
 ## Required environment
 
-| Variable | Required | Notes |
-|---|---|---|
-| `DATABASE_URL` | yes | `postgres://user:pass@host:5432/db?sslmode=require` |
-| `RECORD_TOKEN_SECRET` | yes | ≥32 chars, random. Session token signing key |
-| `RECORD_VAULT_PROVIDER` | yes in prod | `env` is refused when `NODE_ENV=production` |
-| `CORS_ALLOWED_ORIGINS` | yes in prod | comma-separated; empty is refused in production |
-| `NODE_ENV` | yes | `production` enables the strict startup gates |
-| `PG_POOL_MAX` | no | default 10 |
-| `PG_STATEMENT_TIMEOUT_MS` | no | default 10000 |
-| `RUN_MIGRATIONS_ON_START` | no | default true; set `false` to migrate as a separate deploy step |
+See the environment-variable tables in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#required-environment-variables).
+Not duplicated here, so the two cannot drift.
 
 ## PostgreSQL version
 
@@ -39,32 +35,64 @@ traffic** unless:
 1. the server version is ≥ the minimum,
 2. no migrations are pending,
 3. no applied migration has been edited (checksum drift),
-4. `assertSchema()` confirms the constraints the append path relies on.
+4. `assertSchema()` confirms the constraints the append path relies on,
+5. `assertVaultSchema()` confirms the identity vault's tables and keys exist.
 
 The append path delegates conflict detection to database constraints, so a
 missing constraint does not degrade gracefully — it silently corrupts a log we
-can never repair. Hence the refusal rather than a warning.
+can never repair. The vault gate is the same reasoning: without its tables,
+identity fails to store and an erasure finds no key to destroy. Hence the refusal
+rather than a warning. Both migrations (`001_event_log.sql`, `002_identity_vault.sql`)
+must be applied.
 
 ## Least-privilege database role
 
-The application must not own the tables, or it can grant itself `UPDATE`.
+The append-only log and the erasable vault need **opposite** privileges, and the
+same application role holds both — the grants are per-table, so the log stays
+append-only while the vault stays erasable.
 
 ```sql
 CREATE ROLE record_writer LOGIN PASSWORD '<generated>';
+
+-- The log: append-only by privilege. No UPDATE, no DELETE, ever.
 GRANT SELECT, INSERT ON events, digests, schema_migrations TO record_writer;
 REVOKE UPDATE, DELETE, TRUNCATE ON events, digests FROM record_writer;
+
+-- The vault: DELETE on vault_keys IS the erasure; UPDATE on vault_fields is a
+-- corrected value overwriting its ciphertext. Granting them here does not weaken
+-- the log — different tables, different rules.
+GRANT SELECT, INSERT, UPDATE, DELETE ON vault_keys, vault_fields TO record_writer;
 ```
 
-Verified in `db/test/postgres.integration.test.mjs`: with this grant, `UPDATE`
-and `DELETE` are refused by the database while `SELECT`/`INSERT` still work.
+Verified in `db/test/postgres.integration.test.mjs` (log) and
+`db/test/vault.integration.test.mjs` (vault): with these grants the log refuses
+`UPDATE`/`DELETE` while the vault can erase and correct.
 
 Migrations run as a **separate, higher-privileged role**, not as `record_writer`.
 
-## Not yet verified
+## Key management (KMS)
 
-- **KMS**: `functions/record/identity/kms.mjs` is an abstraction only. It has been
-  exercised against a fake client, never a real provider. `RECORD_VAULT_PROVIDER`
-  cannot be satisfied in production until one is wired and verified. See the shape
-  mismatch noted at the bottom of that file — `unwrapKey()` will need the wrapped
-  per-subject key threaded through it.
+The vault's KEK comes from a key provider (`functions/record/identity/kms.mjs`).
+Production uses **Google Cloud KMS** via `functions/record/identity/kms-gcp.mjs`;
+`envKeyProvider` is refused when `NODE_ENV=production`.
+
+- **Implemented** ✓ — provider + injected-client interface; the wrapped per-subject
+  DEK is threaded through `unwrapDataKey()` (the historical `unwrapKey(version)`
+  mismatch is resolved). The GCP adapter maps to `@google-cloud/kms`
+  encrypt/decrypt with the subject as additional authenticated data.
+- **Unit + Integration verified** ✓ — against a fake client doing real AES-256-GCM,
+  through the vault, over real PostgreSQL, and over real HTTP (`kms*.test.mjs`,
+  `db/test/vault.integration.test.mjs`, `db/test/kms-api.integration.test.mjs`).
+- **Production verified** ✗ — never run against Google's actual service. No
+  credentials are reachable here. Wiring (deploy time):
+
+  ```js
+  import { KeyManagementServiceClient } from "@google-cloud/kms";
+  import { gcpKmsKeyProvider, gcpKmsConfigFromEnv } from
+    "./functions/record/identity/kms-gcp.mjs";
+  const provider = gcpKmsKeyProvider(new KeyManagementServiceClient(), gcpKmsConfigFromEnv());
+  // GCP_PROJECT_ID, GCP_KMS_LOCATION, GCP_KMS_KEYRING, GCP_KMS_KEY are read from env.
+  // Service account role: roles/cloudkms.cryptoKeyEncrypterDecrypter — nothing more.
+  ```
+
 - **Nothing is deployed.** No environment has run this.
