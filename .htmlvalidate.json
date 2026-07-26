@@ -1,0 +1,9 @@
+{
+  "root": true,
+  "extends": ["html-validate:recommended"],
+  "rules": {
+    "doctype-style": "off",
+    "tel-non-breaking": "off",
+    "long-title": ["error", { "maxlength": 74 }]
+  }
+}

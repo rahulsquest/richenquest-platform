@@ -36,6 +36,7 @@ and the discrepancy is a bug to fix here.
 | D23 | A guardian token carries `subject_id` as well as the ward scope | 2026-07-26 | Accepted |
 | D24 | The portal is verified end-to-end against real PostgreSQL | 2026-07-26 | Accepted |
 | D25 | Google Cloud KMS, wrapping the per-subject DEK | 2026-07-26 | Accepted |
+| D26 | HTML house style — what `.htmlvalidate.json` turns off, and why | 2026-07-27 | Accepted |
 
 ---
 
@@ -478,3 +479,48 @@ so it can never mask an erasure.
 vault on real PostgreSQL over real HTTP, but **never against Google's actual service** — that is
 checklist **E4** and closes **BL-2**. The decision is recorded as accepted because the choice and the
 interface are settled; the verification is not claimed.
+
+---
+
+## D26 — HTML house style: what `.htmlvalidate.json` turns off, and why
+**Date:** 2026-07-27 · **Status:** Accepted
+
+**Reason.** `html-validate` runs in CI against the built site with its `recommended` preset, which
+mixes genuine HTML correctness rules with stylistic opinions. The preset reported 273 errors on a
+site that renders correctly everywhere. Rather than silence the tool or rewrite the copy to suit it,
+each rule was judged individually: **correctness errors were fixed in the source; only conventions
+were disabled.** This document exists because `.htmlvalidate.json` cannot hold the reasoning — its
+schema rejects unknown keys and it is `require`d as strict JSON, so it rejects comments too. Both
+were tried and both fail the tool at startup.
+
+**Disabled — conventions, not defects.**
+
+| Rule | Count | Why it is a convention here |
+|---|---|---|
+| `doctype-style` | 23 | Requires `<!DOCTYPE html>` uppercase. HTML5 doctypes are case-insensitive; every layout has used lowercase `<!doctype html>` since M0 and nothing renders differently. Purely cosmetic. |
+| `tel-non-breaking` | 195 | Wants `&nbsp;` inside phone numbers so they never wrap. The numbers live in `site.json` and are read by JSON-LD's `telephone` as well as by HTML; injecting entities into that value would publish them literally in structured data. A wrapped phone number is a typographic nuisance, not a defect. |
+
+**Adjusted, not disabled.** `long-title` keeps its 70-character intent but is measured against a
+74-character source budget. The rule counts the *encoded* title, so `&amp;` costs four characters a
+reader never sees: the Italy page's title is 71 source characters and **67 rendered**. 74 is 70 plus
+exactly one encoded ampersand, so the check still fires on a genuinely long title. Per-file scoping
+was attempted first and rejected — html-validate has no `overrides` key, and its directory-cascading
+config cannot live in a generated `dist`.
+
+**Fixed, not suppressed.**
+
+- **52 raw `&`** encoded as `&amp;`. `site.tagline` needed care: it is injected into HTML text *and*
+  into the JSON-LD `slogan`, and `build.mjs` substitutes tokens verbatim without escaping. Encoding
+  the data itself would have published `&amp;` literally to search engines, since a JSON-LD parser
+  reads script content as raw text. So `site.json` now carries **both** `tagline` (literal `&`, for
+  JSON-LD) and `tagline_html` (encoded, for HTML), with a note binding them together. Page titles
+  were encoded directly, being used only in `<title>` and `og:title`.
+- **2 unnamed `<aside>` landmarks** on `/about/` given `aria-label`s matching their visible kickers —
+  two complementary landmarks with no accessible name are indistinguishable to a screen reader.
+- **1 form with no submit button** in the styleguide: its primary button was `type="button"`, so the
+  demo form could not be submitted from the keyboard (WCAG H32). Now `type="submit"`.
+
+**Consequences.** CI's HTML validation step passes with **0 errors**, and it now fails on real
+defects rather than on house style. No marketing or legal wording changed — every text edit was an
+encoding change that decodes to the identical string, verified by decoding the built output. The
+standing cost is `site.json`'s two tagline fields, which must be kept in step if the wording changes.

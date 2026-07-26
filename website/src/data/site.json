@@ -3,6 +3,8 @@
   "name": "RichenQuest",
   "legal_name": "RichenQuest Private Limited",
   "tagline": "Global Education & Career Mobility",
+  "_tagline_html_note": "Same words as `tagline`, with the ampersand HTML-encoded. Use this token in HTML text and attributes; use `tagline` where the value is NOT HTML — inside <script type=\"application/ld+json\">, a JSON-LD parser reads script content as raw text, so an encoded entity there would be published literally as '&amp;'. build.mjs substitutes tokens verbatim and never escapes, so the choice of token IS the escaping decision. Keep both in step if the wording changes.",
+  "tagline_html": "Global Education &amp; Career Mobility",
   "url": "https://www.richenquest.com",
   "email": "official@richenquest.com",
   "phone_in": "+91 76312 07948",
