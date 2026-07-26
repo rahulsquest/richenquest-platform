@@ -27,7 +27,12 @@ import { identityVault, memoryVaultStore, SubjectErased, KEY_BYTES } from "../..
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REAL_MIGRATIONS = path.join(HERE, "..", "migrations");
-const PORT = 55000 + Math.floor(Math.random() * 900);
+// 90 wide, not 900: `node --test` runs these files concurrently, and a 900-wide
+// window from 55000 straddles the windows vault (55100+), kms-api (55300+),
+// smoke (55500+) and performance (55700+) draw from — so two suites could bind
+// the same port and one would fail to start. Every suite now owns a disjoint
+// 90-port block.
+const PORT = 55000 + Math.floor(Math.random() * 90);
 
 /**
  * Derived from the migrations directory, never hardcoded. These tests assert how
