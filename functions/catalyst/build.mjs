@@ -68,6 +68,11 @@ const FUNCTIONS = {
   // serves HTTP, and transport.mjs already exposes catalystHandler() for exactly
   // this surface.
   "record-api": { type: "advancedio", shell: "deploy/record-api.handler.cjs", deps: ["express", "pg", "@google-cloud/kms"], bundle: "record", env: "record" },
+  // Public lead intake for the live website's form. Advanced I/O for the same
+  // reason as the others: it serves HTTP. It calls the CRM and nothing else —
+  // creating a Lead fires the existing Leads.create watch channel, so Titan runs
+  // through its normal path rather than being called directly.
+  "lead-intake": { type: "advancedio", shell: "deploy/lead-intake.handler.cjs", deps: ["express"], bundle: "lead", env: "lead" },
 };
 
 const noTests = (src) => !/\.test\.mjs$/.test(src);
@@ -78,6 +83,18 @@ const noTests = (src) => !/\.test\.mjs$/.test(src);
 // to Catalyst at deploy; never printed. This is deterministic and reproducible,
 // unlike manual console entry.
 const TITAN_ENV_KEYS = ["ZOHO_DC", "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN", "TITAN_WEBHOOK_SECRET", "TITAN_AUTOMATION_USER_ID"];
+
+/**
+ * Lead intake needs Zoho OAuth to reach the CRM, and NOTHING else.
+ *
+ * Deliberately narrower than TITAN_ENV_KEYS: this is the one function on a
+ * public, unauthenticated URL, so TITAN_WEBHOOK_SECRET must not be within its
+ * reach. That secret authenticates CRM→Titan notifications, and anything holding
+ * it can forge automation events. ZOHO_TOKEN_CACHE_FILE is omitted too, so the
+ * OAuth layer uses its in-memory cache rather than looking for a writable path
+ * that a serverless container does not reliably have.
+ */
+const LEAD_ENV_KEYS = ["ZOHO_DC", "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN"];
 
 /**
  * The Record API's configuration. readConfig() REQUIRES DATABASE_URL and
@@ -199,6 +216,21 @@ const ASSEMBLE = {
       await cp(path.join(ROOT, "website/src/data", f), path.join(data, f));
     }
   },
+
+  async lead(dir) {
+    // The CRM client and the OAuth layer it needs — the SAME code Titan uses, so
+    // there is one implementation of "create a Lead", not two.
+    await cp(path.join(ROOT, "functions/zoho"), path.join(dir, "lib/zoho"), { recursive: true, filter: noTests });
+    await mkdir(path.join(dir, "lib/catalyst"), { recursive: true });
+    await cp(path.join(HERE, "lead-intake-core.mjs"), path.join(dir, "lib/catalyst/lead-intake-core.mjs"));
+  },
+};
+
+/** Each function's env comes from exactly one of these — see `env` in FUNCTIONS. */
+const ENV_FOR = {
+  titan: () => fnEnv(TITAN_ENV_KEYS),
+  record: () => recordEnv(),
+  lead: () => fnEnv(LEAD_ENV_KEYS),
 };
 
 const catalystConfig = (name, type, env) => ({
@@ -221,7 +253,7 @@ export async function build() {
     await ASSEMBLE[spec.bundle](dir);
 
     await cp(path.join(HERE, spec.shell), path.join(dir, "index.js"));
-    const env = spec.env === "record" ? recordEnv() : fnEnv(TITAN_ENV_KEYS);
+    const env = ENV_FOR[spec.env]();
     await writeFile(path.join(dir, "catalyst-config.json"), JSON.stringify(catalystConfig(name, spec.type, env), null, 2) + "\n");
     await writeFile(path.join(dir, "package.json"), JSON.stringify(packageJson(name, spec.deps), null, 2) + "\n");
 

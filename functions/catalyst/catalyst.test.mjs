@@ -140,7 +140,7 @@ test("reconcile core tolerates a store without checkpoint support (bare store)",
 // ---- bundle assembler -----------------------------------------------------
 test("build produces the Catalyst function layout with required files", async () => {
   const built = await build();
-  assert.deepEqual(built.map((b) => b.name).sort(), ["record-api", "titan-reconcile", "titan-webhook"]);
+  assert.deepEqual(built.map((b) => b.name).sort(), ["lead-intake", "record-api", "titan-reconcile", "titan-webhook"]);
 
   for (const b of built) {
     for (const f of ["index.js", "catalyst-config.json", "package.json", "lib"]) {
@@ -340,9 +340,11 @@ test("every Advanced I/O deploy shell loads using ONLY its declared dependencies
   // outside the repository, so the upward walk finds nothing here exactly as it
   // finds nothing there. Only the DECLARED dependencies are linked in, so a
   // module the shell requires without declaring cannot resolve.
+  // Derived from the build, never listed by name: a new Advanced I/O function
+  // is covered the day it is added, which is the day this matters most.
   const built = await build();
-  const shells = built.filter((b) => b.name === "titan-webhook" || b.name === "record-api");
-  assert.equal(shells.length, 2, "both Advanced I/O functions must be covered");
+  const shells = built.filter((b) => b.type === "advancedio");
+  assert.ok(shells.length >= 3, `expected every Advanced I/O function, got ${shells.length}`);
 
   for (const fn of shells) {
     const pkg = JSON.parse(await readFile(path.join(fn.dir, "package.json"), "utf8"));
@@ -381,4 +383,39 @@ test("the assembled bundle's runtime imports + loads config from within the bund
   const rt = await buildRuntime({ store: memoryStore(), automationUserId: "u", webhookSecret: "s" });
   assert.ok(rt.engine && rt.reconciler, "buildRuntime must wire an engine + reconciler from the bundle");
   assert.ok(rt.subscriptions.subscriptions.length > 0, "config loaded from inside the bundle");
+});
+
+test("lead-intake is built with Zoho OAuth only — never the Titan webhook secret", async () => {
+  // This is the ONE function on a public, unauthenticated URL. TITAN_WEBHOOK_SECRET
+  // authenticates CRM→Titan notifications, so anything holding it can forge
+  // automation events. It must not be within this function's reach.
+  const saved = process.env.TITAN_WEBHOOK_SECRET;
+  try {
+    process.env.TITAN_WEBHOOK_SECRET = "titan-secret-value";
+    const b = (await build()).find((x) => x.name === "lead-intake");
+    const cfg = JSON.parse(await readFile(path.join(b.dir, "catalyst-config.json"), "utf8"));
+    const env = cfg.deployment.env_variables;
+
+    assert.equal(env.TITAN_WEBHOOK_SECRET, undefined, "the webhook secret must never be baked here");
+    assert.equal(env.TITAN_AUTOMATION_USER_ID, undefined);
+    assert.equal(env.DATABASE_URL, undefined, "lead intake has no business touching the database");
+    assert.equal(env.RECORD_TOKEN_SECRET, undefined);
+    assert.equal(JSON.stringify(env).includes("titan-secret-value"), false, "not under any key");
+
+    // Titan keeps its own, unchanged.
+    const t = (await build()).find((x) => x.name === "titan-webhook");
+    const tcfg = JSON.parse(await readFile(path.join(t.dir, "catalyst-config.json"), "utf8"));
+    assert.equal(tcfg.deployment.env_variables.TITAN_WEBHOOK_SECRET, "titan-secret-value");
+  } finally {
+    if (saved === undefined) delete process.env.TITAN_WEBHOOK_SECRET; else process.env.TITAN_WEBHOOK_SECRET = saved;
+  }
+});
+
+test("lead-intake bundles the SAME CRM client Titan uses — one implementation, not two", async () => {
+  const b = (await build()).find((x) => x.name === "lead-intake");
+  const bundled = await readFile(path.join(b.dir, "lib/zoho/services/crm.mjs"), "utf8");
+  const source = await readFile(path.join(HERE, "..", "zoho/services/crm.mjs"), "utf8");
+  assert.equal(bundled, source, "the bundled CRM client must be a copy, never a fork");
+  const core = await readFile(path.join(b.dir, "lib/catalyst/lead-intake-core.mjs"), "utf8");
+  assert.match(core, /createLeadIntakeCore/, "the tested core must be inside the bundle");
 });
