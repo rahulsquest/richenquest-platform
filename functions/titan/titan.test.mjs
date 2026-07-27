@@ -301,12 +301,25 @@ test("checkpoint does NOT advance when the sweep had failures (gaps are worse th
 test("checkpoint advances to the high-water mark on a clean sweep", async () => {
   const store = memoryStore();
   const { engine } = harness({ store, record: (m, id) => ({ id, Modified_By: { id: "human-1" } }) });
+
+  // Relative to now, deliberately, and derived ONCE so the mock and the
+  // assertion cannot disagree.
+  //
+  // planWindow() floors the scan window at `now - maxLookbackMs` (7 days) and
+  // sweep() seeds its high-water mark from that floor, raising it only for
+  // records modified later. A pinned Modified_Time therefore stops being inside
+  // the window once it ages past the lookback: the checkpoint settles on the
+  // floor rather than the record, and the assertion fails. This test did exactly
+  // that, seven days after the date it was written against — a clean sweep is
+  // still correct, the fixture had simply expired.
+  const modifiedIso = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
   const rec = createReconciler({
-    query: async () => ({ data: [{ id: "L7", Modified_Time: "2026-07-20T12:00:00.000Z" }], info: { more_records: false } }),
+    query: async () => ({ data: [{ id: "L7", Modified_Time: modifiedIso }], info: { more_records: false } }),
     engine, store, subscriptions: SUBS, logger: silent(), metrics: createMetrics(),
   });
   await rec.sweep();
-  assert.equal(await store.getCheckpoint("reconcile:Leads"), Date.parse("2026-07-20T12:00:00.000Z"));
+  assert.equal(await store.getCheckpoint("reconcile:Leads"), Date.parse(modifiedIso));
 });
 
 // ---- handler --------------------------------------------------------------
