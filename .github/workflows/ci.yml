@@ -109,8 +109,18 @@ jobs:
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"
 
+      # Three runs per URL, asserted on the MEDIAN — see lighthouserc.json for why.
+      # Thresholds are unchanged; only the sampling is.
       - name: Lighthouse CI (budgets in lighthouserc.json)
         run: npx --yes @lhci/cli@0.14.0 autorun
+
+      # lhci prints scores only when an assertion FAILS, so a green build records
+      # nothing about how close it came. This prints every run's score and the
+      # median from the reports lhci already wrote — no extra Lighthouse runs.
+      # `always()` because the numbers matter most on the build that failed.
+      - name: Lighthouse scores (all runs, for trend)
+        if: always()
+        run: node scripts/lighthouse-report.mjs
 
   # Real-PostgreSQL integration, in its own job so the fast gate above stays fast.
   # embedded-postgres provisions an official postgres binary, so this needs no
