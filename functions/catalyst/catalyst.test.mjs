@@ -10,7 +10,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { access, readFile, readdir } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
+import { access, readFile, readdir, cp, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 
 import { createWebhookCore } from "./webhook-core.mjs";
 import { createReconcileCore } from "./reconcile-core.mjs";
@@ -324,6 +326,50 @@ test("catalyst-config.json matches the real scaffold schema", async () => {
   assert.equal(cfg.execution.main, "index.js");
   const pkg = JSON.parse(await readFile(path.join(webhook.dir, "package.json"), "utf8"));
   assert.ok(pkg.dependencies["zcatalyst-sdk-node"], "SDK must be a declared dependency");
+});
+
+test("every Advanced I/O deploy shell loads using ONLY its declared dependencies", async () => {
+  // THE DEFECT THIS PREVENTS. record-api's shell requires express, but express
+  // was absent from its dependency list. Locally that resolved anyway, by
+  // walking UP to functions/node_modules — a directory that does not exist in a
+  // Catalyst container. So the function deployed cleanly and then died on its
+  // first request with MODULE_NOT_FOUND, which is the most expensive place to
+  // learn it.
+  //
+  // Staging the bundle in the OS temp directory is the whole point: it is
+  // outside the repository, so the upward walk finds nothing here exactly as it
+  // finds nothing there. Only the DECLARED dependencies are linked in, so a
+  // module the shell requires without declaring cannot resolve.
+  const built = await build();
+  const shells = built.filter((b) => b.name === "titan-webhook" || b.name === "record-api");
+  assert.equal(shells.length, 2, "both Advanced I/O functions must be covered");
+
+  for (const fn of shells) {
+    const pkg = JSON.parse(await readFile(path.join(fn.dir, "package.json"), "utf8"));
+    const stage = await mkdtemp(path.join(tmpdir(), `${fn.name}-bundle-`));
+
+    try {
+      await cp(fn.dir, stage, { recursive: true });
+      await mkdir(path.join(stage, "node_modules"), { recursive: true });
+
+      for (const dep of Object.keys(pkg.dependencies ?? {})) {
+        const real = path.join(HERE, "..", "node_modules", dep);
+        // zcatalyst-sdk-node is supplied by the Catalyst runtime, never installed
+        // here. Skipping it keeps the test honest about what it can prove.
+        if (!(await access(real).then(() => true, () => false))) continue;
+        const link = path.join(stage, "node_modules", dep);
+        await mkdir(path.dirname(link), { recursive: true }); // scoped: @scope/name
+        await symlink(real, link);
+      }
+
+      const entry = path.join(stage, "index.js");
+      const requireFromStage = createRequire(entry);
+      const app = requireFromStage(entry);
+      assert.equal(typeof app, "function", `${fn.name}: the shell must export its Express app`);
+    } finally {
+      await rm(stage, { recursive: true, force: true });
+    }
+  }
 });
 
 test("the assembled bundle's runtime imports + loads config from within the bundle", async () => {
