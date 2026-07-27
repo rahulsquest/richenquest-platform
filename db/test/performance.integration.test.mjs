@@ -55,7 +55,20 @@ let engine, pool, dataDir, store, vault;
 function stats(samples) {
   const s = [...samples].sort((a, b) => a - b);
   const at = (p) => s[Math.min(s.length - 1, Math.floor(s.length * p))];
-  return { n: s.length, p50: at(0.5), p95: at(0.95), max: s.at(-1) };
+
+  // 10% trimmed mean — REPORTED ONLY, nothing asserts on it.
+  //
+  // Recorded so a CI baseline accumulates before anyone decides whether to
+  // replace p95. At these sample counts `p95` is not a percentile in any robust
+  // sense: at n=30 it resolves to index 28, the second-slowest sample, so a
+  // single pair of runner stalls moves it. The trimmed mean drops the fastest
+  // and slowest decile and does not. Printing both, against the same runs, is
+  // what turns that argument into data.
+  const k = Math.floor(s.length * 0.1);
+  const core = k > 0 ? s.slice(k, s.length - k) : s;
+  const trimmed10 = core.reduce((a, b) => a + b, 0) / core.length;
+
+  return { n: s.length, p50: at(0.5), p95: at(0.95), trimmed10, max: s.at(-1) };
 }
 
 async function measure(times, fn) {
@@ -70,8 +83,10 @@ async function measure(times, fn) {
 
 const report = (label, s, budget) => {
   console.log(
-    `    ${label.padEnd(42)} p50 ${s.p50.toFixed(1).padStart(7)}ms  ` +
-    `p95 ${s.p95.toFixed(1).padStart(7)}ms  max ${s.max.toFixed(1).padStart(7)}ms  (budget ${budget}ms)`
+    `    ${label.padEnd(42)} n ${String(s.n).padStart(3)}  ` +
+    `p50 ${s.p50.toFixed(1).padStart(7)}ms  p95 ${s.p95.toFixed(1).padStart(7)}ms  ` +
+    `trim10 ${s.trimmed10.toFixed(1).padStart(7)}ms  max ${s.max.toFixed(1).padStart(7)}ms  ` +
+    `(budget ${budget}ms, asserted on p95)`
   );
 };
 
