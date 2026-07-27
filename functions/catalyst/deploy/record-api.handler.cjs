@@ -36,6 +36,28 @@ app.use(express.json());
 
 let appPromise = null;
 
+/**
+ * Construct the Cloud KMS client — the ONLY place in the codebase that loads the
+ * Google SDK.
+ *
+ * Everything below this line is provider-agnostic: vault.mjs knows no provider,
+ * kms.mjs knows the envelope but not Google, and kms-gcp.mjs maps onto an
+ * INJECTED client without importing one. Keeping the require here is what makes
+ * that true rather than aspirational — the dependency enters at deploy, in the
+ * deploy shell, and nowhere else.
+ *
+ * Loaded only when the provider is actually "kms", so an env-provider deployment
+ * (and every test) never pays for the SDK or needs it present.
+ */
+function makeKmsClient() {
+  if (process.env.RECORD_VAULT_PROVIDER !== "kms") return null;
+  const { KeyManagementServiceClient } = require("@google-cloud/kms");
+  // Authentication is Application Default Credentials. The service account needs
+  // roles/cloudkms.cryptoKeyEncrypterDecrypter on the CryptoKey and nothing more:
+  // it can wrap and unwrap, and cannot read, disable, destroy or rotate the key.
+  return new KeyManagementServiceClient();
+}
+
 /** Assemble once. On failure, clear the cache so the next request retries. */
 function getHandler() {
   if (!appPromise) {
@@ -43,7 +65,13 @@ function getHandler() {
       const { buildRecordApi } = await import("./lib/record/api/server.mjs");
       const { createRouter } = await import("./lib/record/api/service.mjs");
       const { catalystHandler } = await import("./lib/record/api/transport.mjs");
-      const { dependencies } = await buildRecordApi({ env: process.env });
+      // selectKeyProvider() refuses "kms" with a null client BEFORE any database
+      // connection is opened, so a misconfigured deployment fails at startup
+      // rather than on the first student whose data key needs wrapping.
+      const { dependencies } = await buildRecordApi({
+        env: process.env,
+        kmsClient: makeKmsClient(),
+      });
       return catalystHandler(createRouter(), dependencies);
     })().catch((err) => {
       appPromise = null;

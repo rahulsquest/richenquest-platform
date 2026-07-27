@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 
 import { createWebhookCore } from "./webhook-core.mjs";
 import { createReconcileCore } from "./reconcile-core.mjs";
@@ -199,6 +199,51 @@ test("record-api declares its runtime packages, with versions derived not restat
     assert.ok(pkg.dependencies[name], `record-api must declare ${name}`);
     assert.equal(pkg.dependencies[name], declared[name], `${name} must be derived from functions/package.json`);
   }
+});
+
+test("the Cloud KMS SDK is loaded only by the deploy shell, and only when configured", async () => {
+  // THE PROVIDER-AGNOSTIC INVARIANT, pinned. vault.mjs knows no provider,
+  // kms.mjs knows the envelope but not Google, kms-gcp.mjs maps an INJECTED
+  // client. If any of them ever imports the SDK directly, that separation is
+  // gone and swapping provider stops being swapping one file — so assert it
+  // rather than trusting a comment.
+  // Walk with PRUNING rather than readdir({recursive:true}) + filter: the latter
+  // enumerates every file under functions/node_modules before discarding them,
+  // which turned this test into a 40-second one once the KMS SDK was installed.
+  const dir = path.resolve(HERE, "..");
+  const skip = new Set(["node_modules", "dist"]);
+  async function collect(d, out = []) {
+    for (const e of await readdir(d, { withFileTypes: true })) {
+      if (e.isDirectory()) {
+        if (!skip.has(e.name)) await collect(path.join(d, e.name), out);
+      } else if (e.name.endsWith(".mjs")) {
+        out.push(path.join(d, e.name));
+      }
+    }
+    return out;
+  }
+  const files = await collect(dir);
+
+  // Strip comments first: kms-gcp.mjs documents the deploy-time wiring in its
+  // header, and that example contains a literal import line. Documenting how to
+  // construct the client is exactly right; doing it is what must not happen.
+  const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  for (const f of files) {
+    const src = stripComments(await readFile(f, "utf8"));
+    const loads = /(?:import\s[^;]*from\s*|import\s*\(\s*|require\s*\(\s*)["']@google-cloud\/kms["']/m.test(src);
+    assert.equal(loads, false, `${path.relative(dir, f)} must not load @google-cloud/kms — the client is injected`);
+  }
+
+  // The deploy shell is the one place that may, and only behind the guard.
+  const shell = await readFile(path.join(HERE, "deploy/record-api.handler.cjs"), "utf8");
+  assert.match(shell, /require\("@google-cloud\/kms"\)/, "the shell constructs the client");
+  assert.match(
+    shell,
+    /RECORD_VAULT_PROVIDER\s*!==\s*"kms"/,
+    "the SDK must load only when the provider is actually kms"
+  );
+  assert.match(shell, /kmsClient:\s*makeKmsClient\(\)/, "the client must be injected into buildRecordApi");
 });
 
 test("record-api resolves migrations and the register from INSIDE the bundle", async () => {
