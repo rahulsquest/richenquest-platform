@@ -88,7 +88,24 @@ export async function loadMigrations(dir = MIGRATIONS_DIR) {
 
 /** What has been applied, keyed by version. */
 async function applied(client) {
-  await client.query(LEDGER);
+  // Create the ledger only when it is genuinely absent.
+  //
+  // `CREATE TABLE IF NOT EXISTS` is NOT free for a least-privileged caller:
+  // PostgreSQL checks CREATE on the schema BEFORE the IF NOT EXISTS clause
+  // resolves, so an unconditional DDL here fails with 42501 even when the table
+  // already exists. That would force the application role — which only ever
+  // needs to READ this ledger, at the startup gate — to hold CREATE on the
+  // schema, and a role with CREATE can add arbitrary objects and owns (so can
+  // drop) whatever it creates.
+  //
+  // Probing first keeps the ledger's creation the migration role's business and
+  // the application role's access read-only. `to_regclass` needs no privilege
+  // and returns NULL rather than throwing when the relation is absent.
+  const { rows: probe } = await client.query(
+    "SELECT to_regclass('schema_migrations') IS NOT NULL AS present"
+  );
+  if (!probe[0].present) await client.query(LEDGER);
+
   const { rows } = await client.query("SELECT version, name, checksum, applied_at FROM schema_migrations");
   return new Map(rows.map((r) => [r.version, r]));
 }
