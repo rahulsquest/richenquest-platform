@@ -76,13 +76,13 @@ migrations only.
 ## 2. Google Cloud KMS
 
 ```bash
-gcloud kms keyrings create richenquest-vault --location asia-south1
+gcloud kms keyrings create richenquest-vault --location asia-southeast1
 gcloud kms keys create vault-kek \
-  --location asia-south1 --keyring richenquest-vault --purpose encryption
+  --location asia-southeast1 --keyring richenquest-vault --purpose encryption
 
 gcloud iam service-accounts create richenquest-platform
 gcloud kms keys add-iam-policy-binding vault-kek \
-  --location asia-south1 --keyring richenquest-vault \
+  --location asia-southeast1 --keyring richenquest-vault \
   --member serviceAccount:richenquest-platform@<PROJECT>.iam.gserviceaccount.com \
   --role roles/cloudkms.cryptoKeyEncrypterDecrypter
 ```

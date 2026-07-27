@@ -225,7 +225,8 @@ Project **Project-Rainfall** (`53691000000013024`), IN DC. Current resources:
 
 ### KMS
 
-**Google Cloud KMS**, selected 2026-07-26. Key ring + CryptoKey in `asia-south1`, with a service
+**Google Cloud KMS**, selected 2026-07-26. Key ring + CryptoKey in `asia-southeast1` (Singapore),
+co-located with the Neon database so every wrap/unwrap stays intra-region, with a service
 account holding `roles/cloudkms.cryptoKeyEncrypterDecrypter` and nothing more — it can wrap and
 unwrap data keys but cannot read, disable, destroy or rotate the key. Setup commands in
 [ADMIN-SETUP-GUIDE.md](ADMIN-SETUP-GUIDE.md) §2.
