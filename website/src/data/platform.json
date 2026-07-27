@@ -1,0 +1,17 @@
+{
+  "_rules": "Career Record platform configuration for the browser. The ONLY place the Record API origin lives (no hard-coding anywhere else). Ships EMPTY: with no base_url the Student Dashboard renders an explicit 'not configured' state and makes no requests \u2014 it never falls back to sample or mock data. Filling base_url + rebuilding activates the dashboard, no code change. Secrets NEVER belong here: this file is published to the browser. The API origin must also list the site origin in CORS_ALLOWED_ORIGINS (docs/DEPLOYMENT.md).",
+  "record_api": {
+    "_note": "Origin of the Career Record API, no trailing slash and no path \u2014 e.g. https://api.richenquest.com. The client appends /v1/career-records/... itself. Only https is accepted, except http://localhost and http://127.0.0.1 for local development.",
+    "base_url": "",
+    "timeout_ms": "15000"
+  },
+  "ops_api": {
+    "_note": "Origin of the Founder Operations API (functions/ops), no trailing slash and no path. The console appends /v1/ops/... itself. Ships EMPTY: with no base_url the console renders a 'not connected' gate and issues no requests. May be the same host as record_api in production; nothing assumes it. The API must list the console origin in CORS_ALLOWED_ORIGINS.",
+    "base_url": ""
+  },
+  "session": {
+    "_note": "Where a student's session token comes from. Tokens are issued server-side by functions/record/identity/auth.mjs (issueToken) and delivered as a link fragment \u2014 see functions/record/scripts/issue-student-link.mjs. The Career Record API holds no passwords by deliberate design (auth.mjs SCOPE); identity proofing belongs to an IdP. sign_in_url is where an expired or absent session sends the student to ask for a new link.",
+    "sign_in_url": "/contact/",
+    "warn_before_expiry_seconds": "120"
+  }
+}

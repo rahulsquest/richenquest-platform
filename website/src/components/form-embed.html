@@ -1,0 +1,22 @@
+<!-- component: form-embed — Zoho Forms consultation request slot.
+     NOT YET PLACED on any page: where the form appears is a founder decision
+     (see docs/14-zoho-integration.md §6). Include with one line when decided:
+       <!-- @include components/form-embed.html -- >
+     Dormant until integrations.json carries forms.consultation_url; the
+     fallback below is a REAL workflow, never a fake form (decision 8).
+     modules/zoho-forms.js swaps in the iframe when configured. -->
+<div class="embed" data-zoho-form>
+  <div class="embed__fallback">
+    <p class="text-soft">Our online request form is being connected. In the meantime, message us directly — a counselor replies during office hours.</p>
+    <div class="cluster">
+      <a class="btn btn--primary" href="{{ site.whatsapp_href }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+        Request a consultation on WhatsApp
+      </a>
+      <a class="btn btn--ghost" href="mailto:{{ site.email }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-mail"></use></svg>
+        Email us
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,368 @@
+{
+  "_note": "CRM field schema for autonomous provisioning (functions/zoho/provision-crm.mjs). Picklist values with 'values_from' resolve from config/tenant-richenquest.json (single source of truth); inline 'values' are CRM-specific. 'manual:true' = API can't reliably create it -> left for console. Module rename Deals->Student Cases is console-only; Student-Case fields are created on the 'Deals' module. Field API names auto-derive from label in Zoho. ACCOUNTS/PRODUCTS fields back the Collaboration CRM and University Partnership OS; the Deals 'Career Record Id' links a Student Case to its Career Record subject. Every field here is written by functions/ops -- a field missing from this file is a write that fails in production.",
+  "modules": {
+    "Leads": [
+      {
+        "label": "Lead Type",
+        "type": "picklist",
+        "values_from": "lead_types"
+      },
+      {
+        "label": "Market",
+        "type": "picklist",
+        "values_from": "markets"
+      },
+      {
+        "label": "Lead Source Detail",
+        "type": "picklist",
+        "values": [
+          "Website Form",
+          "WhatsApp",
+          "Instagram",
+          "Facebook",
+          "LinkedIn",
+          "YouTube",
+          "TikTok",
+          "Google Ads",
+          "Walk-in",
+          "Referral",
+          "Education Fair",
+          "Other"
+        ]
+      },
+      {
+        "label": "Interested Country",
+        "type": "multiselectpicklist",
+        "values_from": "destinations"
+      },
+      {
+        "label": "Interested Level",
+        "type": "picklist",
+        "values": [
+          "Bachelor's",
+          "Master's",
+          "Diploma",
+          "PhD",
+          "PR/Immigration",
+          "Other"
+        ]
+      },
+      {
+        "label": "Intended Intake",
+        "type": "picklist",
+        "values": [
+          "Sep 2026",
+          "Jan 2027",
+          "May 2027",
+          "Sep 2027",
+          "2028+",
+          "Undecided"
+        ]
+      },
+      {
+        "label": "Budget Range",
+        "type": "picklist",
+        "values": [
+          "<10L",
+          "10-20L",
+          "20-35L",
+          "35L+"
+        ]
+      },
+      {
+        "label": "Preferred Language",
+        "type": "picklist",
+        "values": [
+          "English",
+          "Hindi",
+          "Nepali",
+          "Other"
+        ]
+      },
+      {
+        "label": "WhatsApp Number",
+        "type": "phone"
+      },
+      {
+        "label": "UTM Source",
+        "type": "text",
+        "length": 120
+      },
+      {
+        "label": "UTM Medium",
+        "type": "text",
+        "length": 120
+      },
+      {
+        "label": "UTM Campaign",
+        "type": "text",
+        "length": 120
+      }
+    ],
+    "Deals": [
+      {
+        "label": "Destination Country",
+        "type": "picklist",
+        "values_from": "destinations"
+      },
+      {
+        "label": "Course & University Final",
+        "type": "text",
+        "length": 255
+      },
+      {
+        "label": "Assigned Counselor",
+        "type": "userlookup",
+        "manual": true,
+        "manual_reason": "user-lookup field creation is unreliable via API"
+      },
+      {
+        "label": "Service Package",
+        "type": "picklist",
+        "values_from": "service_packages"
+      },
+      {
+        "label": "Document Status",
+        "type": "picklist",
+        "values": [
+          "Not Started",
+          "Collecting",
+          "APS Applied",
+          "APS Received",
+          "AI Pre-checked",
+          "Verified",
+          "Complete"
+        ]
+      },
+      {
+        "label": "Lane",
+        "type": "picklist",
+        "values": [
+          "Commission (Private)",
+          "Service-fee (Public)",
+          "n/a"
+        ]
+      },
+      {
+        "label": "Visa Status",
+        "type": "picklist",
+        "values": [
+          "N/A",
+          "Preparing",
+          "Lodged",
+          "Biometrics Done",
+          "Approved",
+          "Refused"
+        ]
+      },
+      {
+        "label": "Next Deadline",
+        "type": "date"
+      },
+      {
+        "label": "Lost Reason",
+        "type": "picklist",
+        "values": [
+          "Went Silent",
+          "Chose Competitor",
+          "Budget",
+          "Not Eligible",
+          "Postponed",
+          "Visa Refused"
+        ]
+      },
+      {
+        "label": "Career Record Id",
+        "type": "text",
+        "length": 64,
+        "_note": "The Career Record subject_id (sub_...). Links a Student Case to its record; without it a student workspace opens with an empty history. API name: Career_Record_Id."
+      }
+    ],
+    "Accounts": [
+      {
+        "label": "Partnership Stage",
+        "type": "picklist",
+        "values": [
+          "Identified",
+          "Contacted",
+          "In Discussion",
+          "Agreement Drafted",
+          "Agreement Signed",
+          "Active",
+          "Dormant"
+        ]
+      },
+      {
+        "label": "Partnership Type",
+        "type": "picklist",
+        "values": [
+          "Recruitment (Commission)",
+          "Service Fee (Public)",
+          "Exchange",
+          "Articulation / Pathway",
+          "Research",
+          "Memorandum of Understanding",
+          "Undefined"
+        ]
+      },
+      {
+        "label": "Agreement Status",
+        "type": "picklist",
+        "values": [
+          "None",
+          "Drafted",
+          "Sent",
+          "Signed",
+          "Expired",
+          "Terminated"
+        ]
+      },
+      {
+        "label": "Agreement Signed On",
+        "type": "date"
+      },
+      {
+        "label": "Agreement Expires On",
+        "type": "date"
+      },
+      {
+        "label": "Accreditation",
+        "type": "text",
+        "length": 255
+      },
+      {
+        "label": "Campus List",
+        "type": "text",
+        "length": 255,
+        "_note": "Comma-separated; split into a list by collaboration.mjs institutionView(). NOT named 'Campuses': Zoho rejects that label as reserved (INVALID_REQUEST on field creation, verified against the live org 2026-07-26). API name: Campus_List."
+      },
+      {
+        "label": "International Office Contact",
+        "type": "text",
+        "length": 128
+      },
+      {
+        "label": "International Office Email",
+        "type": "email"
+      }
+    ],
+    "Products": [
+      {
+        "label": "Degree Level",
+        "type": "picklist",
+        "values": [
+          "Bachelor's",
+          "Master's",
+          "PhD",
+          "Diploma",
+          "Foundation",
+          "Language",
+          "Short Course"
+        ]
+      },
+      {
+        "label": "Intakes",
+        "type": "text",
+        "length": 255,
+        "_note": "Comma-separated; split into a list by collaboration.mjs offeringView()."
+      },
+      {
+        "label": "Application Deadline",
+        "type": "date"
+      },
+      {
+        "label": "Duration",
+        "type": "text",
+        "length": 64
+      },
+      {
+        "label": "Tuition Currency",
+        "type": "text",
+        "length": 8,
+        "_note": "ISO 4217, held beside Unit_Price so tuition is never a pre-formatted string. NOT named 'Currency': that is reserved by Zoho multi-currency and is rejected on creation (verified against the live org 2026-07-26). API name: Tuition_Currency."
+      }
+    ]
+  },
+  "pipeline": {
+    "_note": "Student Cases (Deals) pipeline — provisioned by functions/zoho/provision-pipeline.mjs. deal_category ∈ {Open, Closed Won, Closed Lost}. forecast_category is resolved to an ORG-SPECIFIC id at runtime (ids differ per org — never hardcode). Zoho treats a pick_list_values PATCH as the COMPLETE layout-associated set, so the provisioner always sends every stage atomically.",
+    "module": "Deals",
+    "field": "Stage",
+    "stages": [
+      {
+        "name": "New Inquiry",
+        "probability": 10,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Counseling Booked",
+        "probability": 20,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Counseling Done",
+        "probability": 30,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Agreement Sent",
+        "probability": 40,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Agreement Signed",
+        "probability": 60,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Documents in Progress",
+        "probability": 65,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Applications Submitted",
+        "probability": 70,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Offer Received",
+        "probability": 80,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Visa Filed",
+        "probability": 90,
+        "category": "Open",
+        "forecast": "Pipeline"
+      },
+      {
+        "name": "Visa Approved — Won",
+        "probability": 100,
+        "category": "Closed Won",
+        "forecast": "Closed"
+      },
+      {
+        "name": "Closed Lost",
+        "probability": 0,
+        "category": "Closed Lost",
+        "forecast": "Omitted"
+      }
+    ]
+  },
+  "console_only": {
+    "_note": "Items PROVEN not automatable via the Zoho API (2026-07-23 probe). Everything previously listed here that turned out to be API-addressable — module rename, 11-stage pipeline, Email duplicate-check, Assignment Rule, data sharing, roles — has been automated and removed from this list.",
+    "items": [
+      "Lost Reason validation rule (Zoho validation_rules API returns HTTP 500 on schema-valid payload, v7 + v8)",
+      "5 Workflow Rules (a rule requires >=1 action entity; action entities are read-only via API)",
+      "User provisioning + 2FA enforcement (2FA is Admin Panel only; users need ZohoCRM.users.ALL scope)",
+      "Cliq channels (needs Cliq OAuth scopes)"
+    ]
+  }
+}

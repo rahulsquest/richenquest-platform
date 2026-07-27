@@ -1,0 +1,233 @@
+/* ============================================================
+   The Independence Diagram (components/diagram-independence.html).
+
+   Treated with the same care as the logo. Design constraints, in priority
+   order:
+     1. The GAP between the two lanes must be the most obvious thing in the
+        image. It is the entire argument.
+     2. It must be legible in under fifteen seconds — so: one path, one
+        firewall, one aside. No arrows across, no secondary annotation.
+     3. It must survive a 360px phone without becoming a diagram of nothing.
+     4. It must be readable with CSS disabled (it is an ordered list plus an
+        aside, and reads correctly as prose).
+   ============================================================ */
+
+.indep {
+  margin: 0;
+  display: grid;
+  gap: var(--space-6);
+}
+
+.indep__grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 64em) {
+  .indep__grid {
+    /* The path gets the weight; the commercial lane is deliberately narrower.
+       Hierarchy carries the same message the firewall does. */
+    grid-template-columns: minmax(0, 1.25fr) auto minmax(0, 0.85fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+}
+
+.indep__lane {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+
+/* ---------- The decision path ---------- */
+.indep__path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.indep__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+}
+
+/* The spine: a continuous line linking the nodes. Drawn from each step so it
+   never depends on the container's height. */
+.indep__step::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0.4375rem; /* centres on the 1rem node */
+  width: 1px;
+  background: var(--color-border-strong);
+}
+
+.indep__step:first-child::before { inset-block-start: 50%; }
+.indep__step:last-child::before { inset-block-end: 50%; }
+
+.indep__node {
+  position: relative;
+  z-index: 1;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  margin-block-start: 0.2rem;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-strong);
+}
+
+/* The two steps that carry the argument — evaluation and evidence — are the
+   only places the brand ramp appears in the diagram. Emphasis by exception. */
+.indep__step--key .indep__node {
+  border-color: transparent;
+  background: var(--gradient-brand);
+}
+
+.indep__step--end .indep__node {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+}
+
+.indep__step-body {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.indep__step-title {
+  font-weight: var(--weight-semibold);
+  color: var(--color-ink);
+  line-height: var(--leading-snug);
+}
+
+.indep__step-note {
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  max-width: 40ch;
+}
+
+/* ---------- The firewall ---------- */
+.indep__firewall {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-3);
+}
+
+.indep__firewall-line {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--color-border-strong) 0 5px,
+    transparent 5px 11px
+  );
+  width: 1px;
+  min-height: var(--space-8);
+}
+
+.indep__firewall-label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  text-align: center;
+  max-width: 6.5rem;
+  line-height: 1.35;
+}
+
+@media (min-width: 64em) {
+  .indep__firewall {
+    align-self: stretch;
+    grid-template-rows: 1fr auto 1fr;
+  }
+  .indep__firewall-line {
+    height: 100%;
+  }
+}
+
+/* On narrow screens the firewall turns horizontal. It is never dropped —
+   without it the image says the opposite of what it means. */
+@media (max-width: 63.99em) {
+  .indep__firewall {
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--space-4);
+    width: 100%;
+  }
+  .indep__firewall-line {
+    width: 100%;
+    min-height: 0;
+    height: 1px;
+    background: repeating-linear-gradient(
+      to right,
+      var(--color-border-strong) 0 5px,
+      transparent 5px 11px
+    );
+  }
+  .indep__firewall-label {
+    max-width: none;
+  }
+}
+
+/* ---------- Commercial lane ---------- */
+.indep__lane--commercial .separated__label {
+  color: var(--color-ink-faint);
+}
+
+.indep__commercial {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.indep__commercial li {
+  padding-block: var(--space-2);
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.indep__caption {
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--color-border-soft);
+}
+
+/* ---------- Inverse ---------- */
+.surface--dark .indep__step-title,
+.surface--ink .indep__step-title { color: var(--color-inverse-ink); }
+
+.surface--dark .indep__step-note,
+.surface--ink .indep__step-note,
+.surface--dark .indep__commercial li,
+.surface--ink .indep__commercial li,
+.surface--dark .indep__caption,
+.surface--ink .indep__caption { color: var(--color-inverse-ink-soft); }
+
+.surface--dark .indep__node,
+.surface--ink .indep__node {
+  background: var(--color-inverse-surface);
+  border-color: var(--color-inverse-ink-faint);
+}
+
+.surface--dark .indep__step--end .indep__node,
+.surface--ink .indep__step--end .indep__node {
+  background: var(--color-inverse-ink);
+  border-color: var(--color-inverse-ink);
+}
+
+.surface--dark .indep__step::before,
+.surface--ink .indep__step::before,
+.surface--dark .indep__commercial li,
+.surface--ink .indep__commercial li { border-color: var(--color-inverse-border); }
+
+.surface--dark .indep__step::before,
+.surface--ink .indep__step::before { background: var(--color-inverse-border); }

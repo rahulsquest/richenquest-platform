@@ -1,345 +1,523 @@
 <!--meta
-title: RichenQuest — Global Education & Career Mobility Platform
-description: Study abroad counseling, admissions, scholarships and visa guidance for India & Nepal — Europe first, 33 destinations, team on the ground in India and Italy.
+title: RichenQuest — Global Education &amp; Career Mobility Platform
+description: Study abroad counseling, admissions, scholarships and visa guidance for students from India and Nepal. Europe-first, 33 destinations, counselors on the ground in India and Italy.
 -->
-<!-- M1 homepage. Every fact from claims.json (File 10 §7); every CTA is a real
-     workflow (founder decision 8): WhatsApp / tel / mailto until Zoho org is live.
-     Testimonials intentionally absent pending written consent (decision 7). -->
+<!-- M1 homepage — redesigned 2026-07-25 (founder-approved premium redesign).
+     Every fact comes from claims.json (File 10 §7); every CTA is a real workflow.
+     Testimonials remain intentionally absent pending written consent (decision 7),
+     and university-affiliation wording stays banned until agreements are signed —
+     trust here is built from transparency and process instead. -->
 
-<section class="hero">
+<!-- ============================================================
+     1. HERO — the one place we spend the full premium budget
+     ============================================================ -->
+<section class="hero surface--dark grain">
+  <div class="aurora" aria-hidden="true"><span class="aurora__accent"></span></div>
   <div class="container hero__inner">
     <div class="hero__content">
-      <p class="hero__chip">
-        <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-graduation-cap"></use></svg>
-        Guiding students from India &amp; Nepal since {{ claims.company.team_active_since }}
+      <p class="pill pill--glass" data-enter="1">
+        <span class="pill__dot pill__dot--live" aria-hidden="true"></span>
+        Europe-first guidance for India &amp; Nepal
       </p>
-      <h1>Where ambitions meet <em>opportunities</em>.</h1>
-      <p class="hero__lede">
-        Study abroad counseling, admissions, scholarships and visa guidance for Europe
-        and beyond — handled end to end by a team living in India and Italy.
+
+      <h1 class="hero__title" data-enter="2">
+        Where ambitions meet
+        <em class="text-gradient">opportunities</em>
+      </h1>
+
+      <p class="hero__lede" data-enter="3">
+        We guide students from India and Nepal into Europe's universities — counseling,
+        admissions, scholarships, documentation and visas, handled end to end by a team
+        that lives on both sides of the journey.
       </p>
-      <div class="hero__actions">
-        <a class="btn btn--primary btn--lg" href="{{ site.whatsapp_href }}">
+
+      <div class="hero__actions" data-enter="4">
+        <a class="btn btn--primary btn--lg sheen" href="{{ site.whatsapp_href }}">
           <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
           Book a free consultation
         </a>
-        <a class="btn btn--ghost-inverse" href="#destinations">Explore study destinations</a>
+        <a class="btn btn--ghost-inverse btn--lg" href="/match/">
+          <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-compass"></use></svg>
+          Find your destination
+        </a>
       </div>
-      <p class="hero__note">Counselors reply on WhatsApp during office hours — India &amp; Italy time zones.</p>
-    </div>
-    <aside class="hero__panel" aria-label="What your free consultation includes">
-      <p class="hero__panel-title">Your free 30-minute consultation</p>
-      <ul class="hero__panel-list">
+
+      <ul class="hero__trust checklist" data-enter="5">
         <li>
-          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
-          <span>An honest review of your goals, grades and budget</span>
+          <span class="checklist__mark" aria-hidden="true">
+            <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+          </span>
+          <span>Free 30-minute consultation — no fees, no pressure</span>
         </li>
         <li>
-          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
-          <span>A realistic shortlist of countries and courses</span>
-        </li>
-        <li>
-          <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-check"></use></svg>
-          <span>A written summary — yours to keep either way</span>
+          <span class="checklist__mark" aria-hidden="true">
+            <svg class="icon icon--sm"><use href="/assets/img/icons.svg#icon-check"></use></svg>
+          </span>
+          <span>{{ claims.phrasings.verifiable }} {{ claims.phrasings.records }}</span>
         </li>
       </ul>
-      <p class="hero__panel-note">No fees. No pressure. {{ claims.phrasings.verifiable }}</p>
-    </aside>
+    </div>
+
+    <div class="hero__visual" data-enter="3">
+<!-- @include components/visual-orbit.html -->
+    </div>
   </div>
 </section>
 
-<section class="proof" aria-label="RichenQuest at a glance">
-  <div class="container proof__inner">
-    <div class="grid--4">
-      <div class="stat-tile" data-reveal>
-        <span class="stat-tile__value">1,000+</span>
-        <span class="stat-tile__label">students guided since {{ claims.company.team_active_since }}</span>
+<!-- ============================================================
+     2. PROOF STRIP — verified figures only
+     ============================================================ -->
+<section class="section--tight proof-strip" aria-label="RichenQuest at a glance">
+  <div class="container">
+    <!-- Every figure here is rendered from the Evidence Register via {{ fact.* }},
+         so each carries its provenance mark automatically and links to the record
+         on /standards/. A number that is not in the register cannot appear at all
+         — the build fails on an unknown claim id (Constitution 6.3). -->
+    <div class="stat-row" data-reveal-group>
+      <div class="stat">
+        <span class="stat__value">{{ fact.students-guided }}</span>
+        <span class="stat__label">students guided since {{ claims.company.team_active_since }}</span>
       </div>
-      <div class="stat-tile" data-reveal>
-        <span class="stat-tile__value">33</span>
-        <span class="stat-tile__label">study destinations — Europe first, and beyond</span>
+      <div class="stat">
+        <span class="stat__value">{{ fact.destination-guides-published }}</span>
+        <span class="stat__label">destination guides with full cost, intake and post-study data</span>
       </div>
-      <div class="stat-tile" data-reveal>
-        <span class="stat-tile__value">India · Italy</span>
-        <span class="stat-tile__label">counselors on the ground in both countries</span>
+      <div class="stat">
+        <span class="stat__value">{{ fact.counsellor-countries }}</span>
+        <span class="stat__label">counselors on the ground in both countries</span>
       </div>
-      <div class="stat-tile" data-reveal>
-        <span class="stat-tile__value">2×</span>
-        <span class="stat-tile__label">every document checked by two people before it leaves our office</span>
+      <div class="stat">
+        <span class="stat__value">{{ fact.document-check }}</span>
+        <span class="stat__label">every document reviewed by two people before it leaves our office</span>
       </div>
     </div>
   </div>
 </section>
 
-<section class="container section" id="why-europe">
-  <div class="section__head">
-    <p class="kicker">Why Europe, why now</p>
-    <h2>The map has changed</h2>
-    <p class="lede">The four countries everyone applied to are tightening. Europe is opening its doors — and we are already there.</p>
-  </div>
-  <div class="grid--3">
-    <article class="card" data-reveal>
-      <p class="card__kicker">The old routes</p>
-      <h3 class="card__title">Big-four doors are narrowing</h3>
-      <p class="card__body">Canada, the USA, the UK and Australia have tightened student visas, caps and costs through 2024–26. Families need a smarter map, not more hope.</p>
-    </article>
-    <article class="card" data-reveal>
-      <p class="card__kicker">The new routes</p>
-      <h3 class="card__title">Europe is opening up</h3>
-      <p class="card__body">Germany, France, Ireland and Italy are actively growing international intakes — with English-taught programs and public universities that charge little or no tuition.</p>
-    </article>
-    <article class="card card--featured" data-reveal>
-      <p class="card__kicker">Our edge</p>
-      <h3 class="card__title">We guide you from inside Europe</h3>
-      <p class="card__body">Our team lives and works between India and Italy. Scholarships like Italy's DSU aren't a rumor to us — we handle them on the ground.</p>
-    </article>
-  </div>
-</section>
-
-<section class="section section--alt" id="journey">
+<!-- ============================================================
+     3. THE SHIFT — why Europe, why now
+     ============================================================ -->
+<section class="section" id="why-europe">
   <div class="container">
     <div class="section__head">
-      <p class="kicker">How it works</p>
-      <h2>A clear path in six steps</h2>
+      <p class="kicker kicker--center">Why Europe, why now</p>
+      <h2>The map has changed</h2>
+      <p class="lede">
+        The four countries everyone applied to are tightening. Europe is opening its
+        doors — and we are already there.
+      </p>
     </div>
-    <div class="grid--3">
-      <div class="step" data-reveal>
-        <span class="step__badge" aria-hidden="true">1</span>
-        <h3 class="step__title">Free consultation</h3>
-        <p class="step__text">We understand your goals, background and budget in a no-cost first conversation.</p>
+
+    <div class="bento" data-reveal-group>
+      <article class="tile tile--interactive bento__item--3">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-route"></use></svg>
+        </span>
+        <h3 class="tile__title">The old routes are narrowing</h3>
+        <p class="tile__body">
+          Canada, the USA, the UK and Australia tightened student visas, caps and costs
+          through 2024–26. Families need a smarter map — not more hope.
+        </p>
+      </article>
+
+      <article class="tile tile--interactive tile--bloom bento__item--3">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-globe"></use></svg>
+        </span>
+        <h3 class="tile__title">Europe is opening up</h3>
+        <p class="tile__body">
+          Germany, France, Ireland and Italy are actively growing international intakes —
+          with English-taught programs and public universities that charge little or no tuition.
+        </p>
+      </article>
+
+      <article class="tile tile--dark bento__item--6">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg>
+        </span>
+        <h3 class="tile__title">We are already on the ground</h3>
+        <p class="tile__body">
+          Counselors in India and in Italy. That means European office hours, local
+          knowledge of how these systems actually work, and someone who can answer at the
+          hour the university replies — not twelve hours later.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     4. THE MATCHER — a real, working tool (not a mockup)
+     ============================================================ -->
+<section class="section surface--ink grain" id="matcher-teaser">
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="container">
+    <div class="split split--wide-start">
+      <div class="split__text">
+        <p class="kicker">Free tool · works instantly</p>
+        <h2>Find where you actually fit — in about a minute</h2>
+        <p>
+          Answer five questions about your budget, timing and priorities. We match them
+          against real tuition, living-cost, intake, work-rights and post-study rules for
+          every destination we cover, then show you the shortlist and the reasoning.
+        </p>
+        <p>
+          It runs entirely in your browser. Nothing is uploaded, nothing is stored, and you
+          do not need to give us your number to see the result.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary btn--lg sheen" href="/match/">
+            <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-compass"></use></svg>
+            Start the matcher
+          </a>
+        </div>
       </div>
-      <div class="step" data-reveal>
-        <span class="step__badge" aria-hidden="true">2</span>
-        <h3 class="step__title">Profile &amp; country fit</h3>
-        <p class="step__text">We map your profile to the destinations and courses where you can realistically thrive.</p>
-      </div>
-      <div class="step" data-reveal>
-        <span class="step__badge" aria-hidden="true">3</span>
-        <h3 class="step__title">Shortlist &amp; apply</h3>
-        <p class="step__text">Curated universities, polished applications and strong SOPs — no generic templates.</p>
-      </div>
-      <div class="step" data-reveal>
-        <span class="step__badge" aria-hidden="true">4</span>
-        <h3 class="step__title">Scholarships &amp; funding</h3>
-        <p class="step__text">We identify the grants and waivers you're actually eligible for, and file them properly.</p>
-      </div>
-      <div class="step" data-reveal>
-        <span class="step__badge" aria-hidden="true">5</span>
-        <h3 class="step__title">Offers &amp; visa</h3>
-        <p class="step__text">Offer in hand, we prepare your documents with two-person verification and guide your visa filing.</p>
-      </div>
-      <div class="step" data-reveal>
-        <span class="step__badge" aria-hidden="true">6</span>
-        <h3 class="step__title">Fly &amp; thrive</h3>
-        <p class="step__text">Pre-departure guidance, accommodation support and mentorship that continues after you land.</p>
+
+      <div class="split__visual" data-reveal="scale">
+        <div class="glass--dark matcher-preview">
+          <p class="matcher-preview__label">Your match</p>
+          <div class="matcher-preview__row">
+            <span class="matcher-preview__flag" aria-hidden="true">🇩🇪</span>
+            <span class="matcher-preview__name">Germany</span>
+            <span class="matcher-preview__score">Strong fit</span>
+          </div>
+          <p class="matcher-preview__why">
+            {{ destinations.germany.tuition }} tuition · {{ destinations.germany.living }} living ·
+            {{ destinations.germany.poststudy }}
+          </p>
+          <div class="matcher-preview__row">
+            <span class="matcher-preview__flag" aria-hidden="true">🇮🇪</span>
+            <span class="matcher-preview__name">Ireland</span>
+            <span class="matcher-preview__score matcher-preview__score--alt">Good fit</span>
+          </div>
+          <p class="matcher-preview__why">
+            {{ destinations.ireland.tuition }} tuition · {{ destinations.ireland.poststudy }}
+          </p>
+          <p class="matcher-preview__note">Example result — your answers change the ranking.</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="container section" id="services">
-  <div class="section__head">
-    <p class="kicker">What we do</p>
-    <h2>End-to-end support, nothing left to chance</h2>
-    <p class="lede">{{ claims.phrasings.helping_since }}</p>
-  </div>
-  <div class="grid">
-    <article class="card" data-reveal>
-      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-document"></use></svg></span>
-      <h3 class="card__title">Counseling &amp; profile assessment</h3>
-      <p class="card__body">Honest evaluation of your academics, goals and budget — including when to wait or aim differently.</p>
-    </article>
-    <article class="card" data-reveal>
-      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-graduation-cap"></use></svg></span>
-      <h3 class="card__title">Admissions &amp; SOP support</h3>
-      <p class="card__body">University shortlisting, applications and statements that sound like you — reviewed line by line.</p>
-    </article>
-    <article class="card" data-reveal>
-      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-star"></use></svg></span>
-      <h3 class="card__title">Scholarship guidance</h3>
-      <p class="card__body">DSU, DAAD, MEXT, Erasmus Mundus and university aid — we file what you're eligible for, properly.</p>
-    </article>
-    <article class="card" data-reveal>
-      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-check"></use></svg></span>
-      <h3 class="card__title">Documentation &amp; verification</h3>
-      <p class="card__body">Every file passes two-person verification before it leaves our office. No shortcuts, ever.</p>
-    </article>
-    <article class="card" data-reveal>
-      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-globe"></use></svg></span>
-      <h3 class="card__title">Visa guidance</h3>
-      <p class="card__body">Student, work, business and tourist visa assistance with honest, case-specific preparation.</p>
-    </article>
-    <article class="card" data-reveal>
-      <span class="icon-disc" aria-hidden="true"><svg class="icon"><use href="/assets/img/icons.svg#icon-map-pin"></use></svg></span>
-      <h3 class="card__title">Pre-departure &amp; beyond</h3>
-      <p class="card__body">Accommodation, arrival and settling-in support — mentorship that doesn't stop at the airport.</p>
-    </article>
-  </div>
-</section>
-
-<section class="section section--alt" id="destinations">
+<!-- ============================================================
+     5. WHAT WE DO
+     ============================================================ -->
+<section class="section" id="services">
   <div class="container">
     <div class="section__head">
-      <p class="kicker">{{ claims.phrasings.universities_language }}</p>
-      <h2>Study destinations, Europe first</h2>
-      <p class="lede">33 destinations across Europe, Asia-Pacific and beyond, for students from India and Nepal — each guide written with real numbers and honest trade-offs.</p>
+      <p class="kicker kicker--center">What we do</p>
+      <h2>Everything between "maybe" and "landed"</h2>
+      <p class="lede">
+        One team carries your file from the first conversation to your first week abroad.
+      </p>
     </div>
-    <div class="grid">
-      <article class="card card--interactive card--featured" data-reveal>
-        <p class="card__kicker">Flagship</p>
-        <h3 class="card__title"><a class="card__link" href="/destinations/italy/">Italy</a></h3>
-        <p class="card__body">Public university tuition from a few hundred euros — and DSU regional scholarships can make it nearly free for eligible families. Our team handles DSU on the ground.</p>
-        <p class="card__meta"><span class="badge badge--success">DSU scholarships</span><span class="badge badge--info">Team in Italy</span></p>
+
+    <div class="bento" data-reveal-group>
+      <article class="tile tile--interactive bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-compass"></use></svg>
+        </span>
+        <h3 class="tile__title">Counseling</h3>
+        <p class="tile__body">An honest read of your grades, budget and goals — including when the answer is "not yet".</p>
       </article>
-      <article class="card card--interactive card--featured" data-reveal>
-        <p class="card__kicker">Flagship</p>
-        <h3 class="card__title"><a class="card__link" href="/destinations/germany/">Germany</a></h3>
-        <p class="card__body">Little or no tuition at public universities, strong English-taught options, and an 18-month post-study job-seeker visa.</p>
-        <p class="card__meta"><span class="badge badge--success">Low tuition</span><span class="badge badge--info">Post-study work</span></p>
+
+      <article class="tile tile--interactive bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-building"></use></svg>
+        </span>
+        <h3 class="tile__title">Admissions</h3>
+        <p class="tile__body">Course shortlisting, applications and deadlines managed against each university's real requirements.</p>
       </article>
-      <article class="card card--interactive" data-reveal>
-        <h3 class="card__title"><a class="card__link" href="/destinations/france/">France</a></h3>
-        <p class="card__body">Growing fast for Indian students, with national programs to welcome many more.</p>
+
+      <article class="tile tile--interactive bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-award"></use></svg>
+        </span>
+        <h3 class="tile__title">Scholarships</h3>
+        <p class="tile__body">Which funding you can realistically win, what it needs, and when it closes.</p>
       </article>
-      <article class="card card--interactive" data-reveal>
-        <h3 class="card__title"><a class="card__link" href="/destinations/ireland/">Ireland</a></h3>
-        <p class="card__body">English-speaking, tech-industry hiring, and a clear post-study pathway.</p>
+
+      <article class="tile tile--interactive bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-document"></use></svg>
+        </span>
+        <h3 class="tile__title">Documentation</h3>
+        <p class="tile__body">SOPs, LORs, transcripts and financials — checked by two people before anything is submitted.</p>
       </article>
-      <article class="card card--interactive" data-reveal>
-        <h3 class="card__title"><a class="card__link" href="/destinations/netherlands/">Netherlands</a></h3>
-        <p class="card__body">Europe's widest English-taught range and a 12-month orientation year after graduation.</p>
+
+      <article class="tile tile--interactive bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-shield"></use></svg>
+        </span>
+        <h3 class="tile__title">Visas</h3>
+        <p class="tile__body">Student, work, business and tourist visa guidance, with interview preparation.</p>
       </article>
-      <article class="card card--interactive" data-reveal>
-        <h3 class="card__title"><a class="card__link" href="/destinations/hungary/">Hungary</a></h3>
-        <p class="card__body">EU degrees on a genuinely modest budget, plus the Stipendium Hungaricum scholarship.</p>
-      </article>
-      <article class="card card--interactive" data-reveal>
-        <h3 class="card__title"><a class="card__link" href="/destinations/japan/">Japan</a></h3>
-        <p class="card__body">MEXT scholarships, 28-hour work weeks, and the #1 corridor for Nepali students.</p>
+
+      <article class="tile tile--interactive bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-plane"></use></svg>
+        </span>
+        <h3 class="tile__title">Pre-departure</h3>
+        <p class="tile__body">Accommodation, travel and the first-month checklist nobody tells you about.</p>
       </article>
     </div>
-    <div class="cluster section__cta">
-      <a class="btn btn--primary" href="{{ site.whatsapp_href }}">
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
-        Ask about any destination
+  </div>
+</section>
+
+<!-- ============================================================
+     6. PROCESS
+     ============================================================ -->
+<section class="section surface--alt" id="process">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker kicker--center">How it works</p>
+      <h2>Four steps. No surprises.</h2>
+      <p class="lede">You always know what is happening, what is next, and what it costs.</p>
+    </div>
+
+    <ol class="rail rail--horizontal" data-reveal-group>
+      <li class="rail__step" data-active>
+        <span class="rail__num" aria-hidden="true"></span>
+        <h3 class="rail__title">Free consultation</h3>
+        <p class="rail__body">Thirty minutes on your goals, grades and budget. You leave with a written summary — yours to keep either way.</p>
+      </li>
+      <li class="rail__step">
+        <span class="rail__num" aria-hidden="true"></span>
+        <h3 class="rail__title">Shortlist &amp; plan</h3>
+        <p class="rail__body">A realistic list of countries, universities and courses, with costs, intakes and deadlines mapped out.</p>
+      </li>
+      <li class="rail__step">
+        <span class="rail__num" aria-hidden="true"></span>
+        <h3 class="rail__title">Apply together</h3>
+        <p class="rail__body">Documents, applications and scholarships prepared and submitted — every file double-checked.</p>
+      </li>
+      <li class="rail__step">
+        <span class="rail__num" aria-hidden="true"></span>
+        <h3 class="rail__title">Visa &amp; departure</h3>
+        <p class="rail__body">Visa filing, interview practice, accommodation and the pre-departure brief before you fly.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================
+     7. DESTINATIONS
+     ============================================================ -->
+<section class="section" id="destinations">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker kicker--center">Where you could go</p>
+      <h2>Europe first — and beyond</h2>
+      <p class="lede">
+        Real tuition, living costs, intakes and post-study rules for every destination we
+        cover. No brochure numbers.
+      </p>
+    </div>
+
+    <div class="dest-grid" data-reveal-group>
+      <a class="dest-card lift" href="/destinations/germany/">
+        <span class="dest-card__flag" aria-hidden="true">🇩🇪</span>
+        <h3 class="dest-card__name">Germany</h3>
+        <p class="dest-card__hook">{{ destinations.germany.hook }}</p>
+        <dl class="dest-card__facts">
+          <div><dt>Tuition</dt><dd>{{ destinations.germany.tuition }}</dd></div>
+          <div><dt>After study</dt><dd>{{ destinations.germany.poststudy }}</dd></div>
+        </dl>
       </a>
-      <a class="btn btn--ghost" href="/destinations/">All 33 destinations</a>
+
+      <a class="dest-card lift" href="/destinations/ireland/">
+        <span class="dest-card__flag" aria-hidden="true">🇮🇪</span>
+        <h3 class="dest-card__name">Ireland</h3>
+        <p class="dest-card__hook">{{ destinations.ireland.hook }}</p>
+        <dl class="dest-card__facts">
+          <div><dt>Tuition</dt><dd>{{ destinations.ireland.tuition }}</dd></div>
+          <div><dt>After study</dt><dd>{{ destinations.ireland.poststudy }}</dd></div>
+        </dl>
+      </a>
+
+      <a class="dest-card lift" href="/destinations/france/">
+        <span class="dest-card__flag" aria-hidden="true">🇫🇷</span>
+        <h3 class="dest-card__name">France</h3>
+        <p class="dest-card__hook">{{ destinations.france.hook }}</p>
+        <dl class="dest-card__facts">
+          <div><dt>Tuition</dt><dd>{{ destinations.france.tuition }}</dd></div>
+          <div><dt>After study</dt><dd>{{ destinations.france.poststudy }}</dd></div>
+        </dl>
+      </a>
+
+      <a class="dest-card lift" href="/destinations/italy/">
+        <span class="dest-card__flag" aria-hidden="true">🇮🇹</span>
+        <h3 class="dest-card__name">Italy</h3>
+        <p class="dest-card__hook">{{ destinations.italy.hook }}</p>
+        <dl class="dest-card__facts">
+          <div><dt>Tuition</dt><dd>{{ destinations.italy.tuition }}</dd></div>
+          <div><dt>After study</dt><dd>{{ destinations.italy.poststudy }}</dd></div>
+        </dl>
+      </a>
+
+      <a class="dest-card lift" href="/destinations/netherlands/">
+        <span class="dest-card__flag" aria-hidden="true">🇳🇱</span>
+        <h3 class="dest-card__name">Netherlands</h3>
+        <p class="dest-card__hook">{{ destinations.netherlands.hook }}</p>
+        <dl class="dest-card__facts">
+          <div><dt>Tuition</dt><dd>{{ destinations.netherlands.tuition }}</dd></div>
+          <div><dt>After study</dt><dd>{{ destinations.netherlands.poststudy }}</dd></div>
+        </dl>
+      </a>
+
+      <a class="dest-card lift" href="/destinations/hungary/">
+        <span class="dest-card__flag" aria-hidden="true">🇭🇺</span>
+        <h3 class="dest-card__name">Hungary</h3>
+        <p class="dest-card__hook">{{ destinations.hungary.hook }}</p>
+        <dl class="dest-card__facts">
+          <div><dt>Tuition</dt><dd>{{ destinations.hungary.tuition }}</dd></div>
+          <div><dt>After study</dt><dd>{{ destinations.hungary.poststudy }}</dd></div>
+        </dl>
+      </a>
     </div>
+
+    <p class="dest-grid__more">
+      <a class="btn btn--ghost" href="/destinations/">
+        See all destinations
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-arrow-right"></use></svg>
+      </a>
+    </p>
   </div>
 </section>
 
-<section class="container section" id="scholarships">
-  <div class="section__head">
-    <p class="kicker">Funding</p>
-    <h2>Fully-funded pathways we help you pursue</h2>
-    <p class="lede">We never promise a scholarship — we tell you honestly which ones your profile can genuinely compete for, then file them right.</p>
-  </div>
-  <div class="grid">
-    <article class="card" data-reveal>
-      <p class="card__kicker">Italy · need-based</p>
-      <h3 class="card__title">DSU regional grants</h3>
-      <p class="card__body">A right, not a lottery: eligible families get fee waivers, subsidised meals and housing, and an annual stipend at Italian public universities.</p>
-    </article>
-    <article class="card" data-reveal>
-      <p class="card__kicker">Germany</p>
-      <h3 class="card__title">DAAD scholarships</h3>
-      <p class="card__body">Germany's national funding body supports international students across hundreds of programs.</p>
-    </article>
-    <article class="card" data-reveal>
-      <p class="card__kicker">Japan</p>
-      <h3 class="card__title">MEXT scholarship</h3>
-      <p class="card__body">The Japanese government's flagship award — tuition, flights and a monthly stipend for selected students.</p>
-    </article>
-    <article class="card" data-reveal>
-      <p class="card__kicker">Europe-wide</p>
-      <h3 class="card__title">Erasmus Mundus</h3>
-      <p class="card__body">EU-funded joint master's programs spanning multiple European universities, with generous funding for selected candidates.</p>
-    </article>
-  </div>
-</section>
-
-<section class="integrity" id="about">
-  <div class="container integrity__inner">
-    <p class="kicker">Why trust us</p>
-    <h2>Built on verifiable claims</h2>
-    <p>
-      Choosing where your child studies is one of the biggest decisions a family makes.
-      This is how we've chosen to earn that trust:
-    </p>
-    <p>
-      Our team has worked in international education since <strong>{{ claims.company.team_active_since }}</strong>
-      {{ claims.company.operations_note }}. In <strong>{{ claims.company.incorporated }}</strong> we incorporated
-      {{ claims.company.legal_name }} to consolidate that work into a systematic, compliance-first company.
-    </p>
-    <p>
-      <strong>{{ claims.phrasings.verifiable }}</strong> {{ claims.phrasings.records }}
-      Every document file passes two-person verification before it reaches a university, and we will always
-      tell you when staying home — or waiting a year — is the better decision.
-    </p>
-    <p>
-      We are deploying a technology-first operations backbone — CRM-driven pipelines, automated
-      follow-ups and real-time application tracking — so quality holds as we grow.
-    </p>
-    <p>
-      You won't see student testimonials here yet: <strong>we publish stories only with written
-      consent</strong>, and we're gathering them the right way.
-    </p>
-    <div class="integrity__founder">
-      <span class="integrity__avatar" aria-hidden="true">RK</span>
-      <div>
-        <p class="integrity__founder-name">Rahul Kumar</p>
-        <p class="integrity__founder-role">Founder &amp; CEO · working between India and Italy</p>
-      </div>
+<!-- ============================================================
+     8. INTEGRITY — our actual differentiator
+     ============================================================ -->
+<section class="section" id="integrity">
+  <div class="container">
+    <div class="section__head">
+      <hr class="rule rule--center">
+      <p class="kicker kicker--center">How our advice is protected</p>
+      <h2>Our recommendations are independent by structure, not by promise</h2>
+      <p class="lede">
+        We work with universities, employers and institutions, and we are glad to. What we
+        have designed is a structure that keeps those relationships out of the advice you
+        receive — and publishes them so you can check.
+      </p>
     </div>
+
+<!-- @include components/diagram-independence.html -->
+
+    <p class="integrity__more">
+      <a class="btn btn--ghost" href="/about/">
+        How we verify our claims
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-arrow-right"></use></svg>
+      </a>
+    </p>
   </div>
 </section>
 
-<section class="container section" id="faq">
-  <div class="section__head">
-    <p class="kicker">Questions families ask first</p>
-    <h2>Frequently asked questions</h2>
-  </div>
-  <div class="faq">
-    <details class="faq__item" data-reveal>
-      <summary class="faq__q">How much does it cost to study in Europe?
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
-      <p class="faq__a">Often far less than families expect. Public universities in Germany and Norway charge little or no tuition, and in Italy the DSU grant can bring costs close to zero for eligible families. Exact numbers depend on country and program — we walk you through real figures in your free consultation.</p>
-    </details>
-    <details class="faq__item" data-reveal>
-      <summary class="faq__q">Can I really get a fully-funded scholarship?
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
-      <p class="faq__a">Some funding is competitive (DAAD, MEXT, Erasmus Mundus); some is need-based and awarded by right if you qualify (Italy's DSU). We assess your profile honestly and only pursue what you can genuinely win.</p>
-    </details>
-    <details class="faq__item" data-reveal>
-      <summary class="faq__q">Can I work part-time while studying?
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
-      <p class="faq__a">Most European destinations allow international students to work around 20 hours a week during term — enough to help with living costs. Rules vary by country and visa type; your counselor confirms the exact limits for your destination.</p>
-    </details>
-    <details class="faq__item" data-reveal>
-      <summary class="faq__q">Do I need IELTS to apply?
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
-      <p class="faq__a">Not always. Many universities accept alternatives — other English tests or Medium-of-Instruction letters — though some countries and visas do require a formal test. We advise on your specific case before you spend on exams.</p>
-    </details>
-    <details class="faq__item" data-reveal>
-      <summary class="faq__q">How do I get started?
-        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chevron-down"></use></svg></summary>
-      <p class="faq__a">Book a free consultation on WhatsApp or email {{ site.email }}. In 30 minutes we cover your goals, budget and realistic options — and you leave with a written summary, whether or not you continue with us.</p>
-    </details>
+<!-- ============================================================
+     9. WHAT WE ARE BUILDING — honest roadmap, no fake product
+     ============================================================ -->
+<section class="section" id="platform">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker kicker--center">What we are building</p>
+      <h2>Guidance that scales without losing the human</h2>
+      <p class="lede">
+        We are building the software layer that makes good counseling faster — so our
+        counselors spend their time on judgment, not paperwork. Here is where each piece
+        genuinely stands.
+      </p>
+    </div>
+
+    <div class="bento" data-reveal-group>
+      <article class="tile ring-brand bento__item--3">
+        <p class="pill pill--brand tile__flag">
+          <span class="pill__dot pill__dot--live" aria-hidden="true"></span> Live now
+        </p>
+        <h3 class="tile__title">Destination matcher</h3>
+        <p class="tile__body">
+          Matches your budget, timing and priorities against real cost, intake and
+          post-study data. Runs in your browser. Available today.
+        </p>
+        <p class="tile__footer">
+          <a class="btn btn--ghost btn--sm" href="/match/">Try it now</a>
+        </p>
+      </article>
+
+      <article class="tile bento__item--3">
+        <p class="pill tile__flag">In development</p>
+        <h3 class="tile__title">Application tracker</h3>
+        <p class="tile__body">
+          One place to see every application, document and deadline in your file — the
+          status updates families currently have to ask for.
+        </p>
+      </article>
+
+      <article class="tile bento__item--2">
+        <p class="pill tile__flag">In development</p>
+        <h3 class="tile__title">Document review</h3>
+        <p class="tile__body">Structured feedback on SOPs and CVs before a counselor's final pass.</p>
+      </article>
+
+      <article class="tile bento__item--2">
+        <p class="pill tile__flag">In development</p>
+        <h3 class="tile__title">Scholarship radar</h3>
+        <p class="tile__body">Funding you qualify for, matched to your profile and deadlines.</p>
+      </article>
+
+      <article class="tile bento__item--2">
+        <p class="pill tile__flag">Exploring</p>
+        <h3 class="tile__title">Career pathways</h3>
+        <p class="tile__body">Where each course actually leads — roles, sectors and work rights after graduation.</p>
+      </article>
+    </div>
+
+    <p class="platform__note">
+      We label these honestly on purpose. Nothing above is presented as working before it
+      is — you will never be handed a demo pretending to be a product.
+    </p>
   </div>
 </section>
 
-<!-- @include components/cta-band.html -->
+<!-- ============================================================
+     10. FOUNDER
+     ============================================================ -->
+<section class="section surface--alt" id="founder">
+  <div class="container">
+    <blockquote class="quote" data-reveal>
+      <p class="quote__text">
+        Too many bright students are sold a dream and handed a brochure. We built
+        RichenQuest to be the opposite of that — to tell families the truth about cost,
+        chances and timing, even when the truth costs us the sale.
+      </p>
+      <footer class="quote__attrib">
+        <span class="quote__mark" aria-hidden="true"></span>
+        <span><strong>Rahul Kumar</strong> · Founder, {{ claims.company.legal_name }}</span>
+      </footer>
+    </blockquote>
+  </div>
+</section>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    { "@type": "Question", "name": "How much does it cost to study in Europe?", "acceptedAnswer": { "@type": "Answer", "text": "Often far less than families expect. Public universities in Germany and Norway charge little or no tuition, and in Italy the DSU grant can bring costs close to zero for eligible families. Exact numbers depend on country and program." } },
-    { "@type": "Question", "name": "Can I really get a fully-funded scholarship?", "acceptedAnswer": { "@type": "Answer", "text": "Some funding is competitive (DAAD, MEXT, Erasmus Mundus); some is need-based and awarded by right if you qualify, such as Italy's DSU. We assess profiles honestly and only pursue scholarships a student can genuinely win." } },
-    { "@type": "Question", "name": "Can I work part-time while studying?", "acceptedAnswer": { "@type": "Answer", "text": "Most European destinations allow international students to work around 20 hours a week during term. Rules vary by country and visa type." } },
-    { "@type": "Question", "name": "Do I need IELTS to apply?", "acceptedAnswer": { "@type": "Answer", "text": "Not always. Many universities accept alternatives such as other English tests or Medium-of-Instruction letters, though some countries and visas require a formal test." } },
-    { "@type": "Question", "name": "How do I get started?", "acceptedAnswer": { "@type": "Answer", "text": "Book a free consultation on WhatsApp or by email. In 30 minutes we cover goals, budget and realistic options, ending with a written summary." } }
-  ]
-}
-</script>
+<!-- ============================================================
+     11. FINAL CTA
+     ============================================================ -->
+<section class="section surface--ink grain" id="start">
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="container cta-final">
+    <p class="kicker kicker--center">Start here</p>
+    <h2 class="cta-final__title">Your first conversation is free — and useful either way</h2>
+    <p class="cta-final__lede">
+      Thirty minutes, an honest assessment, and a written summary you keep whether or not
+      you work with us.
+    </p>
+    <div class="hero__actions cta-final__actions">
+      <a class="btn btn--primary btn--lg sheen" href="{{ site.whatsapp_href }}">
+        <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+        Book a free consultation
+      </a>
+      <a class="btn btn--ghost-inverse btn--lg" href="/contact/">Other ways to reach us</a>
+    </div>
+    <p class="cta-final__note">
+      Counselors reply on WhatsApp during office hours — India &amp; Italy time zones.
+    </p>
+  </div>
+</section>

@@ -1,40 +1,112 @@
-/* component: page-hero — slim dark header for interior pages.
-   Carries the brand gradient from the homepage hero at reduced height,
-   keeping every page unmistakably RichenQuest. */
+/* component: page-hero — the interior-page header.
+   Carries the homepage's night-band language at reduced height so every page
+   is unmistakably RichenQuest. Upgraded 2026-07-25: the aurora blooms and
+   grain are drawn from pseudo-elements, so all interior pages inherit the new
+   premium surface without any markup change. */
 .page-hero {
   position: relative;
-  overflow: hidden;
+  isolation: isolate;
+  overflow: clip;
   background: var(--gradient-hero);
   color: var(--color-inverse-ink);
 }
 
+/* Aurora bloom — the same brand wash used on the homepage bands. */
 .page-hero::before {
   content: "";
   position: absolute;
-  width: 34rem;
-  height: 34rem;
-  right: -12rem;
-  top: -20rem;
+  z-index: -2;
+  width: min(52vw, 38rem);
+  aspect-ratio: 1;
+  right: -8rem;
+  top: -18rem;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(147 180 248 / 0.18), transparent 65%);
+  background: var(--gradient-aurora-1);
+  opacity: 0.4;
+  filter: blur(30px);
   pointer-events: none;
+}
+
+.page-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  width: min(44vw, 30rem);
+  aspect-ratio: 1;
+  left: -10rem;
+  bottom: -20rem;
+  border-radius: 50%;
+  background: var(--gradient-aurora-2);
+  opacity: 0.45;
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-hero::before {
+    animation: aurora-drift var(--duration-ambient) var(--ease-in-out) infinite;
+  }
+  .page-hero::after {
+    animation: aurora-drift calc(var(--duration-ambient) * 1.4) var(--ease-in-out) infinite reverse;
+  }
+}
+
+/* Grain sits above the blooms but below the content. */
+.page-hero__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
 }
 
 .page-hero__inner {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
   justify-items: start;
-  padding-block: var(--space-8) var(--space-10);
+  padding-block: clamp(2.5rem, 2rem + 4vw, 5rem) clamp(3rem, 2.5rem + 5vw, 6rem);
+  max-width: 52rem;
+}
+
+.page-hero h1,
+.page-hero__title {
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-inverse-ink);
+  text-wrap: balance;
+}
+
+/* Serif-italic accent word, matching the homepage hero. */
+.page-hero h1 em,
+.page-hero__title em {
+  font-family: var(--font-serif-display);
+  font-style: italic;
+  font-weight: var(--weight-regular);
+  font-size: 1.06em;
 }
 
 .page-hero .kicker {
-  color: var(--color-hero-accent);
+  color: var(--brand-cyan);
 }
 
 .page-hero__lede {
   font-size: var(--text-lg);
+  line-height: var(--leading-body);
   color: var(--color-inverse-ink-soft);
   max-width: 58ch;
+}
+
+/* Interior-page hero actions, when a page needs a CTA in the header. */
+.page-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
 }

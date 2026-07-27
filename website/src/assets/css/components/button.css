@@ -119,3 +119,18 @@
 .btn .icon {
   flex: none;
 }
+
+/* Touch targets (redesign 2026-07-25). On coarse pointers every control gets
+   at least the 44px recommended by WCAG 2.5.8 / platform guidelines. Scoped to
+   `pointer: coarse` so desktop keeps its tighter, more designed density —
+   and it matters here: the audience is 66–80% mobile (ADR-001). */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn--sm {
+    min-height: 44px;
+    padding-block: var(--space-2);
+  }
+}

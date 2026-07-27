@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title }}</title>
+<meta name="description" content="{{ page.description }}">
+<!-- Internal operations surface: never indexed, never previewed, no referrer
+     leakage. The operator token travels in the URL fragment on first load, so a
+     referrer policy weaker than no-referrer could hand it to a third party. -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b1220">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/site.css?v={{ build.hash }}">
+{{ page.cssLink }}
+</head>
+<body class="app ops">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="app-bar">
+    <div class="app-bar__inner">
+      <a class="app-bar__brand" href="/">
+        <span class="app-bar__mark" aria-hidden="true"></span>
+        <span class="app-bar__name">RichenQuest <span class="ops-badge">Operations</span></span>
+      </a>
+
+      <p class="app-bar__record" data-app="operator-badge" hidden>
+        <span class="app-bar__record-label">Signed in as</span>
+        <span class="app-bar__record-id" data-app="operator-name"></span>
+      </p>
+
+      <div class="app-bar__session" data-app="session-box" hidden>
+        <span class="app-bar__expiry" data-app="expiry" aria-live="polite"></span>
+        <button class="btn btn--ghost btn--sm" type="button" data-app="sign-out">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Built at runtime from the server's capability manifest: an operator never
+       sees a section the API would refuse them. -->
+  <nav class="app-nav ops-nav" aria-label="Operations sections" data-app="nav" hidden>
+    <ul class="app-nav__list" data-app="nav-list"></ul>
+  </nav>
+
+  <main id="main" class="app-main">
+{{ page.content }}
+  </main>
+
+  <p class="app-toast" data-app="toast" role="status" aria-live="polite" hidden></p>
+
+<!-- @include components/platform-config.html -->
+  <script type="module" src="/assets/js/console.js?v={{ build.hash }}"></script>
+</body>
+</html>

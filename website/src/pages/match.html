@@ -1,0 +1,313 @@
+<!--meta
+title: Destination Matcher — find where you fit | RichenQuest
+description: Answer four questions and see which study destinations match your budget, timing and priorities — ranked against real tuition, living cost, work and post-study rules. Free, instant, private.
+-->
+<!-- Destination matcher — a real working tool (not a mockup, not AI).
+     Deterministic rules over the same verified facts published on each
+     destination page. Runs entirely client-side: nothing is uploaded or
+     stored, and no contact details are required to see a result.
+     Progressive enhancement: without JS the full destination list below
+     is shown instead (data-matcher-fallback). -->
+
+<section class="page-hero surface--dark grain">
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="container page-hero__inner">
+    <p class="pill pill--glass" data-enter="1">
+      <span class="pill__dot pill__dot--live" aria-hidden="true"></span>
+      Free tool · no sign-up · runs in your browser
+    </p>
+    <h1 class="page-hero__title" data-enter="2">
+      Find where you actually <em class="text-gradient">fit</em>
+    </h1>
+    <p class="page-hero__lede" data-enter="3">
+      Four questions. We rank every destination we cover against real tuition,
+      living costs, intake windows, work rights and post-study rules — and show you
+      the reasoning, not just a verdict.
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container match__layout">
+    <!-- ---------- The form ---------- -->
+    <form class="match-form" data-matcher>
+      <fieldset class="match-field">
+        <legend class="match-field__legend">
+          <span class="match-field__num" aria-hidden="true">01</span>
+          What is your all-in yearly budget?
+        </legend>
+        <p class="match-field__help">Tuition plus living costs, for one year.</p>
+        <div class="match-options">
+          <label class="match-option">
+            <input type="radio" name="budget" value="low" checked>
+            <span class="match-option__body">
+              <span class="match-option__title">Under €12,000</span>
+              <span class="match-option__note">≈ under ₹11 lakh</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="budget" value="mid">
+            <span class="match-option__body">
+              <span class="match-option__title">€12,000–20,000</span>
+              <span class="match-option__note">≈ ₹11–19 lakh</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="budget" value="high">
+            <span class="match-option__body">
+              <span class="match-option__title">€20,000–30,000</span>
+              <span class="match-option__note">≈ ₹19–28 lakh</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="budget" value="open">
+            <span class="match-option__body">
+              <span class="match-option__title">Over €30,000</span>
+              <span class="match-option__note">Budget is flexible</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="match-field">
+        <legend class="match-field__legend">
+          <span class="match-field__num" aria-hidden="true">02</span>
+          When do you want to start?
+        </legend>
+        <div class="match-options">
+          <label class="match-option">
+            <input type="radio" name="intake" value="autumn" checked>
+            <span class="match-option__body">
+              <span class="match-option__title">September–October</span>
+              <span class="match-option__note">The main European intake</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="intake" value="winter">
+            <span class="match-option__body">
+              <span class="match-option__title">January–February</span>
+              <span class="match-option__note">Smaller second intake</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="intake" value="spring">
+            <span class="match-option__body">
+              <span class="match-option__title">April</span>
+              <span class="match-option__note">Germany &amp; Japan</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="intake" value="any">
+            <span class="match-option__body">
+              <span class="match-option__title">I am flexible</span>
+              <span class="match-option__note">Show me everything</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="match-field">
+        <legend class="match-field__legend">
+          <span class="match-field__num" aria-hidden="true">03</span>
+          What matters most to you?
+        </legend>
+        <div class="match-options">
+          <label class="match-option">
+            <input type="radio" name="priority" value="cost" checked>
+            <span class="match-option__body">
+              <span class="match-option__title">Lowest total cost</span>
+              <span class="match-option__note">Keep it affordable</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="priority" value="english">
+            <span class="match-option__body">
+              <span class="match-option__title">Studying in English</span>
+              <span class="match-option__note">No language barrier</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="priority" value="work">
+            <span class="match-option__body">
+              <span class="match-option__title">Working while studying</span>
+              <span class="match-option__note">Part-time hours matter</span>
+            </span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="priority" value="stay">
+            <span class="match-option__body">
+              <span class="match-option__title">Staying after graduation</span>
+              <span class="match-option__note">Post-study work rights</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="match-field">
+        <legend class="match-field__legend">
+          <span class="match-field__num" aria-hidden="true">04</span>
+          Where are you applying from?
+        </legend>
+        <div class="match-options match-options--pair">
+          <label class="match-option">
+            <input type="radio" name="origin" value="india" checked>
+            <span class="match-option__body"><span class="match-option__title">India</span></span>
+          </label>
+          <label class="match-option">
+            <input type="radio" name="origin" value="nepal">
+            <span class="match-option__body"><span class="match-option__title">Nepal</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="match-form__actions">
+        <button class="btn btn--primary btn--lg sheen" type="submit">
+          <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-compass"></use></svg>
+          Show my matches
+        </button>
+        <button class="btn btn--quiet" type="reset">Start over</button>
+      </div>
+
+      <p class="match-form__privacy">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="/assets/img/icons.svg#icon-lock"></use></svg>
+        Everything runs on your device. Nothing is uploaded, saved or shared.
+      </p>
+
+      <!-- Results: hidden until the form is submitted. -->
+      <div class="match-results" data-matcher-results hidden>
+        <h2 class="match-results__title">Your matches</h2>
+        <p class="match-results__summary" role="status" data-matcher-summary></p>
+        <div class="match-results__list" data-matcher-list></div>
+
+        <aside class="match-results__cta glass">
+          <h3>Want a human read on this?</h3>
+          <p>
+            A shortlist is a starting point, not a decision. In a free 30-minute call we
+            pressure-test it against your grades, funding and timing.
+          </p>
+          <a class="btn btn--primary sheen" href="{{ site.whatsapp_href }}">
+            <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+            Book a free consultation
+          </a>
+        </aside>
+      </div>
+    </form>
+
+    <!-- ---------- No-JS fallback: the same facts, unranked ---------- -->
+    <div class="match-fallback" data-matcher-fallback>
+      <h2>Every destination we cover</h2>
+      <p class="match-fallback__note">
+        The matcher needs JavaScript to rank these for you. Here are the same verified
+        facts to compare yourself.
+      </p>
+      <div class="dest-grid">
+        <a class="dest-card lift" href="/destinations/germany/">
+          <span class="dest-card__flag" aria-hidden="true">🇩🇪</span>
+          <h3 class="dest-card__name">Germany</h3>
+          <p class="dest-card__hook">{{ destinations.germany.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.germany.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.germany.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.germany.poststudy }}</dd></div>
+          </dl>
+        </a>
+        <a class="dest-card lift" href="/destinations/france/">
+          <span class="dest-card__flag" aria-hidden="true">🇫🇷</span>
+          <h3 class="dest-card__name">France</h3>
+          <p class="dest-card__hook">{{ destinations.france.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.france.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.france.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.france.poststudy }}</dd></div>
+          </dl>
+        </a>
+        <a class="dest-card lift" href="/destinations/hungary/">
+          <span class="dest-card__flag" aria-hidden="true">🇭🇺</span>
+          <h3 class="dest-card__name">Hungary</h3>
+          <p class="dest-card__hook">{{ destinations.hungary.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.hungary.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.hungary.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.hungary.poststudy }}</dd></div>
+          </dl>
+        </a>
+        <a class="dest-card lift" href="/destinations/ireland/">
+          <span class="dest-card__flag" aria-hidden="true">🇮🇪</span>
+          <h3 class="dest-card__name">Ireland</h3>
+          <p class="dest-card__hook">{{ destinations.ireland.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.ireland.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.ireland.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.ireland.poststudy }}</dd></div>
+          </dl>
+        </a>
+        <a class="dest-card lift" href="/destinations/italy/">
+          <span class="dest-card__flag" aria-hidden="true">🇮🇹</span>
+          <h3 class="dest-card__name">Italy</h3>
+          <p class="dest-card__hook">{{ destinations.italy.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.italy.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.italy.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.italy.poststudy }}</dd></div>
+          </dl>
+        </a>
+        <a class="dest-card lift" href="/destinations/netherlands/">
+          <span class="dest-card__flag" aria-hidden="true">🇳🇱</span>
+          <h3 class="dest-card__name">Netherlands</h3>
+          <p class="dest-card__hook">{{ destinations.netherlands.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.netherlands.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.netherlands.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.netherlands.poststudy }}</dd></div>
+          </dl>
+        </a>
+        <a class="dest-card lift" href="/destinations/japan/">
+          <span class="dest-card__flag" aria-hidden="true">🇯🇵</span>
+          <h3 class="dest-card__name">Japan</h3>
+          <p class="dest-card__hook">{{ destinations.japan.hook }}</p>
+          <dl class="dest-card__facts">
+            <div><dt>Tuition</dt><dd>{{ destinations.japan.tuition }}</dd></div>
+            <div><dt>Living</dt><dd>{{ destinations.japan.living }}</dd></div>
+            <div><dt>After study</dt><dd>{{ destinations.japan.poststudy }}</dd></div>
+          </dl>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section surface--alt">
+  <div class="container">
+    <div class="section__head">
+      <p class="kicker kicker--center">How this works</p>
+      <h2>No black box</h2>
+      <p class="lede">
+        This is a transparent rules engine, not artificial intelligence — and we would
+        rather tell you that than dress it up.
+      </p>
+    </div>
+    <div class="bento" data-reveal-group>
+      <article class="tile bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-layers"></use></svg>
+        </span>
+        <h3 class="tile__title">Same facts as the guides</h3>
+        <p class="tile__body">It compares the exact tuition, living, intake, work and post-study figures published on each destination page.</p>
+      </article>
+      <article class="tile bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-search"></use></svg>
+        </span>
+        <h3 class="tile__title">Shows its reasoning</h3>
+        <p class="tile__body">Every result lists why it ranked where it did — including the cautions against it.</p>
+      </article>
+      <article class="tile bento__item--2">
+        <span class="tile__icon" aria-hidden="true">
+          <svg class="icon"><use href="/assets/img/icons.svg#icon-lock"></use></svg>
+        </span>
+        <h3 class="tile__title">Private by design</h3>
+        <p class="tile__body">No account, no upload, no tracking of your answers. Close the tab and it is gone.</p>
+      </article>
+    </div>
+  </div>
+</section>

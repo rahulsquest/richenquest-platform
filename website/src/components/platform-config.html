@@ -1,0 +1,20 @@
+<!-- component: platform-config — publishes Career Record API configuration to the
+     browser as inert JSON (never executed). Values come from data/platform.json
+     only. An empty base_url keeps the dashboard dormant: it renders a
+     "not configured" state and issues no requests. It never substitutes sample
+     data. See docs/DEPLOYMENT.md. -->
+<script type="application/json" id="rq-platform">
+{
+  "recordApi": {
+    "baseUrl": "{{ platform.record_api.base_url }}",
+    "timeoutMs": "{{ platform.record_api.timeout_ms }}"
+  },
+  "opsApi": {
+    "baseUrl": "{{ platform.ops_api.base_url }}"
+  },
+  "session": {
+    "signInUrl": "{{ platform.session.sign_in_url }}",
+    "warnBeforeExpirySeconds": "{{ platform.session.warn_before_expiry_seconds }}"
+  }
+}
+</script>

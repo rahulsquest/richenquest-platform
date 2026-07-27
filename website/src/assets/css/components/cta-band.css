@@ -25,3 +25,35 @@
 .cta-band__phones a {
   color: var(--color-inverse-ink);
 }
+
+/* Premium surface treatment (redesign 2026-07-25): the band now carries the
+   same aurora + grain language as the homepage night bands. */
+.cta-band {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+
+.cta-band__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-band__title {
+  font-size: var(--text-3xl);
+  letter-spacing: var(--tracking-snug);
+  color: var(--color-inverse-ink);
+  text-wrap: balance;
+}
+
+/* Secondary path for visitors who are not ready to speak to a human yet —
+   the matcher converts them without asking for contact details. */
+.cta-band__alt {
+  font-size: var(--text-sm);
+  color: var(--color-inverse-ink-faint);
+}
+
+.cta-band__alt a {
+  color: var(--brand-cyan);
+  font-weight: var(--weight-semibold);
+}

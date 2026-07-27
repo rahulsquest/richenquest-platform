@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title }}</title>
+<meta name="description" content="{{ page.description }}">
+<!-- Authenticated surface: never indexed, never previewed, no referrer leakage.
+     The session token travels in the URL fragment on first load, so a referrer
+     policy weaker than no-referrer could hand it to a third party. -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b1220">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/css/site.css?v={{ build.hash }}">
+{{ page.cssLink }}
+</head>
+<body class="app">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="app-bar">
+    <div class="app-bar__inner">
+      <a class="app-bar__brand" href="/">
+        <span class="app-bar__mark" aria-hidden="true"></span>
+        <span class="app-bar__name">RichenQuest</span>
+      </a>
+
+      <p class="app-bar__record" data-app="record-badge" hidden>
+        <span class="app-bar__record-label">Record</span>
+        <code class="app-bar__record-id" data-app="subject-id"></code>
+      </p>
+
+      <div class="app-bar__session" data-app="session-box" hidden>
+        <span class="app-bar__expiry" data-app="expiry" aria-live="polite"></span>
+        <button class="btn btn--ghost btn--sm" type="button" data-app="sign-out">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="app-nav" aria-label="Dashboard sections" data-app="nav" hidden>
+    <ul class="app-nav__list">
+      <li><a class="app-nav__link" href="#/timeline" data-app-route="timeline">Timeline</a></li>
+      <li><a class="app-nav__link" href="#/record" data-app-route="record">Record</a></li>
+      <li><a class="app-nav__link" href="#/evidence" data-app-route="evidence">Evidence</a></li>
+      <li>
+        <a class="app-nav__link" href="#/notifications" data-app-route="notifications">
+          Updates <span class="app-nav__count" data-app="unread-count" hidden>0</span>
+        </a>
+      </li>
+      <li><a class="app-nav__link" href="#/profile" data-app-route="profile">Profile</a></li>
+      <li><a class="app-nav__link" href="#/settings" data-app-route="settings">Settings</a></li>
+    </ul>
+  </nav>
+
+  <main id="main" class="app-main">
+{{ page.content }}
+  </main>
+
+  <footer class="app-foot">
+    <p class="app-foot__note">
+      This is your record. Every entry states who wrote it, when, and on what evidence.
+      Corrections are added, never overwritten — nothing here can be quietly edited.
+    </p>
+    <p class="app-foot__links">
+      <a href="/legal/privacy/">Privacy</a> ·
+      <a href="/legal/terms/">Terms</a> ·
+      <a href="/contact/">Get help</a>
+    </p>
+  </footer>
+
+<!-- @include components/platform-config.html -->
+  <script type="module" src="/assets/js/app.js?v={{ build.hash }}"></script>
+</body>
+</html>

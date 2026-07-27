@@ -3,8 +3,16 @@
    Every color, size, space, shadow, and motion value in the UI
    comes from here (File 10 §4). Components never hardcode values.
 
-   PROVISIONAL BRAND: palette pending founder brand assets (R6).
-   Rebranding = editing this file only.
+   BRAND: derived from the RichenQuest Global logo (2026-07-25).
+   The mark runs cyan → blue → violet across a globe-and-arrow;
+   the wordmark carries the same ramp; the italic-serif tagline
+   maps to --font-serif-display. This resolves the provisional
+   palette (R6). Rebranding = editing this file only.
+
+   CONTRAST RULE: --brand-cyan and --brand-sky are DECORATIVE ONLY
+   (gradients, glows, dark-surface accents). They never carry text
+   on light surfaces. Text-safe brand colors: --color-brand (6.3:1),
+   --color-accent violet (7.0:1), --color-ink (13.6:1) on white.
 
    Breakpoints (CSS vars can't be used in @media — use these
    literals, documented here as the only allowed values):
@@ -13,33 +21,72 @@
      ≥ 80em (1280px) — wide
    ============================================================ */
 :root {
-  /* ---------- Color: brand ---------- */
+  /* ---------- Brand ramp (sampled from the logo) ---------- */
+  --brand-cyan: #22d3ee;           /* decorative only — 2.4:1 on white  */
+  --brand-cyan-deep: #06b6d4;      /* decorative / dark-surface accent  */
+  --brand-sky: #3b82f6;            /* decorative mid-gradient stop      */
+  --brand-blue: #2563eb;           /* large text ≥24px only (5.2:1)     */
+  --brand-blue-deep: #1d4ed8;      /* text-safe (6.3:1)                 */
+  --brand-indigo: #4338ca;
+  --brand-violet: #6d28d9;         /* text-safe (7.0:1)                 */
+  --brand-violet-deep: #5b21b6;    /* text-safe (8.6:1)                 */
+
+  /* ---------- Color: brand (semantic aliases) ---------- */
   --color-brand: #1d4ed8;          /* primary actions, links            */
   --color-brand-strong: #1e40af;   /* hover / active                    */
   --color-brand-deep: #1e3a8a;     /* dark bands, emphasis surfaces     */
   --color-brand-soft: #dbe5fb;     /* tinted backgrounds, selected      */
-  --color-accent: #b45309;         /* sparing highlights (AA on white)  */
-  --color-accent-soft: #fdeeda;    /* accent tint background            */
+  --color-accent: #6d28d9;         /* violet — the logo's closing note  */
+  --color-accent-soft: #ede4fd;    /* accent tint background            */
+  --color-accent-strong: #5b21b6;  /* accent hover                      */
+
+  /* ---------- Signature gradients ---------- */
+  /* THE GRADIENT IS A SIGNATURE, NOT A SURFACE (Brand System §3.1).
+     Permitted: the brand mark, a 2px rule, a single primary action, a small
+     focused accent. NOT permitted: full-bleed washes behind content. A brand
+     that gradients everything reads as a 2020s AI startup, not an institution
+     intended to last to 2051.                                          */
+  --gradient-brand: linear-gradient(120deg, #22d3ee 0%, #2563eb 46%, #6d28d9 100%);
+  --gradient-brand-soft: linear-gradient(120deg, #ecfeff 0%, #eff6ff 50%, #f5f3ff 100%);
+  --gradient-brand-vivid: linear-gradient(120deg, #06b6d4 0%, #3b82f6 40%, #6d28d9 92%);
+  /* Deep premium band — the "night" surface behind heroes/CTAs.       */
+  --gradient-hero: linear-gradient(155deg, #070c1a 0%, #0f1b3d 42%, #241a5c 78%, #3b1f6b 100%);
+  --gradient-ink: linear-gradient(160deg, #0b1226 0%, #16233a 100%);
+  /* Aurora blooms layered behind dark surfaces (see .aurora).         */
+  --gradient-aurora-1: radial-gradient(closest-side, rgb(34 211 238 / 0.55), transparent);
+  --gradient-aurora-2: radial-gradient(closest-side, rgb(109 40 217 / 0.55), transparent);
+  --gradient-aurora-3: radial-gradient(closest-side, rgb(37 99 235 / 0.45), transparent);
+  --color-hero-accent: #93b4f8;    /* serif accent word on dark         */
 
   /* ---------- Color: neutrals ---------- */
-  --color-ink: #16233a;            /* headings, primary text            */
+  --color-ink: #111827;            /* headings, primary text (16.1:1)   */
   --color-ink-soft: #46536e;       /* secondary text (≥4.5:1 on white)  */
   --color-ink-faint: #6b7691;      /* placeholders, disabled text       */
   --color-surface: #ffffff;
-  --color-surface-alt: #f3f6fb;    /* alternate section background      */
+  /* Near-neutral, deliberately: a blue-tinted "alt" surface tints the whole
+     site and reads as tech-startup rather than calm (Brand System §3.2).  */
+  --color-surface-alt: #f5f6f8;    /* alternate section background      */
   --color-surface-sunken: #e9edf5; /* wells, pressed states             */
+  --color-surface-tint: #f5f3ff;   /* violet-tinted premium well        */
   --color-border: #d8dfeb;
-  --color-border-strong: #aeb9cf;  /* form control borders (3:1 contrast) */
+  --color-border-soft: #e7ecf4;    /* hairlines on light surfaces       */
+  --color-border-strong: #aeb9cf;  /* form control borders (3:1)        */
 
   /* ---------- Color: inverse (dark bands, footer) ---------- */
-  --color-inverse-surface: #16233a;
+  --color-inverse-surface: #0b1226;
+  --color-inverse-raised: #16233a;
   --color-inverse-ink: #ffffff;
   --color-inverse-ink-soft: #c4cede;
-  --color-inverse-border: rgb(255 255 255 / 0.15);
+  --color-inverse-ink-faint: #8e9ab4;
+  --color-inverse-border: rgb(255 255 255 / 0.14);
 
-  /* ---------- Hero (premium dark, from legacy visual language) ---------- */
-  --gradient-hero: linear-gradient(135deg, #101a30 0%, #1e3a8a 60%, #3f3d9e 100%);
-  --color-hero-accent: #93b4f8; /* serif accent word on dark */
+  /* ---------- Glass (glassmorphism, used sparingly) ---------- */
+  --glass-light-bg: rgb(255 255 255 / 0.72);
+  --glass-light-border: rgb(255 255 255 / 0.85);
+  --glass-dark-bg: rgb(255 255 255 / 0.06);
+  --glass-dark-border: rgb(255 255 255 / 0.14);
+  --glass-blur: 16px;
+  --glass-blur-strong: 28px;
 
   /* ---------- Color: semantic ---------- */
   --color-success: #166534;
@@ -53,29 +100,38 @@
   --color-focus: #1d4ed8;
 
   /* ---------- Typography ---------- */
-  /* System stacks (zero webfont bytes). Serif display carries the premium
-     accent inherited from the legacy brand (File 12 KEEP verdict). */
+  /* System stacks (zero webfont bytes — a deliberate call for an
+     audience that is 66–80% mid-range Android, ADR-001). Modern
+     system UI is Roboto/SF Pro: genuinely premium at 0 KB. The
+     premium read comes from SCALE, tracking and rhythm below.        */
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
   --font-serif-display: "Charter", "Iowan Old Style", "Palatino", Georgia, Cambria, serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
-  --text-2xl: clamp(1.5rem, 1.2rem + 1.6vw, 2rem);
-  --text-3xl: clamp(1.9rem, 1.4rem + 2.6vw, 2.75rem);
-  --text-display: clamp(2.2rem, 1.5rem + 3.6vw, 3.5rem);
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.6vw, 2.05rem);
+  --text-3xl: clamp(1.9rem, 1.4rem + 2.2vw, 2.6rem);
+  /* Display type tops out at ~3.5rem on purpose. Larger is shouting, and
+     shouting is not calm (Brand System §3.3).                          */
+  --text-display: clamp(2.2rem, 1.5rem + 3vw, 3.15rem);
+  --text-hero: clamp(2.4rem, 1.6rem + 3.6vw, 3.5rem);  /* flagship only */
 
-  --leading-tight: 1.2;
-  --leading-snug: 1.4;
-  --leading-body: 1.6;
+  --leading-tight: 1.08;           /* display headlines                 */
+  --leading-snug: 1.28;
+  --leading-body: 1.65;
 
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
+  --weight-black: 800;
 
+  --tracking-tight: -0.022em;      /* display headlines — optical fix   */
+  --tracking-snug: -0.012em;       /* large headings                    */
   --tracking-wide: 0.08em;         /* kickers, uppercase labels         */
 
   /* ---------- Spacing: 4px base scale ---------- */
@@ -88,24 +144,44 @@
   --space-8: 3rem;
   --space-10: 4rem;
   --space-12: 6rem;
+  --space-16: 8rem;                /* luxury section rhythm             */
+  --space-20: 11rem;               /* flagship breathing room           */
+
+  /* Section rhythm — large whitespace is the core premium signal.     */
+  --section-y: clamp(4rem, 3rem + 6vw, 8.5rem);
+  --section-y-tight: clamp(2.5rem, 2rem + 3vw, 4.5rem);
 
   /* ---------- Shape ---------- */
   --radius-sm: 0.375rem;           /* buttons, inputs                   */
   --radius-md: 0.75rem;            /* cards                             */
   --radius-lg: 1.25rem;            /* feature panels                    */
+  --radius-xl: 1.75rem;            /* hero panels, bento tiles          */
+  --radius-2xl: 2.5rem;            /* showcase surfaces                 */
   --radius-full: 999px;            /* pills, badges                     */
 
-  /* ---------- Elevation ---------- */
+  /* ---------- Elevation (brand-tinted, not neutral grey) ---------- */
   --shadow-sm: 0 1px 2px rgb(22 35 58 / 0.08);
   --shadow-md: 0 4px 16px rgb(22 35 58 / 0.10);
   --shadow-lg: 0 12px 32px rgb(22 35 58 / 0.14);
+  --shadow-xl: 0 24px 60px -12px rgb(15 27 61 / 0.28);
+  --shadow-float: 0 32px 80px -20px rgb(15 27 61 / 0.35);
+  --shadow-inset-hairline: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  /* Coloured glow. RESTRICTED: at most one element per page, and only where
+     it marks the single primary action. Glow used decoratively is the fastest
+     way to look flashy (Brand System §3.1).                            */
+  --glow-brand: 0 12px 32px -14px rgb(37 99 235 / 0.4);
 
-  /* ---------- Motion (see styleguide: Animation guidelines) ---------- */
+  /* ---------- Motion ---------- */
+  /* ease-out for entrances; spring for playful micro-interactions.    */
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 150ms;          /* hovers, toggles                   */
   --duration-base: 200ms;          /* most transitions                  */
   --duration-slow: 300ms;          /* panels, reveals                   */
+  --duration-slower: 600ms;        /* scroll reveals, hero entrances    */
+  --duration-ambient: 24s;         /* background drift, aurora          */
 
   /* ---------- Layers ---------- */
   --z-header: 10;
@@ -114,7 +190,14 @@
   --z-overlay: 40;
 
   /* ---------- Layout ---------- */
-  --container-max: 72rem;
+  --container-max: 75rem;
+  --container-wide: 84rem;         /* showcase / bento sections         */
   --container-narrow: 46rem;       /* prose-heavy pages                 */
   --container-pad: var(--space-4);
+}
+
+@media (min-width: 40em) {
+  :root {
+    --container-pad: var(--space-6);
+  }
 }

@@ -1,0 +1,92 @@
+<!--meta
+title: Your Career Record | RichenQuest
+description: Your Career Record — every recommendation, document and decision, with its evidence and its author.
+layout: app
+sitemap: false
+-->
+<!-- Student Dashboard.
+
+     Every panel below is filled from the Career Record API at runtime
+     (functions/record/api/endpoints.mjs). There is no sample content in this
+     file and no fallback dataset in the client: if the API is unreachable, the
+     dashboard says so. A record is never simulated, because a record a student
+     cannot trust is worse than no dashboard at all.
+
+     Views are rendered client-side into [data-app-view] containers. Markup that
+     ships in the HTML is limited to the gate states, which must work before any
+     script has decided anything. -->
+
+<!-- ── gate: API origin not configured ────────────────────────────────────── -->
+<section class="app-gate" data-app="gate-unconfigured" hidden>
+  <div class="app-gate__card">
+    <h1 class="app-gate__title">The dashboard is not connected yet</h1>
+    <p class="app-gate__text">
+      The Career Record service has no address configured for this build, so there is
+      nothing to read from. This is a deployment setting, not a problem with your record.
+    </p>
+    <p class="app-gate__text app-gate__text--muted">
+      If you are running this site: set <code>record_api.base_url</code> in
+      <code>website/src/data/platform.json</code> and rebuild.
+    </p>
+    <p><a class="btn btn--primary" href="/contact/">Contact us</a></p>
+  </div>
+</section>
+
+<!-- ── gate: no session ───────────────────────────────────────────────────── -->
+<section class="app-gate" data-app="gate-signin" hidden>
+  <div class="app-gate__card">
+    <h1 class="app-gate__title">Sign in to your record</h1>
+    <p class="app-gate__text" data-app="signin-reason">
+      Your record is private. Open the secure link we sent you to view it.
+    </p>
+    <p class="app-gate__text app-gate__text--muted">
+      Links are single-use and short-lived. We do not hold a password for you —
+      there is no password to lose, and none for anyone else to steal.
+    </p>
+    <p><a class="btn btn--primary" data-app="signin-link" href="/contact/">Request a new link</a></p>
+  </div>
+</section>
+
+<!-- ── gate: something failed ─────────────────────────────────────────────── -->
+<section class="app-gate" data-app="gate-error" hidden>
+  <div class="app-gate__card">
+    <h1 class="app-gate__title">We could not load your record</h1>
+    <p class="app-gate__text" data-app="gate-error-message"></p>
+    <p class="app-gate__text app-gate__text--muted">
+      Nothing has been changed. Your record is unaffected by this error.
+    </p>
+    <p>
+      <button class="btn btn--primary" type="button" data-app="retry">Try again</button>
+      <a class="btn btn--ghost" href="/contact/">Get help</a>
+    </p>
+  </div>
+</section>
+
+<!-- ── the app ────────────────────────────────────────────────────────────── -->
+<div class="app-shell" data-app="shell" hidden>
+  <p class="app-loading" data-app="loading" role="status">Loading your record…</p>
+
+  <section class="app-view" data-app-view="timeline" hidden aria-labelledby="view-timeline-title"></section>
+  <section class="app-view" data-app-view="record" hidden aria-labelledby="view-record-title"></section>
+  <section class="app-view" data-app-view="evidence" hidden aria-labelledby="view-evidence-title"></section>
+  <section class="app-view" data-app-view="notifications" hidden aria-labelledby="view-notifications-title"></section>
+  <section class="app-view" data-app-view="profile" hidden aria-labelledby="view-profile-title"></section>
+  <section class="app-view" data-app-view="settings" hidden aria-labelledby="view-settings-title"></section>
+</div>
+
+<!-- Live region for action results (consent changes, acknowledgements, exports). -->
+<p class="app-toast" data-app="toast" role="status" aria-live="polite" hidden></p>
+
+<noscript>
+  <section class="app-gate">
+    <div class="app-gate__card">
+      <h1 class="app-gate__title">Your record needs JavaScript</h1>
+      <p class="app-gate__text">
+        Your record is fetched from a protected service when you open it, rather than
+        published into this page — so it cannot be shown without scripting enabled.
+        You can still ask us for a copy of everything we hold.
+      </p>
+      <p><a class="btn btn--primary" href="/contact/">Request your record by email</a></p>
+    </div>
+  </section>
+</noscript>

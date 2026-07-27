@@ -1,0 +1,20 @@
+<!-- component: integrations-config — publishes Zoho configuration to the browser
+     as inert JSON (never executed). Values come from data/integrations.json only.
+     Empty values keep every integration dormant, with real-workflow fallbacks
+     (WhatsApp/phone/email) staying active. See docs/14-zoho-integration.md. -->
+<script type="application/json" id="rq-integrations">
+{
+  "forms": {
+    "consultationUrl": "{{ integrations.forms.consultation_url }}",
+    "height": "{{ integrations.forms.height }}"
+  },
+  "bookings": {
+    "consultationUrl": "{{ integrations.bookings.consultation_url }}",
+    "height": "{{ integrations.bookings.height }}"
+  },
+  "salesiq": {
+    "widgetCode": "{{ integrations.salesiq.widget_code }}",
+    "domain": "{{ integrations.salesiq.domain }}"
+  }
+}
+</script>

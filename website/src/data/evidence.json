@@ -1,0 +1,103 @@
+{
+  "_rules": "THE EVIDENCE REGISTER — the machine-readable source of truth for every figure RichenQuest publishes anywhere. Constitution Article 6.3 ('we state publicly only what we can produce records for') is enforced from this file rather than remembered. Interface-agnostic on purpose: the website build renders provenance marks from it today; the student dashboard, CRM and partner portal read the same entries later, so a figure means the same thing in every interface. Adding an entry requires a real basis. Changing a value requires re-verification and a new verified_on date. Nothing is deleted — retired claims keep their history (Constitution 33.5).",
+
+  "_status_values": {
+    "verified": "A record exists and has been checked. Renders with a solid provenance mark.",
+    "unverified": "Published, but we cannot currently produce the record. Renders with a dashed mark and is listed as unverified on /standards/. This state is deliberately uncomfortable — it should be resolved or the claim withdrawn.",
+    "retired": "No longer published. Kept for history; never rendered."
+  },
+
+  "_review_policy": "Every entry carries review_by. A figure past its review date is stale and must be re-verified or withdrawn (Constitution 21.2).",
+
+  "claims": {
+    "students-guided": {
+      "value": "1,000+",
+      "statement": "students guided since 2024",
+      "status": "verified",
+      "basis": "Founder-confirmed internal counselling records, reviewed 2026-07-19. Approved for public use as an inclusive figure; the permitted verbs are guided, supported or assisted — never placed (docs/08 claim 2b).",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2027-01-19"
+    },
+
+    "verified-placements": {
+      "value": "15",
+      "statement": "placements with complete verified records",
+      "status": "verified",
+      "basis": "Individually verifiable placement records held by the company. This is deliberately far smaller than the number of people guided: it counts only files where every document is on hand. Records available on request.",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2027-01-19"
+    },
+
+    "operating-since": {
+      "value": "2024",
+      "statement": "the year the team began working in international education",
+      "status": "verified",
+      "basis": "Team active in international education from 2024 under earlier business operations; RichenQuest Private Limited incorporated January 2026.",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2027-07-19"
+    },
+
+    "incorporated": {
+      "value": "January 2026",
+      "statement": "RichenQuest Private Limited incorporated",
+      "status": "verified",
+      "basis": "Certificate of incorporation, Ministry of Corporate Affairs, India.",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2028-01-19"
+    },
+
+    "destinations-covered": {
+      "value": "33",
+      "statement": "study destinations we advise on",
+      "status": "unverified",
+      "basis": "NO RECORD LOCATED. This figure has been published on the homepage since the RC-1 cut with no entry in the claims library and no basis recorded in docs/08. Surfaced by the Evidence Register on 2026-07-25. Until a documented list of the 33 destinations exists — with the depth of coverage we can actually provide for each — this renders as unverified. Resolve by producing the list, or withdraw the figure and publish the number we can evidence (7 destination guides are currently published).",
+      "verified_by": null,
+      "verified_on": null,
+      "review_by": "2026-08-25"
+    },
+
+    "destination-guides-published": {
+      "value": "7",
+      "statement": "destination guides published with full cost, intake and post-study data",
+      "status": "verified",
+      "basis": "Directly countable from the published site: Germany, France, Ireland, Italy, Netherlands, Hungary and Japan each have a guide carrying tuition, living cost, intake, work-rights and post-study figures. Enforced in CI by scripts/validate-matcher-data.mjs, which fails the build if these diverge from the matcher's data.",
+      "verified_by": "Build (scripts/validate-matcher-data.mjs)",
+      "verified_on": "2026-07-25",
+      "review_by": "2027-07-25"
+    },
+
+    "counsellor-countries": {
+      "value": "India · Italy",
+      "statement": "countries with counsellors on the ground",
+      "status": "verified",
+      "basis": "The team operates from India and Italy; the founder is based in Italy. Both contact numbers are published and answered.",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2027-01-19"
+    },
+
+    "document-check": {
+      "value": "Two-check",
+      "statement": "every document is reviewed by two people before it is submitted",
+      "status": "verified",
+      "basis": "Standing internal operating procedure. Stated as a commitment we hold ourselves to, not as a measured outcome.",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2027-01-19"
+    },
+
+    "standard-package-fee": {
+      "value": "₹1,80,000",
+      "statement": "standard package fee, varying by destination and scope",
+      "status": "verified",
+      "basis": "Published price list. Constitution 19.3 requires the price charged to individuals to be public and stated in full, including what it excludes.",
+      "verified_by": "Founder",
+      "verified_on": "2026-07-19",
+      "review_by": "2027-01-19"
+    }
+  }
+}

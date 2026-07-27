@@ -1,0 +1,282 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Authenticated application shell — shared chrome.
+
+   Used by BOTH authenticated surfaces: the Student Dashboard (/dashboard/) and
+   the Founder Operations console (/console/). It lives in components/ rather
+   than in either page's stylesheet because it belongs to neither — when it sat
+   in pages/dashboard.css, the console rendered completely unstyled, since a page
+   stylesheet is linked only on its own page.
+
+   Contains the frame only: top bar, section nav, main column, gate cards, toast
+   and footer. Anything specific to one surface stays in that surface's page CSS.
+
+   Built entirely on the shared tokens — no new colours, no new type scale.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The `hidden` attribute must always win.
+
+   Both authenticated surfaces drive every gate, view and panel by toggling
+   `hidden` from JavaScript. But `[hidden]` and a class selector have the SAME
+   specificity, so any rule that sets `display` on such an element — `.app-gate {
+   display: flex }` below, for one — silently defeats it purely by coming later in
+   the cascade. The symptom is a gate that renders while the code believes it is
+   hidden, which is how a console shows "not connected" and a working dashboard at
+   the same time. Stated once here rather than remembered at every rule. */
+[hidden] {
+  display: none !important;
+}
+
+.app {
+  background: var(--color-surface-alt);
+  color: var(--color-ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── top bar ──────────────────────────────────────────────────────────────── */
+
+.app-bar {
+  background: var(--gradient-ink);
+  color: var(--color-inverse-ink);
+  border-bottom: 1px solid var(--color-inverse-border);
+}
+
+.app-bar__inner {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.app-bar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.app-bar__mark {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand-vivid);
+  flex: none;
+}
+
+.app-bar__record {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-inverse-ink-soft);
+}
+
+.app-bar__record-id {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-inverse-ink);
+}
+
+.app-bar__session {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-bar__expiry {
+  font-size: var(--text-xs);
+  color: var(--color-inverse-ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.app-bar__expiry.is-warning {
+  color: #fdd7a5;
+  font-weight: 600;
+}
+
+/* ── section nav ──────────────────────────────────────────────────────────── */
+
+.app-nav {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-soft);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-nav__list {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  gap: var(--space-1);
+  list-style: none;
+  overflow-x: auto;
+}
+
+.app-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
+  min-height: 44px;
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  font-weight: 550;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.app-nav__link:hover {
+  color: var(--color-ink);
+}
+
+.app-nav__link.is-current {
+  color: var(--color-brand);
+  border-bottom-color: var(--color-brand);
+}
+
+.app-nav__count {
+  min-width: 1.25rem;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--color-brand);
+  color: #fff;
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* ── main ─────────────────────────────────────────────────────────────────── */
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+}
+/* ── gates ────────────────────────────────────────────────────────────────── */
+
+.app-gate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-4);
+}
+
+.app-gate__card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  max-width: 34rem;
+  text-align: center;
+}
+
+.app-gate__title { font-size: var(--text-xl); margin: 0 0 var(--space-3); }
+.app-gate__text { margin: 0 0 var(--space-3); color: var(--color-ink-soft); }
+.app-gate__text--muted { font-size: var(--text-sm); color: var(--color-ink-faint); }
+
+/* ── toast ────────────────────────────────────────────────────────────────── */
+
+.app-toast {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline: var(--space-4);
+  margin-inline: auto;
+  max-width: 32rem;
+  background: var(--color-inverse-surface);
+  color: var(--color-inverse-ink);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  text-align: center;
+  z-index: 50;
+}
+
+.app-toast--error { background: var(--color-danger); }
+
+/* ── footer ───────────────────────────────────────────────────────────────── */
+
+.app-foot {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+  border-top: 1px solid var(--color-border-soft);
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.app-foot__note { margin: 0 0 var(--space-2); max-width: 70ch; }
+.app-foot__links { margin: 0; }
+
+/* ── motion ───────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .app * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+.motion-reduced .app * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* ── narrow screens ───────────────────────────────────────────────────────── */
+
+@media (max-width: 40rem) {
+  .app-data__row,
+  .entry__decision {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+
+  .app-bar__session { margin-inline-start: 0; width: 100%; justify-content: space-between; }
+  .entry { padding: var(--space-4); }
+}
+
+/* ── definition rows ──────────────────────────────────────────────────────── */
+/* Produced by the shared dataRow() helper in app/dom.js, so used by BOTH
+   surfaces — the student's profile panels and the console's analytics breakdowns.
+   Left in pages/dashboard.css it silently stacked into single columns on the
+   console, because a page stylesheet is linked only on its own page. */
+
+.app-data {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.app-data__row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.app-data__label {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.app-data__value {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.app-data__value--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}

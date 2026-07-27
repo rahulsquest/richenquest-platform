@@ -13,7 +13,66 @@ sitemap: false
     <p class="kicker">RichenQuest design system</p>
     <h1>Style guide</h1>
     <p class="lede">The single reference for tokens and components. If a pattern isn't here, it doesn't exist yet — add it here in the same PR that introduces it.</p>
-    <p class="sg-note">Palette and type are provisional pending brand assets (File 09 R6): rebranding edits <code>tokens.css</code> only. Sample content on this page is layout demonstration, not company claims.</p>
+    <p class="sg-note">Brand resolved from the logo (Brand System §3.2); rebranding still edits <code>tokens.css</code> only. Full rules: <code>docs/22-brand-system.md</code> and <code>docs/23-design-system.md</code>. Sample content on this page is layout demonstration, not company claims.</p>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-signature">
+    <hr class="rule">
+    <h2 id="sg-signature">Signature language — the Record</h2>
+    <p class="lede">Five elements. These are what make a page recognisably RichenQuest with the logo removed. Everything else in this guide is plumbing and should stay unremarkable.</p>
+    <p class="sg-note">Banned permanently, because they belong to everyone: gradient surfaces, glass cards, coloured glows, orbit graphics, world maps, floating blobs, isometric people, “AI aesthetics”. See <code>docs/23-design-system.md</code> §1.1.</p>
+
+    <h3>1 · The Rule</h3>
+    <p>A hairline whose first 2.5rem carries the brand ramp — the smallest possible expression of the logo. One per visual group.</p>
+    <hr class="rule">
+    <p class="sg-note">Centred variant for centred section heads:</p>
+    <hr class="rule rule--center">
+
+    <h3>2 · The Provenance Mark</h3>
+    <p>Every published figure carries a link to its evidence. <strong>If a number cannot take a provenance mark, it may not be published.</strong></p>
+    <p>
+      <span class="fact">1,000+<a class="fact__src" href="/about/"><span class="visually-hidden">Source for this figure</span></a></span>
+      students guided since 2024 — and an example of a figure we cannot yet fully evidence:
+      <span class="fact fact--unverified">15<a class="fact__src" href="/about/"><span class="visually-hidden">Verification status for this figure</span></a></span>
+      verified placements.
+    </p>
+
+    <h3>3 · The Ledger</h3>
+    <p>Comparable facts as a record: label left, value right, dotted leader between, tabular numerals.</p>
+    <dl class="ledger">
+      <div class="ledger__row">
+        <dt class="ledger__label">Tuition</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value">€0–3,000/yr</dd>
+      </div>
+      <div class="ledger__row">
+        <dt class="ledger__label">Living costs</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value">€850–1,200/mo</dd>
+      </div>
+      <div class="ledger__row">
+        <dt class="ledger__label">Main intake</dt>
+        <span class="ledger__leader" aria-hidden="true"></span>
+        <dd class="ledger__value ledger__value--muted">October</dd>
+      </div>
+    </dl>
+
+    <h3>4 · The Separation</h3>
+    <p>Article 5.2 made visible. The gap is the message — it is never closed, softened, or crossed by an arrow. Demonstrated at full scale in the diagram below.</p>
+
+    <h3>5 · Marginalia</h3>
+    <p>Where uncertainty lives. The serif voice, used only here and in pull-quotes.</p>
+    <p class="note">We have not yet measured five-year outcomes for students placed before 2026. When we have, the figure will appear here whatever it says.</p>
+    <p class="note note--uncertain">We do not know how the 2027 intake rules will change in two of our destinations. We will publish them once the ministries do.</p>
+  </section>
+
+  <section class="sg-section stack" aria-labelledby="sg-independence">
+    <hr class="rule">
+    <h2 id="sg-independence">The Independence Diagram</h2>
+    <p class="lede">Treated with the same seriousness as the logo. One job: make Constitution Article 5 understandable in under fifteen seconds.</p>
+    <p class="sg-note">HTML, not a flat image — the decision path is genuinely an ordered list, so it reads correctly with CSS disabled, reflows on a phone, and stays translatable. The brand ramp appears on exactly two nodes: emphasis by exception.</p>
+
+<!-- @include components/diagram-independence.html -->
   </section>
 
   <section class="sg-section stack" aria-labelledby="sg-color">
@@ -153,7 +212,7 @@ sitemap: false
           <span>I agree to be contacted about my inquiry. Consent language finalized with the privacy policy in M2.</span>
         </label>
         <div class="form-actions">
-          <button class="btn btn--primary" type="button">Submit (demo)</button>
+          <button class="btn btn--primary" type="submit">Submit (demo)</button>
           <button class="btn btn--quiet" type="button">Cancel</button>
         </div>
       </fieldset>
@@ -211,7 +270,7 @@ sitemap: false
     <div class="grid--3">
       <div class="stat-tile"><span class="stat-tile__value">{{ claims.company.team_active_since }}</span><span class="stat-tile__label">counseling students since</span></div>
       <div class="stat-tile"><span class="stat-tile__value">{{ claims.students.verified_placements }}</span><span class="stat-tile__label">verified placement records</span></div>
-      <div class="stat-tile"><span class="stat-tile__value">{{ claims.team.core_full_time }}</span><span class="stat-tile__label">full-time core team members</span></div>
+      <div class="stat-tile"><span class="stat-tile__value">India · Italy</span><span class="stat-tile__label">team on the ground</span></div>
     </div>
   </section>
 

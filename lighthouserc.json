@@ -1,6 +1,7 @@
 {
   "ci": {
     "collect": {
+      "_why_three_runs": "The performance score is a MEASUREMENT of execution on the runner, not a property of the bytes. At numberOfRuns=1 a single noisy sample IS the result: on 2026-07-27 an unchanged site (build hash b0190ed6, zero website files touched across 8 commits) scored >=0.90 six times and 0.87 once, failing CI. TBT is 30% of the score and LCP 25%, and both inflate under CPU contention on a shared runner. Three runs let the median discard one outlier. Every threshold is deliberately UNCHANGED — this makes the gate measure the site rather than the weather.",
       "staticDistDir": "./website/dist",
       "url": [
         "http://localhost/index.html",
@@ -8,7 +9,7 @@
         "http://localhost/services/index.html",
         "http://localhost/contact/index.html"
       ],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
         "emulatedFormFactor": "mobile",
@@ -16,6 +17,8 @@
       }
     },
     "assert": {
+      "_why_median": "Explicit rather than assumed: assert on the median of the three runs, so one stalled run cannot fail the build and one lucky run cannot hide a real regression.",
+      "aggregationMethod": "median",
       "assertions": {
         "categories:performance": ["error", { "minScore": 0.9 }],
         "categories:accessibility": ["error", { "minScore": 0.9 }],

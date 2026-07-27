@@ -15,18 +15,139 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
+      # Runtime dependencies for functions/**. The Record API entrypoint loads
+      # `pg` with a dynamic import() resolved by walking up from its own
+      # directory, so functions/node_modules must exist before anything imports
+      # it. Declared once in functions/package.json — see that file.
+      - name: Install functions runtime dependencies
+        run: npm --prefix functions ci
+
       - name: Build site
         run: node website/build.mjs
 
       - name: Claims guard (Verified Claims Library — docs/08, ADR-005)
         run: node scripts/claims-guard.mjs
 
+      # Is this how RichenQuest SPEAKS? (claims-guard asks whether it is TRUE.)
+      # Brand System §2.2, enforced per Constitution Article 11.2.
+      - name: Voice guard (Brand System vocabulary)
+        run: node scripts/voice-guard.mjs
+
+      # TRUST INFRASTRUCTURE. claims-guard is a deny-list and cannot catch a
+      # figure nobody thought to ban — which is how an unsourced "33
+      # destinations" sat on the homepage from the RC-1 cut. This inverts it:
+      # every headline figure must be able to produce its evidence, every
+      # provenance mark must resolve to a real entry, and no claim may be past
+      # its review date (Constitution 6.3, 21.2).
+      - name: Evidence guard (every figure can produce its record)
+        run: node scripts/evidence-guard.mjs
+
+      # A recommendation must never render without its disclosure (Article 5.4).
+      - name: Disclosure register in sync with the matcher
+        run: node scripts/validate-disclosure-data.mjs
+
+      # Guard + build-tool unit tests. The CSS minifier is covered here because
+      # a malformed value (e.g. a clamp() whose "+" lost its spaces) is silently
+      # discarded by browsers — structure checks cannot catch it.
+      # The website/*.test.mjs glob also picks up dashboard.test.mjs, which covers
+      # the Student Dashboard's session handling, API contract and derivations.
+      - name: Guard, build and dashboard unit tests
+        run: node --test "scripts/**/*.test.mjs" "website/*.test.mjs"
+
       - name: Internal link & asset check
         run: node scripts/check-links.mjs
 
+      # Server-side Zoho integration layer isn't part of the site build; syntax-
+      # check it so broken function code never lands (integration, File 14).
+      - name: Syntax-check serverless functions
+        run: find functions -name "*.mjs" -print0 | xargs -0 -n1 node --check
+
+      # Functional tests for the Zoho automation layer (Quality Gate: Functional Testing).
+      - name: Test serverless functions
+        run: node --test "functions/**/*.test.mjs"
+
+      # Career Record API over a real HTTP transport (node:http on an ephemeral
+      # port) — headers, body parsing, status codes, pipeline execution.
+      - name: API integration tests
+        run: node --test "functions/record/api/integration.test.mjs"
+
+      # Founder Operations API over a real HTTP transport. Runs separately from the
+      # glob above so a failure here is attributed to the operations platform
+      # rather than lost among 300+ unit tests.
+      - name: Operations API integration tests
+        run: node --test "functions/ops/api/integration.test.mjs"
+
+      # Configuration Validation quality gate (Execution Lock v1.0): tenant
+      # config must satisfy the CRM/automation invariants before it drives a build.
+      - name: Validate tenant configuration
+        run: node scripts/validate-config.mjs
+
+      # CRM schema/pipeline config must stay internally consistent (AM0.4).
+      # Live CRM verification is NOT run in CI (needs org credentials) — run
+      # `node --env-file=.env functions/zoho/verify-crm.mjs` locally instead.
+      - name: Validate CRM schema + pipeline config
+        run: node scripts/validate-crm-schema.mjs
+
+      # Event-subscription config (ADR-006). Guards the renewal-vs-expiry
+      # invariant: a misconfiguration there stops automation SILENTLY.
+      - name: Validate automation event subscriptions
+        run: node scripts/validate-automation-events.mjs
+
+      # The destination matcher ranks students on facts inlined in matcher.js.
+      # This fails the build if they drift from src/data/destinations/*.json,
+      # so a corrected tuition figure can never leave the tool ranking on
+      # stale data while the published guide says something else.
+      - name: Validate matcher data is in sync
+        run: node scripts/validate-matcher-data.mjs
+
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
+      # Rules are configured in .htmlvalidate.json. Only two are disabled and both
+      # are conventions (lowercase doctype, non-breaking spaces in phone numbers);
+      # every correctness error is fixed in source instead. The reasoning cannot
+      # live in that file — its schema rejects unknown keys and it is parsed as
+      # strict JSON, so it takes no comments. See docs/DECISIONS.md § D26.
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"
 
+      # Three runs per URL, asserted on the MEDIAN — see lighthouserc.json for why.
+      # Thresholds are unchanged; only the sampling is.
       - name: Lighthouse CI (budgets in lighthouserc.json)
         run: npx --yes @lhci/cli@0.14.0 autorun
+
+      # lhci prints scores only when an assertion FAILS, so a green build records
+      # nothing about how close it came. This prints every run's score and the
+      # median from the reports lhci already wrote — no extra Lighthouse runs.
+      # `always()` because the numbers matter most on the build that failed.
+      - name: Lighthouse scores (all runs, for trend)
+        if: always()
+        run: node scripts/lighthouse-report.mjs
+
+  # Real-PostgreSQL integration, in its own job so the fast gate above stays fast.
+  # embedded-postgres provisions an official postgres binary, so this needs no
+  # hosted database and no service container. Confined to db/test/ with its own
+  # lockfile, which is why the website's zero-dependency guarantee (ADR-002) is
+  # unaffected.
+  #
+  # Covers: the PostgreSQL event-store adapter, the migration runner and startup
+  # gate, and the Student Portal end-to-end against the real API over real HTTP.
+  database-and-portal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      # These suites import functions/** — including the Record API entrypoint,
+      # which resolves `pg` from functions/node_modules. Both installs are
+      # required, and they own different things: db/test holds test-only tooling
+      # (D21), functions/ holds what actually ships.
+      - name: Install functions runtime dependencies
+        run: npm --prefix functions ci
+
+      - name: Install the test-only workspace
+        run: npm --prefix db/test ci
+
+      - name: Integration tests against a real PostgreSQL server
+        run: npm --prefix db/test test

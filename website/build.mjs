@@ -114,22 +114,215 @@ function routeFor(relPage) {
   return { url: `/${base}/`, out: `${base}/index.html`, inSitemap: true };
 }
 
-/** Concatenate CSS in cascade order: tokens → base → components/* → pages/* (File 10 §4). */
+/**
+ * Minify CSS — comment stripping + whitespace collapsing, nothing clever.
+ *
+ * Why this exists: the source stylesheets are heavily commented on purpose (the
+ * comments are the design system's documentation), but those bytes have no
+ * business on a mid-range Android over 4G. Stripping them keeps the source
+ * readable AND the payload small — and it keeps us inside the stylesheet budget
+ * asserted in lighthouserc.json.
+ *
+ * Deliberately conservative (ADR-002: build features stay auditable):
+ *   · quote- and url()-aware, so comment-like or space-significant sequences
+ *     inside strings and data URIs are never touched;
+ *   · collapses whitespace runs and trims it around structural punctuation;
+ *   · does NOT reorder, merge, rename, or drop any declaration.
+ */
+export function minifyCss(css) {
+  let out = "";
+  let i = 0;
+  while (i < css.length) {
+    const c = css[i];
+
+    // Strings — copied verbatim, including any /* */ inside them.
+    if (c === '"' || c === "'") {
+      const quote = c;
+      let j = i + 1;
+      while (j < css.length && !(css[j] === quote && css[j - 1] !== "\\")) j++;
+      out += css.slice(i, j + 1);
+      i = j + 1;
+      continue;
+    }
+
+    // url(...) — may hold a data URI whose spaces are significant AND which can
+    // itself contain ")" (e.g. an inline SVG filter referencing url(#n)). So a
+    // quoted URL is scanned to its closing quote first, never to the first ")".
+    if (css.startsWith("url(", i)) {
+      const q = css[i + 4];
+      let end;
+      if (q === '"' || q === "'") {
+        let j = i + 5;
+        while (j < css.length && !(css[j] === q && css[j - 1] !== "\\")) j++;
+        end = css.indexOf(")", j);
+      } else {
+        end = css.indexOf(")", i);
+      }
+      if (end !== -1) {
+        out += css.slice(i, end + 1);
+        i = end + 1;
+        continue;
+      }
+    }
+
+    // Comments — dropped.
+    if (c === "/" && css[i + 1] === "*") {
+      const end = css.indexOf("*/", i + 2);
+      i = end === -1 ? css.length : end + 2;
+      continue;
+    }
+
+    // Whitespace runs → a single space (removed entirely around punctuation).
+    //
+    // ONLY `{ } : ; ,` may lose their adjacent whitespace. The combinators
+    // `+ - > ~` must NOT: inside calc()/clamp()/min()/max() a `+` or `-` is an
+    // operator that CSS requires to be surrounded by whitespace. Stripping it
+    // turns `clamp(2.4rem, 1.6rem + 3.6vw, 3.5rem)` into an invalid value, and
+    // the browser then discards the whole declaration — silently. That bug
+    // shipped once and took out the entire fluid type scale; the few bytes
+    // saved are not worth re-earning it.
+    const TIGHT = "{}:;,";
+    if (/\s/.test(c)) {
+      let j = i;
+      while (j < css.length && /\s/.test(css[j])) j++;
+      const prev = out.at(-1);
+      const next = css[j];
+      if (prev && next && !TIGHT.includes(prev) && !TIGHT.includes(next)) out += " ";
+      i = j;
+      continue;
+    }
+
+    // Structural punctuation — drop any space we just emitted before it.
+    if (TIGHT.includes(c) && out.at(-1) === " ") out = out.slice(0, -1);
+
+    out += c;
+    i++;
+  }
+  return out.replace(/;}/g, "}").trim();
+}
+
+/**
+ * Build CSS in cascade order: tokens → base → components/* (shared), then each
+ * pages/<name>.css as its OWN file (File 10 §4).
+ *
+ * Why page CSS is split out (changed 2026-07-25): previously every page-specific
+ * stylesheet was concatenated into one bundle, so every visitor downloaded the
+ * homepage's CSS, the matcher's CSS, and — worst — the internal style guide's
+ * CSS, on every page. That does not scale: each new page taxed all the others,
+ * and the shared bundle would grow past the stylesheet budget in
+ * lighthouserc.json as the site grew.
+ *
+ * Now: one shared, long-cached site.css, plus an optional page-<name>.css
+ * linked only where it exists. Convention: src/assets/css/pages/<x>.css pairs
+ * with src/pages/<x>.html.
+ *
+ * Returns { shared, pages: Map<pageRelHtml, minifiedCss> }.
+ */
 async function buildCss() {
   const cssDir = path.join(SRC, "assets", "css");
   const ordered = ["tokens.css", "base.css"];
-  for (const group of ["components", "pages"]) {
-    for (const f of await listFiles(path.join(cssDir, group), ".css")) {
-      ordered.push(path.join(group, f));
-    }
+  for (const f of await listFiles(path.join(cssDir, "components"), ".css")) {
+    ordered.push(path.join("components", f));
   }
-  let css = "";
+
+  let shared = "";
   for (const rel of ordered) {
     const file = path.join(cssDir, rel);
     if (!existsSync(file)) continue;
-    css += `/* ─── ${rel.split(path.sep).join("/")} ─── */\n` + (await readFile(file, "utf8")) + "\n";
+    shared += `/* ─── ${rel.split(path.sep).join("/")} ─── */\n` + (await readFile(file, "utf8")) + "\n";
   }
-  return css;
+
+  const pages = new Map();
+  for (const f of await listFiles(path.join(cssDir, "pages"), ".css")) {
+    const css = minifyCss(await readFile(path.join(cssDir, "pages", f), "utf8"));
+    if (css) pages.set(f.replace(/\.css$/, ".html"), css);
+  }
+
+  return { shared: minifyCss(shared), pages };
+}
+
+const esc = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+/**
+ * TRUST INFRASTRUCTURE — Constitution enforcement rendered by the build.
+ *
+ * Turns the Evidence Register into `{{ fact.<id> }}` tokens that emit the
+ * figure together with its provenance mark and a link to its evidence. A page
+ * author cannot publish a number without its source, because the only way to
+ * get the number is to ask for the claim — and an unknown id fails the build.
+ *
+ * `{{ factValue.<id> }}` gives the bare value for places markup cannot go
+ * (meta descriptions, title attributes). It carries no provenance, so it is
+ * never used in body copy.
+ *
+ * The same registers are read by the matcher and, later, by the dashboard, CRM
+ * and partner portal — so a figure means the same thing in every interface.
+ */
+function buildTrustTokens(data) {
+  const fact = {};
+  const factValue = {};
+  const claims = data.evidence?.claims ?? {};
+
+  for (const [id, c] of Object.entries(claims)) {
+    if (c.status === "retired") continue;
+    const unverified = c.status !== "verified";
+    const label = unverified
+      ? "Verification status for this figure"
+      : "Source and verification for this figure";
+    fact[id] =
+      `<span class="fact${unverified ? " fact--unverified" : ""}">${esc(c.value)}` +
+      `<a class="fact__src" href="/standards/#${esc(id)}">` +
+      `<span class="visually-hidden">${label}</span></a></span>`;
+    factValue[id] = c.value;
+  }
+
+  // Generated content for /standards/. Derived, never hand-written, so the
+  // published standards can never drift from what the registers actually say.
+  const rows = Object.entries(claims)
+    .filter(([, c]) => c.status !== "retired")
+    .map(([id, c]) => {
+      const verified = c.status === "verified";
+      return `<article class="evi" id="${esc(id)}">
+  <div class="evi__head">
+    <h3 class="evi__value">${esc(c.value)}</h3>
+    <p class="evi__statement">${esc(c.statement)}</p>
+    <span class="evi__status evi__status--${verified ? "ok" : "open"}">${verified ? "Verified" : "Not yet verifiable"}</span>
+  </div>
+  <dl class="ledger evi__meta">
+    <div class="ledger__row"><dt class="ledger__label">Basis</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value ledger__value--muted">${esc(c.basis)}</dd></div>
+    <div class="ledger__row"><dt class="ledger__label">Verified by</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(c.verified_by ?? "— not yet verified")}</dd></div>
+    <div class="ledger__row"><dt class="ledger__label">Verified on</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(c.verified_on ?? "—")}</dd></div>
+    <div class="ledger__row"><dt class="ledger__label">Review by</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(c.review_by)}</dd></div>
+  </dl>
+</article>`;
+    })
+    .join("\n");
+
+  const counts = Object.values(claims).filter((c) => c.status !== "retired");
+  const unverifiedCount = counts.filter((c) => c.status !== "verified").length;
+
+  const rel = data.disclosure?.relationships ?? [];
+  const disclosureBlock = rel.length
+    ? `<dl class="ledger">${rel
+        .map(
+          (r) =>
+            `<div class="ledger__row"><dt class="ledger__label">${esc(r.counterparty)}</dt><span class="ledger__leader" aria-hidden="true"></span><dd class="ledger__value">${esc(r.basis)}</dd></div>`
+        )
+        .join("")}</dl>`
+    : `<p class="note">${esc(data.disclosure?._relationships_note ?? "")}</p>`;
+
+  return {
+    fact,
+    factValue,
+    generated: {
+      evidenceEntries: rows,
+      evidenceCount: String(counts.length),
+      evidenceUnverifiedCount: String(unverifiedCount),
+      disclosureEntries: disclosureBlock,
+      disclosureReviewed: String(data.disclosure?.last_reviewed ?? "—"),
+    },
+  };
 }
 
 export async function build() {
@@ -138,18 +331,26 @@ export async function build() {
   await mkdir(OUT, { recursive: true });
 
   const data = await loadData();
+  const trust = buildTrustTokens(data);
 
   // Assets + cache-bust hash (content-derived so unchanged deploys keep caches warm)
-  const css = await buildCss();
+  const { shared: css, pages: pageCss } = await buildCss();
   let jsConcat = "";
   const jsDir = path.join(SRC, "assets", "js");
   for (const rel of await listFiles(jsDir, ".js")) {
     jsConcat += await readFile(path.join(jsDir, rel), "utf8");
   }
-  const hash = createHash("sha256").update(css + jsConcat).digest("hex").slice(0, 8);
+  const hash = createHash("sha256")
+    .update(css + [...pageCss.values()].join("") + jsConcat)
+    .digest("hex")
+    .slice(0, 8);
 
   await mkdir(path.join(OUT, "assets", "css"), { recursive: true });
   await writeFile(path.join(OUT, "assets", "css", "site.css"), css);
+  for (const [pageRel, pcss] of pageCss) {
+    const name = pageRel.replace(/\.html$/, "").split(path.sep).join("-");
+    await writeFile(path.join(OUT, "assets", "css", `page-${name}.css`), pcss);
+  }
   if (existsSync(jsDir)) await cp(jsDir, path.join(OUT, "assets", "js"), { recursive: true });
   for (const dir of ["img", "fonts"]) {
     const from = path.join(SRC, "assets", dir);
@@ -168,9 +369,17 @@ export async function build() {
     const where = `pages/${rel.split(path.sep).join("/")}`;
     const { meta, body } = parseMeta(await readFile(path.join(SRC, "pages", rel), "utf8"), where);
     const route = routeFor(rel);
+    // Optional page stylesheet. Emitted as a whole <link> element (or an empty
+    // string) because the template engine has no conditionals by design
+    // (ADR-002) — and a page without its own CSS should make no extra request.
+    const pageCssName = rel.replace(/\.html$/, "").split(path.sep).join("-");
+    const cssLink = pageCss.has(rel)
+      ? `<link rel="stylesheet" href="/assets/css/page-${pageCssName}.css?v=${hash}">`
+      : "";
     const ctx = {
       ...data,
-      page: { ...meta, url: route.url },
+      ...trust,
+      page: { ...meta, url: route.url, cssLink },
       build: { hash, year: String(new Date().getFullYear()) },
     };
 

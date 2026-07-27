@@ -9,7 +9,6 @@ import { watch } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "./build.mjs";
 
 const WEBSITE = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(WEBSITE, "src");
@@ -34,19 +33,40 @@ const MIME = {
   ".xml": "application/xml",
 };
 
-await build();
+/**
+ * Load the builder FRESH on every run.
+ *
+ * A static `import { build }` caches the module for the process lifetime, so
+ * edits to build.mjs never took effect and the watcher silently kept
+ * regenerating dist/ with the old build code. That is worse than not rebuilding
+ * at all: the dev server and `node website/build.mjs` produce different output
+ * from the same source, and the difference is invisible.
+ *
+ * The `?v=` query defeats the ESM cache. It accumulates module instances over a
+ * long session, which is an acceptable trade in a dev-only tool.
+ */
+async function runBuild() {
+  const { build } = await import(`./build.mjs?v=${Date.now()}`);
+  return build();
+}
+
+await runBuild();
 
 let debounce = null;
-watch(SRC, { recursive: true }, () => {
+const rebuild = () => {
   clearTimeout(debounce);
   debounce = setTimeout(async () => {
     try {
-      await build();
+      await runBuild();
     } catch (err) {
       console.error(`✗ BUILD FAILED: ${err.message}`);
     }
   }, 150);
-});
+};
+
+watch(SRC, { recursive: true }, rebuild);
+// Watch the build tool itself, so changing the pipeline behaves like changing a page.
+watch(path.join(WEBSITE, "build.mjs"), rebuild);
 
 createServer(async (req, res) => {
   try {

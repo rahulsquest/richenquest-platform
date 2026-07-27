@@ -1,0 +1,258 @@
+/* ============================================================
+   Surfaces — the premium visual language.
+
+   Four devices, used with restraint:
+     1. Night bands   — deep gradient sections that frame focal moments
+     2. Aurora        — soft brand-colored blooms behind night bands
+     3. Glass         — translucent panels that float above the aurora
+     4. Grain         — a whisper of noise so gradients never look flat
+
+   Restraint rule: at most ONE aurora band per viewport-height of
+   scroll. Used everywhere, they stop reading as premium and start
+   reading as noise.
+   ============================================================ */
+
+/* ---------- Night band ---------- */
+.surface--dark {
+  position: relative;
+  isolation: isolate;
+  background: var(--gradient-hero);
+  color: var(--color-inverse-ink);
+  overflow: clip;
+}
+
+.surface--dark h1,
+.surface--dark h2,
+.surface--dark h3 {
+  color: var(--color-inverse-ink);
+}
+
+.surface--dark p {
+  color: var(--color-inverse-ink-soft);
+}
+
+.surface--ink {
+  position: relative;
+  isolation: isolate;
+  background: var(--gradient-ink);
+  color: var(--color-inverse-ink);
+  overflow: clip;
+}
+
+.surface--tint {
+  background: var(--gradient-brand-soft);
+}
+
+.surface--alt {
+  background: var(--color-surface-alt);
+}
+
+/* ---------- Aurora blooms ---------- */
+/* Three offset radial blooms that drift slowly. Purely decorative and
+   pointer-transparent; sits at z-index -2 beneath content and grain.  */
+.aurora {
+  position: absolute;
+  inset: -20% -10%;
+  z-index: -2;
+  pointer-events: none;
+  filter: blur(28px);
+}
+
+.aurora::before,
+.aurora::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* Opacities recalibrated 2026-07-25 (Brand System §3.1): the aurora is now a
+   faint depth cue on the single deep surface, not a coloured light show.  */
+.aurora::before {
+  width: min(62vw, 40rem);
+  aspect-ratio: 1;
+  top: -8%;
+  left: -6%;
+  background: var(--gradient-aurora-1);
+  opacity: 0.22;
+}
+
+.aurora::after {
+  width: min(58vw, 36rem);
+  aspect-ratio: 1;
+  right: -8%;
+  bottom: -18%;
+  background: var(--gradient-aurora-2);
+  opacity: 0.26;
+}
+
+/* Optional third bloom for wide hero canvases. */
+.aurora__accent {
+  position: absolute;
+  width: min(46vw, 30rem);
+  aspect-ratio: 1;
+  left: 42%;
+  top: 26%;
+  border-radius: 50%;
+  background: var(--gradient-aurora-3);
+  opacity: 0.2;
+}
+
+/* The blooms are STATIC. A continuously drifting background performs rather
+   than confirms, and it costs compositor work on a mid-range phone for the
+   entire time the page is open (Brand System §3.8, Constitution 17.7). */
+
+/* ---------- Grain ---------- */
+/* An SVG turbulence tile (~250 bytes inline, no network request). It
+   removes the "plastic" banding that large CSS gradients otherwise show
+   on cheap panels — the single highest-value premium detail here.      */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+/* ---------- Glass panels ---------- */
+.glass {
+  background: var(--glass-light-bg);
+  border: 1px solid var(--glass-light-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), var(--shadow-inset-hairline);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    background: rgb(255 255 255 / 0.6);
+  }
+}
+
+.glass--dark {
+  background: var(--glass-dark-bg);
+  border: 1px solid var(--glass-dark-border);
+  border-radius: var(--radius-xl);
+  color: var(--color-inverse-ink);
+  box-shadow: var(--shadow-xl);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass--dark {
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(1.3);
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(1.3);
+  }
+}
+
+/* ---------- Gradient border ring ---------- */
+/* A 1px brand-gradient outline. Uses two backgrounds clipped to
+   padding-box/border-box, so it works without pseudo-element stacking. */
+.ring-brand {
+  border: 1px solid transparent;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    var(--gradient-brand) border-box;
+}
+
+.ring-brand--dark {
+  border: 1px solid transparent;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(var(--color-inverse-raised), var(--color-inverse-raised)) padding-box,
+    var(--gradient-brand) border-box;
+}
+
+/* ---------- Glow ----------
+   One per page, on the single primary action only (Brand System §3.1). The
+   violet and cyan variants were removed in the brand recalibration: three
+   glow colours is decoration, not emphasis. */
+.glow { box-shadow: var(--glow-brand); }
+
+/* ---------- Section rhythm ---------- */
+.section {
+  padding-block: var(--section-y);
+}
+
+.section--tight {
+  padding-block: var(--section-y-tight);
+}
+
+.section__head {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+  margin-block-end: var(--space-10);
+}
+
+.section__head--start {
+  margin-inline: 0;
+  text-align: start;
+}
+
+.section__head h2 {
+  font-size: var(--text-3xl);
+  letter-spacing: var(--tracking-snug);
+  margin-block-start: var(--space-3);
+}
+
+.section__head .lede {
+  margin-block-start: var(--space-4);
+  font-size: var(--text-lg);
+  color: var(--color-ink-soft);
+  margin-inline: auto;
+}
+
+.section__head--start .lede {
+  margin-inline: 0;
+}
+
+.surface--dark .section__head .lede,
+.surface--ink .section__head .lede {
+  color: var(--color-inverse-ink-soft);
+}
+
+/* ---------- Kicker (uppercase eyebrow label) ---------- */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.surface--dark .kicker,
+.surface--ink .kicker {
+  color: var(--brand-cyan);
+}
+
+/* A short gradient rule that precedes the kicker text. */
+.kicker::before {
+  content: "";
+  width: var(--space-6);
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-brand);
+}
+
+.kicker--center {
+  justify-content: center;
+}
+
+/* ---------- Hairline divider ---------- */
+.hairline {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+}
+
+.surface--dark .hairline,
+.surface--ink .hairline {
+  background: linear-gradient(90deg, transparent, var(--color-inverse-border), transparent);
+}
