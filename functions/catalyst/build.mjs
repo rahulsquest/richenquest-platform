@@ -67,7 +67,7 @@ const FUNCTIONS = {
   // The Career Record API. Advanced I/O for the same reason as the webhook: it
   // serves HTTP, and transport.mjs already exposes catalystHandler() for exactly
   // this surface.
-  "record-api": { type: "advancedio", shell: "deploy/record-api.handler.cjs", deps: ["pg"], bundle: "record" },
+  "record-api": { type: "advancedio", shell: "deploy/record-api.handler.cjs", deps: ["pg", "@google-cloud/kms"], bundle: "record" },
 };
 
 const noTests = (src) => !/\.test\.mjs$/.test(src);

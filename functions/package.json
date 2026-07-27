@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Runtime dependency owner for functions/**. The Record API's entrypoint and the migration runner both load `pg` with a dynamic import(), resolved by walking up from their own directory \u2014 so the declaration has to live at this level, not the repository root. Deployment bundles derive their versions from here, so local, CI and Catalyst install the same package from one declaration. ADR-002's zero-dependency rule governs website/ and is unaffected; db/test/package.json keeps owning test-only tooling (D21).",
+  "description": "Runtime dependency owner for functions/**. The Record API's entrypoint and the migration runner both load `pg` with a dynamic import(), resolved by walking up from their own directory — so the declaration has to live at this level, not the repository root. Deployment bundles derive their versions from here, so local, CI and Catalyst install the same package from one declaration. ADR-002's zero-dependency rule governs website/ and is unaffected; db/test/package.json keeps owning test-only tooling (D21).",
   "dependencies": {
+    "@google-cloud/kms": "^5.7.0",
     "express": "^4.19.2",
     "pg": "^8.13.1"
   }

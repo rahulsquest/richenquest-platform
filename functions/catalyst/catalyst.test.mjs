@@ -186,13 +186,19 @@ test("record-api bundle carries everything the startup gate reads", async () => 
   await assert.rejects(access(path.join(b.dir, "lib/record/api/integration.test.mjs")));
 });
 
-test("record-api declares pg, with the version from functions/package.json", async () => {
+test("record-api declares its runtime packages, with versions derived not restated", async () => {
   const b = await recordBundle();
   const pkg = JSON.parse(await readFile(path.join(b.dir, "package.json"), "utf8"));
   const declared = JSON.parse(await readFile(path.join(HERE, "../package.json"), "utf8")).dependencies;
 
-  assert.ok(pkg.dependencies["zcatalyst-sdk-node"], "the SDK must be declared");
-  assert.equal(pkg.dependencies.pg, declared.pg, "the bundle must not restate a version — it derives it");
+  assert.ok(pkg.dependencies["zcatalyst-sdk-node"], "the Catalyst SDK must be declared");
+
+  // Every runtime package the bundle names must carry the version from
+  // functions/package.json. A literal here would be a second place to bump.
+  for (const name of ["pg", "@google-cloud/kms"]) {
+    assert.ok(pkg.dependencies[name], `record-api must declare ${name}`);
+    assert.equal(pkg.dependencies[name], declared[name], `${name} must be derived from functions/package.json`);
+  }
 });
 
 test("record-api resolves migrations and the register from INSIDE the bundle", async () => {
