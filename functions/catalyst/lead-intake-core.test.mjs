@@ -154,30 +154,37 @@ test("empty optional fields are omitted rather than sent blank", () => {
 
 /* ------------------------------------------------------------------- HTTP --- */
 
-test("only POST is accepted; OPTIONS preflights and other verbs are refused", async () => {
+test("only POST is accepted; OPTIONS and other verbs are refused", async () => {
   const { call, calls } = harness();
-  const pre = await call({ method: "OPTIONS" });
-  assert.equal(pre.status, 204);
-  assert.equal(pre.headers["Access-Control-Allow-Origin"], ALLOWED_ORIGIN);
+  assert.equal((await call({ method: "OPTIONS" })).status, 204);
   for (const method of ["GET", "PUT", "DELETE", "PATCH"]) {
     assert.equal((await call({ method })).status, 405, method);
   }
   assert.equal(calls.length, 0, "no verb other than POST may reach the CRM");
 });
 
-test("CORS admits the live site and nothing else", async () => {
+test("the origin allowlist admits the live site and refuses everything else", async () => {
   const { call, calls } = harness();
-  const ok = await call();
-  assert.equal(ok.headers["Access-Control-Allow-Origin"], ALLOWED_ORIGIN);
-  assert.equal(ok.headers.Vary, "Origin");
+  assert.equal((await call()).status, 201);
 
   for (const origin of ["https://evil.example", "http://www.richenquest.com", "https://richenquest.com", ""]) {
     const res = await call({ origin });
     assert.equal(res.status, 403, `origin "${origin}" must be refused`);
-    assert.equal(res.headers["Access-Control-Allow-Origin"], undefined,
-      "a refused origin must never receive an ACAO header");
   }
   assert.equal(calls.length, 1, "only the approved origin reached the CRM");
+});
+
+test("the core emits NO CORS headers — the Catalyst platform owns them", async () => {
+  // Setting them here too produced TWO Access-Control-Allow-Origin headers on
+  // every response, which browsers reject outright. Verified live: the platform
+  // already returns exactly one for the allowlisted origin.
+  const { call } = harness();
+  for (const res of [await call(), await call({ method: "OPTIONS" }), await call({ method: "GET" }),
+    await call({ rawBody: JSON.stringify(goodBody({ email: "bad" })) })]) {
+    const keys = Object.keys(res.headers).map((k) => k.toLowerCase());
+    assert.equal(keys.some((k) => k.startsWith("access-control-")), false,
+      `a duplicate CORS header breaks the browser integration (saw: ${keys.join(", ")})`);
+  }
 });
 
 test("an oversized payload is refused before it is parsed", async () => {

@@ -214,13 +214,24 @@ export function createMemoryStore() {
 
 /* ------------------------------------------------------------------ core --- */
 
-const cors = (origin) => ({
-  "Access-Control-Allow-Origin": origin,
-  "Vary": "Origin",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "content-type",
-  "Access-Control-Max-Age": "600",
-});
+/**
+ * THIS CORE EMITS NO CORS HEADERS, DELIBERATELY.
+ *
+ * The Catalyst platform already applies its own CORS allowlist ahead of the
+ * function: a preflight from https://www.richenquest.com returns
+ * Access-Control-Allow-Origin, one from any other origin returns none, and
+ * titan-webhook — which sets no CORS headers of its own — receives exactly one.
+ * Verified live before this was written.
+ *
+ * Setting them here too produced TWO Access-Control-Allow-Origin headers on
+ * every response, which browsers reject outright ("contains multiple values"),
+ * breaking the very integration this endpoint exists for.
+ *
+ * The origin check below is NOT a substitute for that header and does not
+ * pretend to be. CORS is a browser policy and no security boundary at all —
+ * curl ignores it. The 403 is the server-side control, and it stays.
+ */
+const NO_HEADERS = {};
 
 /**
  * @param {object} deps
@@ -254,17 +265,17 @@ export function createLeadIntakeCore({
 
     if (method === "OPTIONS") {
       if (!allowed) return respond(403, null, {});
-      return respond(204, null, cors(origin));
+      return respond(204, null, NO_HEADERS);
     }
     if (method !== "POST") {
-      return respond(405, { error: "method_not_allowed", request_id: requestId }, allowed ? cors(origin) : {});
+      return respond(405, { error: "method_not_allowed", request_id: requestId }, NO_HEADERS);
     }
     if (!allowed) {
       logger.warn?.(JSON.stringify({ level: "warn", msg: "lead.origin_rejected", request_id: requestId }));
       return respond(403, { error: "forbidden", request_id: requestId }, {});
     }
 
-    const headers = cors(origin);
+    const headers = NO_HEADERS;
 
     if (Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
       return respond(413, { error: "payload_too_large", request_id: requestId }, headers);
