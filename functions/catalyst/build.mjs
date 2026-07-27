@@ -60,14 +60,14 @@ function resolveDeps(names = []) {
 
 const FUNCTIONS = {
   // Advanced I/O runs an Express app, so express is a bundled dependency.
-  "titan-webhook": { type: "advancedio", shell: "deploy/titan-webhook.handler.cjs", deps: ["express"], bundle: "titan" },
+  "titan-webhook": { type: "advancedio", shell: "deploy/titan-webhook.handler.cjs", deps: ["express"], bundle: "titan", env: "titan" },
   // A "job" function (not "cron"): the newer Job Scheduling model triggers Job
   // Functions from a Job Pool on a cron. Same (arg, context) handler shape.
-  "titan-reconcile": { type: "job", shell: "deploy/titan-reconcile.handler.cjs", deps: [], bundle: "titan" },
+  "titan-reconcile": { type: "job", shell: "deploy/titan-reconcile.handler.cjs", deps: [], bundle: "titan", env: "titan" },
   // The Career Record API. Advanced I/O for the same reason as the webhook: it
   // serves HTTP, and transport.mjs already exposes catalystHandler() for exactly
   // this surface.
-  "record-api": { type: "advancedio", shell: "deploy/record-api.handler.cjs", deps: ["pg", "@google-cloud/kms"], bundle: "record" },
+  "record-api": { type: "advancedio", shell: "deploy/record-api.handler.cjs", deps: ["pg", "@google-cloud/kms"], bundle: "record", env: "record" },
 };
 
 const noTests = (src) => !/\.test\.mjs$/.test(src);
@@ -77,15 +77,80 @@ const noTests = (src) => !/\.test\.mjs$/.test(src);
 // read from the local .env. They land only in dist/ (gitignored) and are sent
 // to Catalyst at deploy; never printed. This is deterministic and reproducible,
 // unlike manual console entry.
-const FN_ENV_KEYS = ["ZOHO_DC", "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN", "TITAN_WEBHOOK_SECRET", "TITAN_AUTOMATION_USER_ID"];
-function fnEnv() {
+const TITAN_ENV_KEYS = ["ZOHO_DC", "ZOHO_CLIENT_ID", "ZOHO_CLIENT_SECRET", "ZOHO_REFRESH_TOKEN", "TITAN_WEBHOOK_SECRET", "TITAN_AUTOMATION_USER_ID"];
+
+/**
+ * The Record API's configuration. readConfig() REQUIRES DATABASE_URL and
+ * RECORD_TOKEN_SECRET and refuses to boot without them, so a function deployed
+ * with an empty env_variables block fails at startup rather than serving.
+ *
+ * RECORD_VAULT_KEK is needed only while RECORD_VAULT_PROVIDER=env (development);
+ * the GCP_* keys only once it is "kms". Both are optional here so a deploy is
+ * not blocked on configuration the current provider does not use.
+ */
+// DATABASE_URL is deliberately ABSENT from this list — see recordEnv().
+const RECORD_ENV_KEYS = [
+  "RECORD_TOKEN_SECRET", "RECORD_VAULT_PROVIDER",
+  "CORS_ALLOWED_ORIGINS", "NODE_ENV", "RUN_MIGRATIONS_ON_START",
+];
+const RECORD_ENV_OPTIONAL = [
+  "RECORD_VAULT_KEK", "RECORD_VAULT_KEK_VERSION",
+  "GCP_PROJECT_ID", "GCP_KMS_LOCATION", "GCP_KMS_KEYRING", "GCP_KMS_KEY",
+  "GOOGLE_APPLICATION_CREDENTIALS_JSON",
+];
+
+/**
+ * Bake a function's env vars from the local environment at build time
+ * (infrastructure-as-code). Values land only in dist/ (gitignored) and are sent
+ * to Catalyst at deploy; never printed. Deterministic, unlike console entry.
+ *
+ * Per function, because the Record API and Titan need entirely different
+ * configuration and a function deployed with another's variables is a function
+ * that cannot start.
+ */
+function fnEnv(required = [], optional = []) {
   const env = {};
   const missing = [];
-  for (const k of FN_ENV_KEYS) {
+  for (const k of required) {
     if (process.env[k]) env[k] = process.env[k];
     else missing.push(k);
   }
+  for (const k of optional) if (process.env[k]) env[k] = process.env[k];
   if (missing.length) console.warn(`⚠ env not baked (run with --env-file=.env): ${missing.join(", ")}`);
+  return env;
+}
+
+/**
+ * The Record API's environment, with ONE deliberate substitution.
+ *
+ * The deployed function connects as `record_writer` — the least-privilege role
+ * from checklist C4, which holds SELECT+INSERT on the append-only log and cannot
+ * UPDATE, DELETE or TRUNCATE it. That guarantee is enforced by database
+ * privilege, and it is worth exactly nothing if the deployed function carries the
+ * OWNER credential instead.
+ *
+ * So the local `DATABASE_URL_APP` (record_writer) is baked as the function's
+ * `DATABASE_URL`, and the local `DATABASE_URL` (owner) is never copied into any
+ * bundle. The owner credential stays reserved for `db/migrate.mjs`, which runs
+ * from the repository as a deploy step — migration behaviour is unchanged.
+ *
+ * If DATABASE_URL_APP is absent the function is built with NO database URL at
+ * all. It then fails at startup with a clear `CONFIG_MISSING: DATABASE_URL`
+ * rather than silently running with owner rights — the failure mode chosen
+ * deliberately, because a working deployment with the wrong credential is worse
+ * than one that refuses to start. `redeploy.sh` refuses earlier still.
+ */
+function recordEnv() {
+  const env = fnEnv(RECORD_ENV_KEYS, RECORD_ENV_OPTIONAL);
+  if (process.env.DATABASE_URL_APP) {
+    env.DATABASE_URL = process.env.DATABASE_URL_APP;
+  } else {
+    console.warn(
+      "⚠ DATABASE_URL_APP is not set — record-api built WITHOUT a database URL.\n" +
+      "  The owner DATABASE_URL is deliberately NOT substituted: the deployed API\n" +
+      "  must connect as record_writer (C4). Set DATABASE_URL_APP and rebuild."
+    );
+  }
   return env;
 }
 
@@ -147,7 +212,6 @@ const packageJson = (name, deps) => ({
 
 export async function build() {
   await rm(FN_ROOT, { recursive: true, force: true });
-  const env = fnEnv();
   const built = [];
 
   for (const [name, spec] of Object.entries(FUNCTIONS)) {
@@ -157,6 +221,7 @@ export async function build() {
     await ASSEMBLE[spec.bundle](dir);
 
     await cp(path.join(HERE, spec.shell), path.join(dir, "index.js"));
+    const env = spec.env === "record" ? recordEnv() : fnEnv(TITAN_ENV_KEYS);
     await writeFile(path.join(dir, "catalyst-config.json"), JSON.stringify(catalystConfig(name, spec.type, env), null, 2) + "\n");
     await writeFile(path.join(dir, "package.json"), JSON.stringify(packageJson(name, spec.deps), null, 2) + "\n");
 

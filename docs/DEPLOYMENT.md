@@ -148,15 +148,50 @@ Set as Catalyst environment variables in deployed environments. Locally, `.env` 
 
 | Variable | Required | Default | Notes |
 |---|---|---|---|
-| `DATABASE_URL` | yes | — | `postgres://user:pass@host:5432/db?sslmode=require` |
+| `DATABASE_URL` | yes | — | `postgres://user:pass@host:5432/db?sslmode=require`. **In a deployed function this is the `record_writer` URL**, substituted from `DATABASE_URL_APP` at build time — never the owner's |
 | `RECORD_TOKEN_SECRET` | yes | — | ≥ 32 chars, random. Session token signing key |
-| `RECORD_VAULT_PROVIDER` | yes in prod | `env` | `env` is **refused** when `NODE_ENV=production` |
+| `RECORD_VAULT_PROVIDER` | yes | `env` | `env` \| `kms`. `env` is **refused** when `NODE_ENV=production` |
+| `RECORD_VAULT_KEK` | **yes when provider is `env`** | — | 32 random bytes, base64 (`openssl rand -base64 32`). Ignored when the provider is `kms` |
+| `RECORD_VAULT_KEK_VERSION` | no | `v1` | Which key version wraps new data keys; with `kms`, selects which `GCP_KMS_KEY_<VERSION>` must exist |
 | `CORS_ALLOWED_ORIGINS` | yes in prod | — | Comma-separated; empty is refused in production |
 | `NODE_ENV` | yes | `development` | `production` enables the strict startup gates |
 | `PORT` | no | `8080` | |
 | `PG_POOL_MAX` | no | `10` | |
 | `PG_STATEMENT_TIMEOUT_MS` | no | `10000` | Some poolers disallow session-level `SET`; logged, not fatal |
 | `RUN_MIGRATIONS_ON_START` | no | `true` | `false` to migrate as a separate deploy step |
+
+#### Google Cloud KMS — required when `RECORD_VAULT_PROVIDER=kms`
+
+Ignored entirely when the provider is `env`. The service account needs
+`roles/cloudkms.cryptoKeyEncrypterDecrypter` on the key and nothing more: it can wrap and unwrap,
+and cannot read, disable, destroy or rotate. Authentication is Application Default Credentials.
+
+| Variable | Required | Default | Notes |
+|---|---|---|---|
+| `GCP_PROJECT_ID` | yes (kms) | — | |
+| `GCP_KMS_LOCATION` | yes (kms) | — | `asia-southeast1` (Singapore), matching the Neon region |
+| `GCP_KMS_KEYRING` | yes (kms) | — | |
+| `GCP_KMS_KEY` | yes (kms) | — | Key for the **active** version. May instead be supplied as `GCP_KMS_KEY_<VERSION>` — one of the two must exist |
+| `GCP_KMS_KEY_V1`, `…_V2` … | no | — | Older versions, so a rotation can still unwrap what they wrapped |
+
+#### Build-time only (local `.env`, never a deployed variable)
+
+| Variable | Required | Default | Notes |
+|---|---|---|---|
+| `DATABASE_URL_APP` | **yes to deploy** | — | The same database as the least-privilege `record_writer` role. `functions/catalyst/build.mjs` bakes this as the deployed function's `DATABASE_URL` and **refuses to fall back to the owner credential**. Without it the function builds with no database URL and fails at startup with `CONFIG_MISSING`. See [`db/DEPLOYMENT.md`](../db/DEPLOYMENT.md#least-privilege-database-role) |
+
+Why the substitution exists: the event log is append-only **by database privilege** — `record_writer`
+holds `SELECT`+`INSERT` and cannot `UPDATE`, `DELETE` or `TRUNCATE`. That guarantee is worth nothing
+if the deployed function carries the owner credential, so `DATABASE_URL` (owner) stays reserved for
+`db/migrate.mjs` and owner operations and is never copied into a bundle.
+
+#### Deploy preflight
+
+`functions/catalyst/redeploy.sh` validates the above **before it builds or deploys anything**, and
+exits non-zero with the list of what is missing. The checks mirror the runtime gates
+(`readConfig()`, `envKeyProvider()`, `gcpKmsConfigFromEnv()`) one-for-one — they are a fail-fast
+copy, not a second source of truth; the runtime still enforces every one of them. An incomplete
+configuration otherwise deploys cleanly and only fails when the function boots.
 
 ### Zoho integration
 

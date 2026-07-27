@@ -55,8 +55,14 @@ append-only while the vault stays erasable.
 CREATE ROLE record_writer LOGIN PASSWORD '<generated>';
 
 -- The log: append-only by privilege. No UPDATE, no DELETE, ever.
-GRANT SELECT, INSERT ON events, digests, schema_migrations TO record_writer;
+GRANT SELECT, INSERT ON events, digests TO record_writer;
 REVOKE UPDATE, DELETE, TRUNCATE ON events, digests FROM record_writer;
+
+-- The migration ledger is READ-ONLY to the application: it only ever reads this
+-- at the startup gate, to confirm nothing is pending. Writing to it is the
+-- migration role's business. `applied()` in db/migrate.mjs probes with
+-- to_regclass() before any DDL precisely so this role needs no CREATE.
+GRANT SELECT ON schema_migrations TO record_writer;
 
 -- The vault: DELETE on vault_keys IS the erasure; UPDATE on vault_fields is a
 -- corrected value overwriting its ciphertext. Granting them here does not weaken
@@ -69,6 +75,11 @@ Verified in `db/test/postgres.integration.test.mjs` (log) and
 `UPDATE`/`DELETE` while the vault can erase and correct.
 
 Migrations run as a **separate, higher-privileged role**, not as `record_writer`.
+
+The split is carried into deployment by `DATABASE_URL_APP`: the deployed function is built with the
+`record_writer` URL, while the owner `DATABASE_URL` stays reserved for `db/migrate.mjs`. See the
+environment tables in [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md#required-environment-variables) —
+`functions/catalyst/redeploy.sh` refuses to build or deploy without it.
 
 ## Key management (KMS)
 

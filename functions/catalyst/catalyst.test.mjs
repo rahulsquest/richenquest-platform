@@ -246,6 +246,38 @@ test("the Cloud KMS SDK is loaded only by the deploy shell, and only when config
   assert.match(shell, /kmsClient:\s*makeKmsClient\(\)/, "the client must be injected into buildRecordApi");
 });
 
+test("record-api is baked with the least-privilege URL, never the owner's", async () => {
+  // C4 makes the event log append-only BY DATABASE PRIVILEGE: record_writer holds
+  // SELECT+INSERT and cannot UPDATE, DELETE or TRUNCATE. That guarantee is worth
+  // nothing if the deployed function carries the OWNER credential, so assert the
+  // substitution rather than trusting it.
+  const OWNER = "postgresql://owner:ownerpw@db.example.neon.tech/neondb?sslmode=require";
+  const APP = "postgresql://record_writer:apppw@db.example.neon.tech/neondb?sslmode=require";
+  const saved = { url: process.env.DATABASE_URL, app: process.env.DATABASE_URL_APP };
+
+  try {
+    process.env.DATABASE_URL = OWNER;
+    process.env.DATABASE_URL_APP = APP;
+    const b = (await build()).find((x) => x.name === "record-api");
+    const cfg = JSON.parse(await readFile(path.join(b.dir, "catalyst-config.json"), "utf8"));
+
+    assert.equal(cfg.deployment.env_variables.DATABASE_URL, APP, "the function must carry record_writer");
+    assert.notEqual(cfg.deployment.env_variables.DATABASE_URL, OWNER, "the owner credential must never be baked");
+    assert.equal(cfg.deployment.env_variables.DATABASE_URL_APP, undefined, "substituted, not duplicated");
+
+    // Absent app URL: build with NO database URL rather than falling back to the
+    // owner. The function then refuses to start (CONFIG_MISSING) instead of
+    // running with rights it must not have.
+    delete process.env.DATABASE_URL_APP;
+    const b2 = (await build()).find((x) => x.name === "record-api");
+    const cfg2 = JSON.parse(await readFile(path.join(b2.dir, "catalyst-config.json"), "utf8"));
+    assert.equal(cfg2.deployment.env_variables.DATABASE_URL, undefined, "no URL is correct; the owner's is not");
+  } finally {
+    if (saved.url === undefined) delete process.env.DATABASE_URL; else process.env.DATABASE_URL = saved.url;
+    if (saved.app === undefined) delete process.env.DATABASE_URL_APP; else process.env.DATABASE_URL_APP = saved.app;
+  }
+});
+
 test("record-api resolves migrations and the register from INSIDE the bundle", async () => {
   const b = await recordBundle();
 
