@@ -138,18 +138,99 @@ test("reconcile core tolerates a store without checkpoint support (bare store)",
 // ---- bundle assembler -----------------------------------------------------
 test("build produces the Catalyst function layout with required files", async () => {
   const built = await build();
-  assert.deepEqual(built.map((b) => b.name).sort(), ["titan-reconcile", "titan-webhook"]);
+  assert.deepEqual(built.map((b) => b.name).sort(), ["record-api", "titan-reconcile", "titan-webhook"]);
 
   for (const b of built) {
-    for (const f of ["index.js", "catalyst-config.json", "package.json", "config", "lib"]) {
+    for (const f of ["index.js", "catalyst-config.json", "package.json", "lib"]) {
       await assert.doesNotReject(access(path.join(b.dir, f)), `${b.name} missing ${f}`);
     }
+  }
+  for (const b of built.filter((x) => x.name.startsWith("titan-"))) {
     await assert.doesNotReject(access(path.join(b.dir, "lib/titan/runtime.mjs")));
     await assert.doesNotReject(access(path.join(b.dir, "lib/catalyst/webhook-core.mjs")));
     await assert.doesNotReject(access(path.join(b.dir, "config/automation-events.json")));
     // Test files must never ship in a deploy bundle.
     await assert.rejects(access(path.join(b.dir, "lib/titan/titan.test.mjs")));
   }
+});
+
+/* ---- record-api bundle: self-contained ---------------------------------- */
+
+const recordBundle = async () => (await build()).find((b) => b.name === "record-api");
+
+test("record-api bundle carries everything the startup gate reads", async () => {
+  const b = await recordBundle();
+  assert.equal(b.type, "advancedio");
+
+  for (const f of [
+    "index.js",
+    "package.json",
+    "catalyst-config.json",
+    "lib/record/api/server.mjs",
+    "lib/record/api/transport.mjs",
+    "lib/platform/pipeline.mjs",
+    // The startup gate reads the ledger and the migration files on every boot.
+    "db/migrate.mjs",
+    "db/migrations/001_event_log.sql",
+    "db/migrations/002_identity_vault.sql",
+    // MANDATORY: createDependencies() refuses to build without it.
+    "website/src/data/disclosure.json",
+    // Optional, but shipped so evidence references resolve rather than degrade.
+    "website/src/data/evidence.json",
+  ]) {
+    await assert.doesNotReject(access(path.join(b.dir, f)), `record-api missing ${f}`);
+  }
+
+  // Titan's code must not ride along, and no test file may ship.
+  await assert.rejects(access(path.join(b.dir, "lib/titan")), "titan must not be bundled with the Record API");
+  await assert.rejects(access(path.join(b.dir, "lib/record/api/integration.test.mjs")));
+});
+
+test("record-api declares pg, with the version from functions/package.json", async () => {
+  const b = await recordBundle();
+  const pkg = JSON.parse(await readFile(path.join(b.dir, "package.json"), "utf8"));
+  const declared = JSON.parse(await readFile(path.join(HERE, "../package.json"), "utf8")).dependencies;
+
+  assert.ok(pkg.dependencies["zcatalyst-sdk-node"], "the SDK must be declared");
+  assert.equal(pkg.dependencies.pg, declared.pg, "the bundle must not restate a version — it derives it");
+});
+
+test("record-api resolves migrations and the register from INSIDE the bundle", async () => {
+  const b = await recordBundle();
+
+  // The two repository-relative paths the Record API depends on. Both are
+  // computed from a module's own location, so if the bundle layout ever stops
+  // mirroring the repo root these resolve outside the bundle — silently, until a
+  // deploy fails. Resolving them here is what makes that a test failure instead.
+  const { MIGRATIONS_DIR } = await import(path.join(b.dir, "db/migrate.mjs"));
+  assert.ok(
+    MIGRATIONS_DIR.startsWith(b.dir),
+    `migrations resolved OUTSIDE the bundle: ${MIGRATIONS_DIR}`
+  );
+  await assert.doesNotReject(access(path.join(MIGRATIONS_DIR, "001_event_log.sql")));
+
+  // server.mjs resolves the register at ../../../website/src/data from
+  // lib/record/api/ — i.e. the function root. Assert the file it will read.
+  const registerDir = path.resolve(b.dir, "lib/record/api", "../../../website/src/data");
+  assert.ok(registerDir.startsWith(b.dir), `register resolved OUTSIDE the bundle: ${registerDir}`);
+  const disclosure = JSON.parse(await readFile(path.join(registerDir, "disclosure.json"), "utf8"));
+  assert.ok(disclosure, "the mandatory disclosure register must parse from inside the bundle");
+});
+
+test("record-api's modules load from inside the bundle with no missing imports", async () => {
+  const b = await recordBundle();
+
+  // Importing exercises every relative specifier in the graph. A path that
+  // escaped the bundle, or a file the assembler forgot, fails here rather than
+  // on Catalyst.
+  const server = await import(path.join(b.dir, "lib/record/api/server.mjs"));
+  const transport = await import(path.join(b.dir, "lib/record/api/transport.mjs"));
+  const service = await import(path.join(b.dir, "lib/record/api/service.mjs"));
+
+  assert.equal(typeof server.buildRecordApi, "function", "the entrypoint must export buildRecordApi");
+  assert.equal(typeof server.main, "function");
+  assert.equal(typeof transport.catalystHandler, "function", "the Advanced I/O adapter must be present");
+  assert.equal(typeof service.createRouter, "function");
 });
 
 test("catalyst-config.json matches the real scaffold schema", async () => {
