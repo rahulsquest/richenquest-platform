@@ -23,6 +23,7 @@
 
 import { readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -228,8 +229,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     process.exit(2);
   }
 
-  // The driver is a deploy-time dependency, not a runtime one for this file.
-  const { default: pg } = await import("pg");
+  // The driver is a deploy-time dependency, and only the CLI needs it — the
+  // exported migrate()/status() take an injected client and import nothing.
+  //
+  // Resolved against functions/package.json rather than by the usual upward walk
+  // from this file: `pg` is declared once, for functions/**, and db/ is not below
+  // it. Pointing at that manifest keeps ONE declaration serving the server, this
+  // CLI and the deploy bundle, instead of a second copy here that could drift to
+  // a different major.
+  const require = createRequire(new URL("../functions/package.json", import.meta.url));
+  const pg = require("pg");
   const client = new pg.Client({
     connectionString: url,
     ssl: process.env.PGSSLMODE === "disable" ? false : { rejectUnauthorized: true },

@@ -15,6 +15,13 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
+      # Runtime dependencies for functions/**. The Record API entrypoint loads
+      # `pg` with a dynamic import() resolved by walking up from its own
+      # directory, so functions/node_modules must exist before anything imports
+      # it. Declared once in functions/package.json — see that file.
+      - name: Install functions runtime dependencies
+        run: npm --prefix functions ci
+
       - name: Build site
         run: node website/build.mjs
 
@@ -121,6 +128,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+
+      # These suites import functions/** — including the Record API entrypoint,
+      # which resolves `pg` from functions/node_modules. Both installs are
+      # required, and they own different things: db/test holds test-only tooling
+      # (D21), functions/ holds what actually ships.
+      - name: Install functions runtime dependencies
+        run: npm --prefix functions ci
 
       - name: Install the test-only workspace
         run: npm --prefix db/test ci
