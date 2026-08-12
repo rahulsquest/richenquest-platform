@@ -45,5 +45,9 @@ jobs:
             exit 0
           fi
           npm install -g zcatalyst-cli@1.27.0
-          # Exact flags finalized during the M4 Catalyst spike (File 09 §5):
+          # UNVERIFIED: this invocation has never run against a real Catalyst
+          # project. --project/--env/--token are inferred from File 09 §5, not
+          # confirmed. Expect to correct them on the first deploy.
+          # AFTER the first successful deploy, replace the three lines above with:
+          #   # Verified against zcatalyst-cli <version> on <YYYY-MM-DD>
           catalyst deploy --project richenquest --env development --token "$CATALYST_TOKEN"
