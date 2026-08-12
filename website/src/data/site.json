@@ -12,5 +12,9 @@
   "phone_it_href": "tel:+393271866329",
   "whatsapp_href": "https://wa.me/393271866329?text=Hi%20RichenQuest!%20I%27d%20like%20to%20book%20a%20free%20consultation%20about%20studying%20abroad.",
   "locale": "en",
-  "hq_short": "Patna, Bihar, India"
+  "hq_short": "Patna, Bihar, India",
+  "_zoho_webform_note": "EMPTY UNTIL THE CRM WEBFORM EXISTS. components/lead-form.html is deliberately NOT included on any page while these are blank — rendering it would ship a form that discards submissions, the exact defect File 12 records on the legacy site. Fill all three from the generated webform, then include the component. See docs/15.",
+  "zoho_webform_action": "",
+  "zoho_webform_key": "",
+  "zoho_webform_digest": ""
 }
