@@ -36,6 +36,13 @@
   text-align: center;
 }
 
+/* Telephone numbers — keep a number on one line so it is never split across a
+   line break. Done here, in the presentation layer, because the numbers in
+   data/site.json also feed JSON-LD and must stay plain (real spaces). */
+.tel {
+  white-space: nowrap;
+}
+
 /* Scroll reveal (modules/reveal.js adds .is-revealed; see Animation guidelines).
    Elements without JS — or with reduced motion — render fully visible. */
 @media (prefers-reduced-motion: no-preference) {

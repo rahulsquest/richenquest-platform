@@ -1,5 +1,6 @@
 {
   "_comment": "Global site facts per founder decisions 2026-07-19: brand 'RichenQuest' + descriptive tagline; canonical https://www.richenquest.com (apex 301s to www); official@ email; both India + Italy numbers displayed; WhatsApp = Italy number (as on legacy site).",
+  "_values_are_presentation_neutral": "Store PLAIN values only — real '&', real spaces. These fields feed JSON-LD <script> blocks (head.html, contact.html) where entities are NOT decoded and a stray '&amp;' or non-breaking space corrupts the structured data search engines read. Typography (non-breaking phone numbers, escaped ampersands) belongs in the templates and CSS, never here. See .htmlvalidate.json.",
   "name": "RichenQuest",
   "legal_name": "RichenQuest Private Limited",
   "tagline": "Global Education & Career Mobility",

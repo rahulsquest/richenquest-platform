@@ -42,6 +42,12 @@ This lets CSS refactors and JS evolve independently.
   `description` — the build **fails** without them (SEO is enforced, not optional).
 - No inline styles. No inline event handlers (`onclick=…`). No inline `<script>` except
   build-injected structured data (JSON-LD).
+- **Escaping belongs in templates, never in `src/data/*.json`.** The build inserts token
+  values verbatim (`build.mjs` header). A `{{ token }}` in page text or an attribute wants
+  `&amp;`; the *same* token inside a `<script type="application/ld+json">` block does not —
+  script content is raw text, so an entity there ships literally to search engines. Write
+  `&amp;` in the `.html` file that needs it and keep the JSON value plain. Likewise, never
+  put non-breaking spaces in data to stop a phone number wrapping — use `.tel` (CSS).
 - Images: `alt` always (empty `alt=""` only for decorative), `width`/`height` attributes to
   prevent layout shift, `loading="lazy"` below the fold.
 - Forms and embeds are added ONLY via the shared components (`form-embed`, future

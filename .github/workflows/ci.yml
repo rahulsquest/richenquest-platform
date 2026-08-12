@@ -25,6 +25,8 @@ jobs:
         run: node scripts/check-links.mjs
 
       # CI-only analyzers (File 11 decision C5): pinned versions, never shipped.
+      # Rule config lives in .htmlvalidate.json — two typographic rules are relaxed
+      # there so they cannot push presentation concerns into src/data (File 10 §3).
       - name: HTML validation
         run: npx --yes html-validate@8.24.1 "website/dist/**/*.html"
 

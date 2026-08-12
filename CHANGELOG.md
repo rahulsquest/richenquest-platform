@@ -4,6 +4,32 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Fixed — codebase audit: structured-data integrity (2026-08-12)
+- **JSON-LD corruption (SEO-visible).** `site.tagline` and both phone numbers had been
+  rewritten in `data/site.json` as `&amp;` and non-breaking spaces to silence two
+  typographic html-validate rules. Entities are not decoded inside
+  `<script type="application/ld+json">`, so all 28 structured-data blocks shipped a literal
+  `"Global Education &amp; Career Mobility"` slogan and U+00A0-separated `telephone`
+  values to search engines. Data restored to plain values.
+- The typographic intent is preserved where it belongs: new `.tel` utility
+  (`white-space: nowrap`) on the six phone *display* sites, and `&amp;` kept in the
+  `<!--meta -->` titles/descriptions, which are genuine HTML contexts.
+- `.htmlvalidate.json` pins the rule set: `no-raw-characters` relaxed to the actual HTML5
+  requirement (ambiguous ampersands only) and the purely typographic `tel-non-breaking`
+  disabled, so a linter preference can no longer push presentation into the data layer.
+- File 10 §3 records the rule; `site.json` carries an inline warning.
+
+### Added — codebase audit (2026-08-12)
+- `.gitignore` now covers `.lighthouseci/` and `.npm-cache/` (local CI-analyzer artifacts
+  that were untracked and one `git add -A` away from being committed).
+- `catalyst.json` (hosting config referenced by both deploy workflows) is now tracked.
+
+### Kept from the same working tree — verified correct, not reverted
+- WCAG H32: the styleguide demo form's `type="submit"` button (a form with no submit
+  button is unreachable by keyboard).
+- `aria-label` on the two `<aside>` landmarks in /about/; `<!DOCTYPE html>` casing;
+  Italy guide title "DSU Grants" (DSU is need-based, matching the page's own copy).
+
 ### Added — M3: destination engine + Nepal (2026-07-19)
 - Destinations hub (/destinations/): Tier-1 flagship cards fed by data files,
   Tier-2/3 listed honestly as "guides coming" (no dead links), Nepal callout.

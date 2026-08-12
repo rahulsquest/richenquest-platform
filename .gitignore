@@ -13,6 +13,10 @@ node_modules/
 .catalyst/
 catalyst-debug.log
 
+# CI analyzer artifacts (run locally to reproduce the CI gates — never committed)
+.lighthouseci/
+.npm-cache/
+
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
 .claude/launch.json
