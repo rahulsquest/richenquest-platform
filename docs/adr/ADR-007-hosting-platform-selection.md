@@ -1,7 +1,8 @@
 # ADR-007 — Hosting platform selection (replacement for Catalyst Client)
 
-**Status:** Proposed — recommendation is evidence-backed, but adoption needs founder account
-ownership and DNS delegation. Follows ADR-006 (Client Hosting rejected).
+**Status:** **ACCEPTED and IMPLEMENTED** 2026-08-13. Cloudflare Pages is live at
+`https://richenquest.pages.dev` and verified against all fifteen launch requirements.
+Follows ADR-006 (Client Hosting rejected).
 
 ## Decision
 Select the replacement hosting platform for the RichenQuest static site.
@@ -101,3 +102,38 @@ No billing is required — the free tier covers this site.
 - Cloudflare Pages migration once the account exists: **3–4 h** (project setup, `_headers`
   and `_redirects` generated from `infra/`, CI rewiring, full matrix re-verification).
 - Slate fallback instead: **2–3 h**, and ships with the three defects above.
+
+
+---
+
+# IMPLEMENTED — 2026-08-13
+
+Deployed to Cloudflare Pages project `richenquest` (account `bcb90a75882c0ac261dda5fc70e6e59e`)
+via authenticated Wrangler OAuth. Live verification against `https://richenquest.pages.dev`:
+
+| Requirement | Result | Evidence |
+|---|---|---|
+| Root deployment | PASS | `/` → 200, no path prefix |
+| Clean URLs | PASS | `/about/`, `/destinations/italy/` → 200 |
+| Directory index | PASS | all nested routes 200 |
+| Custom 404 + status | PASS | `/definitely-not-a-page` → **404** with the branded page |
+| Redirects | PASS | `/about` → **308** → `/about/`, 1 hop |
+| CSP | PASS | `default-src 'self'; … frame-ancestors 'none'; upgrade-insecure-requests` |
+| Security headers | PASS | HSTS, X-Frame-Options DENY, Permissions-Policy, Referrer-Policy, nosniff |
+| Cache-Control | PASS | assets `max-age=31536000, immutable`; images 604800; sitemap/robots 3600; HTML `max-age=0, must-revalidate` |
+| Brotli | PASS | `content-encoding: br` |
+| HTTP/2 + h3 | PASS | HTTP/2 negotiated; `alt-svc: h3=":443"` |
+| robots.txt | PASS | 200 at origin root |
+| sitemap.xml | PASS | 200, `application/xml`, 17 URLs |
+| JSON-LD | PASS | **27 blocks parsed live, 0 problems** — no entity or NBSP leakage |
+| Canonicals | PASS | `https://www.richenquest.com/` (intended production host) |
+| Deployment hash | PASS | live `site.css?v=0682e065` matches `main` |
+| Lighthouse mobile | PASS | 97–100 / 100 / 100 / 100; CLS 0, TBT 0; 0 failing assertions |
+
+**Defect found and fixed during verification.** The first deploy shipped **no security headers at
+all** and uncacheable assets, because the generator emitted two `/*` blocks on a false assumption
+about `_headers` precedence. Cloudflare joins duplicate header values with commas and a repeated
+pattern overrides the earlier block. Fixed in `ae3f829`; re-verified live.
+
+**Remaining boundary:** the custom domain `www.richenquest.com` requires nameserver delegation at
+the registrar — founder ownership, not automatable.

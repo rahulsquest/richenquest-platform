@@ -4,6 +4,17 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Deployed — Cloudflare Pages live (2026-08-13)
+- Site live at `https://richenquest.pages.dev`, project `richenquest`, deployed from `main` at
+  asset hash `0682e065`. ADR-007 ACCEPTED and IMPLEMENTED.
+- All fifteen launch requirements verified against the live origin: real 404 status, 1-hop
+  redirects, full CSP + HSTS + X-Frame-Options + Permissions-Policy, per-path Cache-Control,
+  Brotli, HTTP/2 with h3 advertised, robots/sitemap at root, **27 JSON-LD blocks parsed live with
+  zero entity or NBSP leakage**, and mobile Lighthouse 97–100/100/100/100 with CLS 0 and TBT 0.
+- **Defect caught in live verification:** the first deploy shipped no security headers and
+  uncacheable assets — the generator emitted two `/*` blocks on a wrong assumption about `_headers`
+  precedence (Cloudflare concatenates duplicates and later patterns override). Fixed in `ae3f829`.
+
 ### Added — hosting migration groundwork (2026-08-13)
 - `scripts/gen-edge-config.mjs` — emits `_headers` and `_redirects` into `website/dist` from
   `infra/security-headers.json` and `infra/cache-headers.json`. Those specs had been correct but
