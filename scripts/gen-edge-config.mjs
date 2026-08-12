@@ -83,7 +83,23 @@ const header = [
   "",
 ].join("\n");
 
-await writeFile(path.join(DIST, "_headers"), header + sections.join("\n\n") + "\n");
+const headersOut = header + sections.join("\n\n") + "\n";
+
+// Cloudflare Pages documents hard limits: 100 rules, 2,000 characters per line.
+// Fail the build rather than ship a file the edge will silently truncate.
+const outLines = headersOut.split("\n");
+const ruleCount = outLines.filter((l) => l.startsWith("/")).length;
+const overLong = outLines.filter((l) => l.length > 2000);
+if (ruleCount > 100) {
+  console.error(`✗ gen-edge-config: ${ruleCount} rules exceeds the Cloudflare Pages limit of 100.`);
+  process.exit(1);
+}
+if (overLong.length > 0) {
+  console.error(`✗ gen-edge-config: ${overLong.length} line(s) exceed the 2,000-character limit.`);
+  process.exit(1);
+}
+
+await writeFile(path.join(DIST, "_headers"), headersOut);
 
 /** `_redirects`: apex→www and any future rules. One hop, explicit status. */
 const site = await readJson("website/src/data/site.json");
