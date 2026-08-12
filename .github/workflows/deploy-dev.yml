@@ -13,6 +13,9 @@ concurrency:
   group: deploy-dev
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
@@ -36,11 +39,25 @@ jobs:
         env:
           CATALYST_TOKEN: ${{ secrets.CATALYST_TOKEN }}
           CATALYST_ORG: ${{ secrets.CATALYST_ORG }}
+          # Not a secret: project IDs are not credentials.
+          CATALYST_PROJECT_ID: "53691000000016002"
         run: |
           if [ -z "$CATALYST_TOKEN" ]; then
-            echo "::warning::CATALYST_TOKEN not set — Catalyst project pending (File 13, founder action 3). Skipping deploy."
+            echo "::warning::CATALYST_TOKEN not set. The Catalyst project EXISTS (RichenQuest, 53691000000016002) — what is missing is a CI token: run 'catalyst token:generate' and store it as the CATALYST_TOKEN secret. Skipping deploy."
             exit 0
           fi
-          npm install -g zcatalyst-cli
-          # Exact flags finalized during the M4 Catalyst spike (File 09 §5):
-          catalyst deploy --project richenquest --env development --token "$CATALYST_TOKEN"
+          npm install -g zcatalyst-cli@1.27.0
+          # Verified against zcatalyst-cli 1.27.0 on 2026-08-13.
+          #   - There is NO --env flag. `catalyst deploy` always targets the
+          #     Catalyst DEVELOPMENT environment. The previous `--env development`
+          #     failed at parse: "error: unknown option '--env'".
+          #   - --project/--org/--token/-ni are GLOBAL options and parse either
+          #     before or after the subcommand (both reach auth).
+          #   - --project takes <name|project_id>. We pass the ID: the console
+          #     project is named "RichenQuest", not "richenquest", so the ID is
+          #     the only identifier immune to case and renaming.
+          catalyst deploy \
+            --project "$CATALYST_PROJECT_ID" \
+            --org "$CATALYST_ORG" \
+            --token "$CATALYST_TOKEN" \
+            -ni

@@ -11,6 +11,21 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* WCAG 2.2 SC 2.4.11 (Focus Not Obscured) + anchor landing.
+     The header is sticky at the top and the mobile action bar is fixed at the
+     bottom, so anything scrolled to a viewport edge — a tabbed-to control, the
+     skip link's #main target, an in-page anchor — lands underneath them.
+     body padding reserves end-of-document space only; scroll-padding is what
+     keeps scroll targets clear. Bottom inset applies only where the bar shows. */
+  scroll-padding-block-start: 5rem;
+  scroll-padding-block-end: 6rem;
+}
+
+@media (min-width: 64em) {
+  html {
+    /* sticky-bar is display:none from 64em up */
+    scroll-padding-block-end: 0;
+  }
 }
 
 body {

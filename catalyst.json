@@ -1,0 +1,7 @@
+{
+  "name": "richenquest",
+  "client": {
+    "source": "website/dist",
+    "command": "node website/build.mjs"
+  }
+}

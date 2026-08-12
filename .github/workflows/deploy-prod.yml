@@ -7,10 +7,21 @@ name: Deploy (Production)
 on:
   push:
     tags: ["v*"]
+  # Rollback path: re-deploy a previous release tag without cutting a new one.
+  # Rehearse this once BEFORE launch — an incident is a bad time to learn it.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Release tag to deploy (e.g. v1.0.0). Defaults to the branch/tag this run was started from."
+        required: false
+        type: string
 
 concurrency:
   group: deploy-prod
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy-prod:
@@ -18,6 +29,8 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -36,11 +49,38 @@ jobs:
         env:
           CATALYST_TOKEN: ${{ secrets.CATALYST_TOKEN }}
           CATALYST_ORG: ${{ secrets.CATALYST_ORG }}
+          CATALYST_PROJECT_ID: "53691000000016002"
         run: |
           if [ -z "$CATALYST_TOKEN" ]; then
             echo "::error::CATALYST_TOKEN not set — cannot deploy to production."
             exit 1
           fi
-          npm install -g zcatalyst-cli
-          # Exact flags finalized during the M4 Catalyst spike (File 09 §5):
-          catalyst deploy --project richenquest --env production --token "$CATALYST_TOKEN"
+          # HALTED — verified against zcatalyst-cli 1.27.0 source on 2026-08-13.
+          #
+          # CORRECTION to an earlier comment in this file: a production deploy
+          # path DOES exist in the CLI, but not for how this project is hosted.
+          #
+          #   - `catalyst deploy slate --production` deploys to Production, and
+          #     lib/deploy/features/slate.js:103-105 also honours
+          #     ZC_ENVIRONMENT=production.
+          #   - That support is SLATE-ONLY. Counting environment references per
+          #     deploy feature: slate.js 3, client.js 0, apig.js 0, index.js 0.
+          #     ZC_ENVIRONMENT appears exactly once in the whole package, in
+          #     slate.js.
+          #   - catalyst.json configures this project as a CLIENT app, and
+          #     client deploys have no environment concept at all. `--env` is
+          #     not a flag anywhere: `--env production` fails at parse with
+          #       error: unknown option '--env'
+          #
+          # So for the CURRENT hosting model there is no CLI production path.
+          # Dropping the flag would make a job called "Deploy (Production)"
+          # deploy to DEVELOPMENT while reporting success. It fails loudly
+          # instead. Unblocking this is a founder architecture decision,
+          # recorded in docs/adr/ADR-006-slate-vs-client-hosting.md. Required
+          # before Phase 3; deliberately does not block Phases 0-2.
+          echo "::error::No production deploy path for a Catalyst CLIENT app."
+          echo "::error::CLI production support is Slate-only (deploy slate --production / ZC_ENVIRONMENT)."
+          echo "::error::This project is configured as a client in catalyst.json."
+          echo "::error::Decide hosting model (Slate migration vs console promotion) before tagging."
+          echo "::error::Verified against zcatalyst-cli 1.27.0 source on 2026-08-13."
+          exit 1

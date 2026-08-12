@@ -5,7 +5,7 @@
   "description": "RichenQuest public website — static HTML5/CSS3/vanilla JS, zero dependencies (ADR-001/002)",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12"
   },
   "scripts": {
     "build": "node build.mjs",

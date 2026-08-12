@@ -11,10 +11,16 @@ node_modules/
 
 # Zoho Catalyst local artifacts
 .catalyst/
+.catalystrc
 catalyst-debug.log
+
+# CI analyzer artifacts (run locally to reproduce the CI gates — never committed)
+.lighthouseci/
+.npm-cache/
 
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
+.claude/settings.json
 .claude/launch.json
 
 # OS / editor noise

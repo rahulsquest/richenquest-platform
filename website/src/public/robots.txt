@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
-Disallow: /styleguide/
+
+# /styleguide/ is intentionally crawlable: it carries <meta name="robots"
+# content="noindex"> (layouts/noindex.html). A Disallow here would stop Google
+# reading that tag, leaving the page eligible for a URL-only listing instead.
+# Crawl-to-noindex is the directive that actually removes a page from results.
 
 Sitemap: https://www.richenquest.com/sitemap.xml

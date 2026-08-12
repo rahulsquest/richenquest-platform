@@ -2,16 +2,21 @@
   "_purpose": "Target security headers for richenquest.com (File 09 §7). Applied at the Catalyst hosting layer during the M4 spike — mechanism (console config, catalyst.json, or edge function) confirmed against a real project. If Catalyst cannot set a header, the documented fallback applies.",
   "headers": {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' *.zoho.com *.zoho.in *.zohopublic.com *.zohostatic.com *.zohocdn.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' *.zohostatic.com; img-src 'self' data: *.zoho.com *.zoho.in *.zohocdn.com https://*.clarity.ms; frame-src *.zoho.com *.zoho.in *.zohopublic.com; connect-src 'self' *.zoho.com *.zoho.in https://*.clarity.ms; font-src 'self'; base-uri 'self'; form-action 'self' *.zoho.com *.zoho.in",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
     "X-Frame-Options": "DENY"
   },
+  "_csp_when_embeds_land": {
+    "_when": "Apply ONLY at the M4 embed spike, and only the directives the confirmed hosts actually need. Do not ship this at launch — the v1 site loads zero third-party resources, so the strict policy above costs nothing and is the strongest posture this site will ever be able to hold.",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' *.zoho.com *.zoho.in *.zohopublic.com *.zohostatic.com *.zohocdn.com https://www.clarity.ms; style-src 'self' 'unsafe-inline' *.zohostatic.com; img-src 'self' data: *.zoho.com *.zoho.in *.zohocdn.com https://*.clarity.ms; frame-src *.zoho.com *.zoho.in *.zohopublic.com; connect-src 'self' *.zoho.com *.zoho.in https://*.clarity.ms; font-src 'self'; base-uri 'self'; form-action 'self' *.zoho.com *.zoho.in; frame-ancestors 'none'"
+  },
   "_notes": [
-    "CSP allowlists cover the planned Zoho embeds (Forms/SalesIQ/Bookings, .com and .in DCs) and consent-gated Microsoft Clarity (File 11 C4). Tighten after the M4 embed spike confirms actual hosts.",
-    "'unsafe-inline' script-src is required only for the JSON-LD blocks and Zoho embed snippets; revisit with nonces if Catalyst supports response rewriting.",
-    "GA4/Meta Pixel hosts intentionally ABSENT — add only after founder approval (File 13, Analytics).",
+    "LAUNCH CSP IS STRICT BY DESIGN. Verified 2026-08-12: the built site loads no third-party resources, makes no fetch/XHR calls, and contains zero executable inline scripts and zero inline style attributes or <style> elements. Nothing in v1 needs a relaxation.",
+    "CORRECTION to the previous note: 'unsafe-inline' is NOT required for the JSON-LD blocks. A <script type=\"application/ld+json\"> is an HTML data block — never executed, and not subject to script-src. All 28 inline scripts on the site are ld+json. Relaxing script-src for them would have weakened the policy for no reason.",
+    "frame-ancestors 'none' added — it is the directive modern browsers honour for clickjacking; X-Frame-Options is retained for older clients only.",
+    "GA4/Meta Pixel hosts intentionally ABSENT — add only after founder approval (File 13, Analytics). Microsoft Clarity likewise: it sets cookies, so it also requires the consent gate and a privacy-policy update FIRST (the policy commits to this in writing).",
     "Fallback if headers are unsupported at the host: meta-tag CSP (reduced coverage; no HSTS/frame-ancestors) + Cloudflare-proxied DNS as a last resort — founder decision required for the latter."
   ]
 }
