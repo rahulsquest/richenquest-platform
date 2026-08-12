@@ -1,0 +1,28 @@
+{
+  "_purpose": "Target Cache-Control policy for richenquest.com. Applied at the Catalyst hosting layer alongside infra/security-headers.json during the M4 spike. Exists so the deployment-verification pass has an EXPECTED value to diff against, rather than accepting whatever the host defaults to.",
+  "_why_it_matters": "site.css and main.js are requested with ?v=<hash>, a content hash the build derives and stamps. Cache-busting query strings only buy anything if something sets a long TTL against them — otherwise every repeat visitor re-downloads assets that never changed. Lighthouse measures a cold first visit; real users on Indian and Nepali mobile networks are returning visitors, and their experience is governed entirely by these headers.",
+  "rules": [
+    {
+      "match": "/assets/css/*, /assets/js/*",
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "_why": "Content-hashed via ?v=. Safe to cache for a year: a change produces a new URL."
+    },
+    {
+      "match": "/assets/img/*, /apple-touch-icon.png, /favicon.svg, /favicon.ico",
+      "Cache-Control": "public, max-age=604800",
+      "_why": "One week, NOT immutable. These are NOT covered by the build hash (see caveat below), so a long TTL would strand a stale icon sprite in browser caches."
+    },
+    {
+      "match": "*.html",
+      "Cache-Control": "public, max-age=0, must-revalidate",
+      "_why": "HTML is the entry point that references the hashed assets. It must revalidate so a deploy is visible immediately; the 304 is cheap."
+    },
+    {
+      "match": "/sitemap.xml, /robots.txt",
+      "Cache-Control": "public, max-age=3600",
+      "_why": "Crawler-facing. An hour keeps them fresh for Search Console without hammering origin."
+    }
+  ],
+  "_known_caveat": "build.mjs:149 derives the cache-bust hash from CSS + JS only — createHash().update(css + jsConcat). Images and assets/img/icons.svg (referenced 29x on the homepage via <use href>) are NOT in the hash and carry no version query. That is why the image rule above is one week rather than immutable. Folding all of assets/ into the hash input would let images move to immutable too; tracked as a Medium finding in the 2026-08-12 audit.",
+  "_verify_on_deploy": "curl -sI <url>/assets/css/site.css | grep -i cache-control  — and confirm the ?v= hash in the served HTML matches a local rebuild of the deployed commit (the build is deterministic)."
+}

@@ -4,6 +4,41 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — Phase 1 pre-deploy polish (2026-08-12)
+- `favicon.ico` (real 3-size ICO: 16/32/48) + `<link>` fallback. Browsers and several
+  link-preview bots request `/favicon.ico` at root unconditionally; without it every first
+  visit logged a 404.
+- `infra/cache-headers.json` — the Cache-Control policy the deployment audit diffs against,
+  so header verification has an expected value instead of accepting the host default.
+  Hashed assets immutable/1y; images 1 week (NOT immutable — the build hash does not cover
+  them); HTML must-revalidate.
+- `layouts/noindex.html` — utility layout carrying `robots: noindex, nofollow`. Used by
+  `/styleguide/` and `404.html`, both of which previously self-canonicalised with no robots
+  directive. Uses the engine's existing `layout:` meta key; no build change needed.
+- `workflow_dispatch` (with a `ref` input) on the production deploy, so rolling back to a
+  previous release tag does not depend on finding an old run in the Actions UI.
+
+### Changed — Phase 1 pre-deploy polish (2026-08-12)
+- **CSP tightened for launch.** v1 loads zero third-party resources, makes no fetch/XHR
+  calls, and has zero executable inline scripts and zero inline styles — so the launch policy
+  is now `default-src 'self'` with no `unsafe-inline` anywhere, plus `frame-ancestors 'none'`,
+  `object-src 'none'` and `upgrade-insecure-requests`. The Zoho/Clarity allowlist is preserved
+  under `_csp_when_embeds_land` for M4. Corrected the note claiming `unsafe-inline` was needed
+  for JSON-LD: a `ld+json` block is an HTML data block, never executed, never gated by
+  `script-src`.
+- `robots.txt` no longer disallows `/styleguide/`. A Disallow blocks crawling, which would
+  stop Google ever reading the new `noindex` — crawl-to-noindex is what actually removes a
+  page from results.
+- `engines.node` raised to `>=20.12`: both build scripts use `entry.parentPath`, which does
+  not exist in Node 20.0–20.11.
+
+### Fixed — Phase 1 pre-deploy polish (2026-08-12)
+- **WCAG 2.2 SC 2.4.11 (Focus Not Obscured).** The header is sticky at the top and the mobile
+  action bar fixed at the bottom, with no `scroll-padding` anywhere — so a tabbed-to control,
+  the skip link's `#main` target, and in-page anchors all landed underneath them. Added
+  `scroll-padding-block-start: 5rem` / `-end: 6rem` (bottom inset dropped at ≥64em where the
+  bar is hidden).
+
 ### Fixed — codebase audit: structured-data integrity (2026-08-12)
 - **JSON-LD corruption (SEO-visible).** `site.tagline` and both phone numbers had been
   rewritten in `data/site.json` as `&amp;` and non-breaking spaces to silence two

@@ -7,6 +7,14 @@ name: Deploy (Production)
 on:
   push:
     tags: ["v*"]
+  # Rollback path: re-deploy a previous release tag without cutting a new one.
+  # Rehearse this once BEFORE launch — an incident is a bad time to learn it.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Release tag to deploy (e.g. v1.0.0). Defaults to the branch/tag this run was started from."
+        required: false
+        type: string
 
 concurrency:
   group: deploy-prod
@@ -21,6 +29,8 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: actions/setup-node@v4
         with:

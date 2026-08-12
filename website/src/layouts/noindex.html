@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- @include components/head.html -->
+<!-- Internal/utility pages (styleguide, 404). Same chrome as base, plus a robots
+     directive. Note this only works if the page is CRAWLABLE — a robots.txt
+     Disallow would stop Google ever reading this tag (File 10 §3). -->
+<meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+<!-- @include components/header.html -->
+  <main id="main">
+{{ page.content }}
+  </main>
+<!-- @include components/footer.html -->
+<!-- @include components/sticky-bar.html -->
+  <script type="module" src="/assets/js/main.js?v={{ build.hash }}"></script>
+</body>
+</html>
