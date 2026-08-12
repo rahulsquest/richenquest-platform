@@ -58,10 +58,10 @@ Evidence: automated sweep of all 19 built pages + claims-guard + manual persona 
 |---|---|---|
 | WhatsApp | ✅ | Live real workflow, page-aware prefill, Italy number |
 | Email | 🟡 | Live everywhere — pending founder confirmation that official@ works |
-| Zoho Forms | 🔴 | Zoho One not activated. M4 acceptance requires form → CRM end-to-end |
-| Zoho CRM | 🔴 | Same — File 01 build not started (business Milestone 2) |
+| Zoho Forms | 🔴 | **Corrected 2026-08-13 (File 14): Zoho One IS active (Enterprise trial).** No Zoho Form exists yet; console-only work — no Forms API available |
+| Zoho CRM | ✅ | **Corrected 2026-08-13 (File 14): File 01 build is substantially COMPLETE** — Deals renamed to Student Cases, 7/7 Leads fields, 7/7 Student Case fields, 11/11 pipeline stages, 6/6 lost reasons, assignment rule live |
 | Zoho Bookings | 🟡 | Slot reserved on /contact/; WhatsApp scheduling works meanwhile |
-| Lead tracking | 🔴 | Until CRM exists, leads live in WhatsApp/inbox untracked — the #1 funnel gap |
+| Lead tracking | 🟡 | CRM exists and is configured, but **0 real leads** — 4 test records with null status/source (File 14 §2). Gap is now the website→CRM path, not the CRM |
 
 ## Analytics
 | Item | Status | Notes |
