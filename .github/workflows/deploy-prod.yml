@@ -75,9 +75,9 @@ jobs:
           # So for the CURRENT hosting model there is no CLI production path.
           # Dropping the flag would make a job called "Deploy (Production)"
           # deploy to DEVELOPMENT while reporting success. It fails loudly
-          # instead. Unblocking this is a founder architecture decision:
-          # migrate hosting to Slate (ADR-004 amendment) or promote via the
-          # Catalyst console. Recorded in the execution ledger, Phase 3.
+          # instead. Unblocking this is a founder architecture decision,
+          # recorded in docs/adr/ADR-006-slate-vs-client-hosting.md. Required
+          # before Phase 3; deliberately does not block Phases 0-2.
           echo "::error::No production deploy path for a Catalyst CLIENT app."
           echo "::error::CLI production support is Slate-only (deploy slate --production / ZC_ENVIRONMENT)."
           echo "::error::This project is configured as a client in catalyst.json."
