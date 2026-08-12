@@ -55,21 +55,32 @@ jobs:
             echo "::error::CATALYST_TOKEN not set — cannot deploy to production."
             exit 1
           fi
-          # HALTED — verified against zcatalyst-cli 1.27.0 on 2026-08-13.
+          # HALTED — verified against zcatalyst-cli 1.27.0 source on 2026-08-13.
           #
-          # zcatalyst-cli has NO production deploy path:
-          #   - `catalyst deploy` always targets the DEVELOPMENT environment
-          #     (per its own --help), and there is no --env flag. The previous
-          #     `--env production` failed at parse:
+          # CORRECTION to an earlier comment in this file: a production deploy
+          # path DOES exist in the CLI, but not for how this project is hosted.
+          #
+          #   - `catalyst deploy slate --production` deploys to Production, and
+          #     lib/deploy/features/slate.js:103-105 also honours
+          #     ZC_ENVIRONMENT=production.
+          #   - That support is SLATE-ONLY. Counting environment references per
+          #     deploy feature: slate.js 3, client.js 0, apig.js 0, index.js 0.
+          #     ZC_ENVIRONMENT appears exactly once in the whole package, in
+          #     slate.js.
+          #   - catalyst.json configures this project as a CLIENT app, and
+          #     client deploys have no environment concept at all. `--env` is
+          #     not a flag anywhere: `--env production` fails at parse with
           #       error: unknown option '--env'
-          #   - there is no promote/publish command in the 1.27.0 command list.
           #
-          # Removing --env would make this job deploy to DEVELOPMENT while
-          # calling itself a production release — a silent, dangerous failure.
-          # So it fails loudly instead, until the promotion mechanism is
-          # established and recorded (founder decision, Phase 3).
-          echo "::error::No production deploy path in zcatalyst-cli 1.27.0."
-          echo "::error::'catalyst deploy' targets Development only; there is no --env or promote command."
-          echo "::error::Resolve the Catalyst production promotion mechanism before tagging a release."
-          echo "::error::Verified 2026-08-13. See infra/ and the execution ledger."
+          # So for the CURRENT hosting model there is no CLI production path.
+          # Dropping the flag would make a job called "Deploy (Production)"
+          # deploy to DEVELOPMENT while reporting success. It fails loudly
+          # instead. Unblocking this is a founder architecture decision:
+          # migrate hosting to Slate (ADR-004 amendment) or promote via the
+          # Catalyst console. Recorded in the execution ledger, Phase 3.
+          echo "::error::No production deploy path for a Catalyst CLIENT app."
+          echo "::error::CLI production support is Slate-only (deploy slate --production / ZC_ENVIRONMENT)."
+          echo "::error::This project is configured as a client in catalyst.json."
+          echo "::error::Decide hosting model (Slate migration vs console promotion) before tagging."
+          echo "::error::Verified against zcatalyst-cli 1.27.0 source on 2026-08-13."
           exit 1
