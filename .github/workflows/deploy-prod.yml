@@ -49,15 +49,27 @@ jobs:
         env:
           CATALYST_TOKEN: ${{ secrets.CATALYST_TOKEN }}
           CATALYST_ORG: ${{ secrets.CATALYST_ORG }}
+          CATALYST_PROJECT_ID: "53691000000016002"
         run: |
           if [ -z "$CATALYST_TOKEN" ]; then
             echo "::error::CATALYST_TOKEN not set — cannot deploy to production."
             exit 1
           fi
-          npm install -g zcatalyst-cli@1.27.0
-          # UNVERIFIED: this invocation has never run against a real Catalyst
-          # project. --project/--env/--token are inferred from File 09 §5, not
-          # confirmed. Expect to correct them on the first deploy.
-          # AFTER the first successful deploy, replace the three lines above with:
-          #   # Verified against zcatalyst-cli <version> on <YYYY-MM-DD>
-          catalyst deploy --project richenquest --env production --token "$CATALYST_TOKEN"
+          # HALTED — verified against zcatalyst-cli 1.27.0 on 2026-08-13.
+          #
+          # zcatalyst-cli has NO production deploy path:
+          #   - `catalyst deploy` always targets the DEVELOPMENT environment
+          #     (per its own --help), and there is no --env flag. The previous
+          #     `--env production` failed at parse:
+          #       error: unknown option '--env'
+          #   - there is no promote/publish command in the 1.27.0 command list.
+          #
+          # Removing --env would make this job deploy to DEVELOPMENT while
+          # calling itself a production release — a silent, dangerous failure.
+          # So it fails loudly instead, until the promotion mechanism is
+          # established and recorded (founder decision, Phase 3).
+          echo "::error::No production deploy path in zcatalyst-cli 1.27.0."
+          echo "::error::'catalyst deploy' targets Development only; there is no --env or promote command."
+          echo "::error::Resolve the Catalyst production promotion mechanism before tagging a release."
+          echo "::error::Verified 2026-08-13. See infra/ and the execution ledger."
+          exit 1
