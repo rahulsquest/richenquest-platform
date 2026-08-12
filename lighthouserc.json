@@ -9,10 +9,11 @@
         "http://localhost/contact/index.html"
       ],
       "numberOfRuns": 1,
+      "_settings_note": "Mobile is the audience (India/Nepal traffic is phone-first), so the gate runs the mobile profile: formFactor + screenEmulation + simulated throttling (4x CPU). Do NOT reintroduce 'preset: desktop' or 'emulatedFormFactor' — the latter is a Lighthouse 5 key that LH 6+ ignores silently, so the pair scored an unthrottled desktop run while reading as mobile.",
       "settings": {
-        "preset": "desktop",
-        "emulatedFormFactor": "mobile",
-        "throttlingMethod": "simulate"
+        "formFactor": "mobile",
+        "throttlingMethod": "simulate",
+        "screenEmulation": { "mobile": true, "width": 412, "height": 823, "deviceScaleFactor": 1.75, "disabled": false }
       }
     },
     "assert": {

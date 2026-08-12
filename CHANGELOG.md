@@ -19,6 +19,20 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
   disabled, so a linter preference can no longer push presentation into the data layer.
 - File 10 §3 records the rule; `site.json` carries an inline warning.
 
+### Fixed — codebase audit: CI gates measured the wrong thing (2026-08-12)
+- **Lighthouse ran desktop, not mobile.** `lighthouserc.json` paired `"preset": "desktop"`
+  with `"emulatedFormFactor": "mobile"` — the latter is a Lighthouse 5 key that LH 6+ drops
+  silently, so every budget was scored on an unthrottled desktop profile (cpuSlowdown 1×)
+  while reading as mobile. For phone-first India/Nepal traffic the gate was measuring the
+  easy case. Now `formFactor: mobile` + `screenEmulation` + simulated throttling (4× CPU);
+  all four URLs still score 100/100/100/100, LCP 1.2 s.
+
+### Security — codebase audit (2026-08-12)
+- Both deploy workflows installed `zcatalyst-cli` **unpinned** on the path to production,
+  while CI analyzers were pinned. Pinned to `zcatalyst-cli@1.27.0`.
+- Added least-privilege `permissions: contents: read` to all three workflows (they only
+  read the repo; deploys authenticate with `CATALYST_TOKEN`).
+
 ### Added — codebase audit (2026-08-12)
 - `.gitignore` now covers `.lighthouseci/` and `.npm-cache/` (local CI-analyzer artifacts
   that were untracked and one `git add -A` away from being committed).
