@@ -4,6 +4,25 @@ All notable changes to the RichenQuest platform. Format: [Keep a Changelog](http
 
 ## [Unreleased]
 
+### Added — hosting migration groundwork (2026-08-13)
+- `scripts/gen-edge-config.mjs` — emits `_headers` and `_redirects` into `website/dist` from
+  `infra/security-headers.json` and `infra/cache-headers.json`. Those specs had been correct but
+  **inert since they were written**: no hosting layer ever consumed them. They are now deployable
+  artifacts generated from a single source of truth, wired into CI.
+- `.github/workflows/deploy-pages.yml` — Cloudflare Pages deployment (ADR-007), skipping green
+  until `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` exist.
+- `docs/adr/ADR-007-hosting-platform-selection.md` — 15-point decision matrix.
+  Client 3/15 · Slate 9/15 · Cloudflare Pages 15/15.
+
+### Changed — hosting (2026-08-13)
+- **Catalyst Web Client Hosting rejected** (ADR-006 ACCEPTED). Measured against a real deployment:
+  `/app` prefix forced, no directory-index resolution, all assets 404, `/robots.txt` 400 at origin
+  root, no Cache-Control, no CSP mechanism.
+- **Catalyst Slate evaluated empirically and rejected.** It fixes routing (root serving, clean URLs,
+  HTTP/2, Brotli) but returns **HTTP 200 for unknown paths** (soft-404), serves **HTML with
+  `max-age=31536000`** — a legal-page fix would be invisible for a year — and exposes only five
+  config fields, none for headers or routing.
+
 ### Added — Phase 1 pre-deploy polish (2026-08-12)
 - `favicon.ico` (real 3-size ICO: 16/32/48) + `<link>` fallback. Browsers and several
   link-preview bots request `/favicon.ico` at root unconditionally; without it every first

@@ -1,0 +1,60 @@
+# Cloudflare Pages deployment (ADR-007).
+#
+# Catalyst Web Client Hosting was rejected (ADR-006) and Catalyst Slate scored
+# 9/15 with three unfixable defects. Cloudflare Pages is the only evaluated
+# platform that satisfies all fifteen launch requirements — notably a real 404
+# status, per-path Cache-Control, and a delivery mechanism for the strict CSP
+# that has lived inertly in infra/ since it was written.
+#
+# Activates automatically once CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
+# exist. Until then it reports and exits green, so CI history stays clean.
+name: Deploy (Cloudflare Pages)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Build site
+        run: node website/build.mjs
+
+      - name: Generate edge config (_headers/_redirects)
+        run: node scripts/gen-edge-config.mjs
+
+      - name: Claims guard
+        run: node scripts/claims-guard.mjs
+
+      - name: Internal link & asset check
+        run: node scripts/check-links.mjs
+
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning::Cloudflare credentials not set — founder action per ADR-007 (account ownership + DNS). Skipping deploy."
+            exit 0
+          fi
+          # Pinned, consistent with the CI analyzer policy.
+          npx --yes wrangler@3.90.0 pages deploy website/dist \
+            --project-name=richenquest \
+            --branch=main \
+            --commit-dirty=true
