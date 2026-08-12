@@ -33,67 +33,62 @@ const cache = await readJson("infra/cache-headers.json");
 const block = (pattern, pairs) =>
   [pattern, ...Object.entries(pairs).map(([k, v]) => `  ${k}: ${v}`)].join("\n");
 
-const sections = [];
+// VERIFIED against a live Cloudflare Pages deployment on 2026-08-13:
+//   1. Cloudflare joins duplicate header values with a comma — "If a header is
+//      applied twice in the _headers file, the values are joined with a comma
+//      separator" — and a SECOND block for the same path pattern overrides the
+//      first. An earlier version of this script emitted two `/*` blocks (one
+//      security, one HTML cache). The second silently discarded EVERY security
+//      header, and assets came back as
+//        cache-control: public, max-age=0, must-revalidate, public, max-age=31536000, immutable
+//      so browsers honoured max-age=0 and nothing was cached.
+//   2. Therefore: exactly ONE block per path pattern, and `/*` carries security
+//      headers ONLY. Cloudflare already serves HTML as
+//      "public, max-age=0, must-revalidate" by default, so the `*.html` rule in
+//      infra/cache-headers.json is intentionally not emitted — emitting it would
+//      concatenate onto every asset and defeat their immutable caching.
+const rules = new Map();
+rules.set("/*", { ...security.headers });
 
-// Security headers apply to every response.
-sections.push(
-  "# ─── security (generated from infra/security-headers.json) ───\n" +
-    block("/*", security.headers)
-);
-
-// Cache rules, most-specific first. `_headers` matches in file order.
-const cacheRules = cache.rules.flatMap((rule) =>
-  rule.match
-    .split(",")
-    .map((m) => m.trim())
-    .filter(Boolean)
-    .map((pattern) => ({ pattern, value: rule["Cache-Control"], why: rule._why }))
-);
-
-// `*.html` is not a valid _headers pattern — express it as the catch-all instead.
-const normalisePattern = (p) => (p === "*.html" ? "/*" : p);
-
-// CRITICAL: `_headers` applies the FIRST matching rule per header name, so the
-// catch-all must come LAST. Without this, /* would swallow /sitemap.xml and
-// /robots.txt and serve them max-age=0 instead of their intended 3600.
-const ordered = cacheRules
-  .map((r) => ({ ...r, pattern: normalisePattern(r.pattern) }))
-  .sort((a, b) => (a.pattern === "/*" ? 1 : 0) - (b.pattern === "/*" ? 1 : 0));
-
-let lastWhy = null;
-sections.push(
-  "# ─── caching (generated from infra/cache-headers.json) ───\n" +
-    ordered
-      .map(({ pattern, value, why }) => {
-        const comment = why === lastWhy ? "" : `# ${why}\n`;
-        lastWhy = why;
-        return comment + block(pattern, { "Cache-Control": value });
-      })
-      .join("\n")
-);
+for (const rule of cache.rules) {
+  for (const raw of rule.match.split(",").map((m) => m.trim()).filter(Boolean)) {
+    if (raw === "*.html") continue; // Cloudflare's default already covers HTML
+    rules.set(raw, { ...(rules.get(raw) ?? {}), "Cache-Control": rule["Cache-Control"] });
+  }
+}
 
 const header = [
   "# GENERATED FILE — DO NOT EDIT.",
   "# Source: infra/security-headers.json + infra/cache-headers.json",
   "# Regenerate: node scripts/gen-edge-config.mjs",
   "#",
-  "# Order matters: Cloudflare Pages and Netlify apply the FIRST matching rule per",
-  "# header name, so the broad /* security block is listed before the narrower",
-  "# cache rules, and asset rules precede the HTML fallback.",
+  "# EXACTLY ONE block per path pattern. Cloudflare joins duplicate header values",
+  "# with commas, and a repeated path pattern overrides the earlier block, so a",
+  "# second /* block would silently discard the security headers above it.",
+  "# /* carries security headers only — Cloudflare already defaults HTML to",
+  "# public, max-age=0, must-revalidate.",
   "",
 ].join("\n");
 
-const headersOut = header + sections.join("\n\n") + "\n";
+const headersOut =
+  header + [...rules.entries()].map(([p, pairs]) => block(p, pairs)).join("\n\n") + "\n";
 
 // Cloudflare Pages documents hard limits: 100 rules, 2,000 characters per line.
 // Fail the build rather than ship a file the edge will silently truncate.
 const outLines = headersOut.split("\n");
-const ruleCount = outLines.filter((l) => l.startsWith("/")).length;
-const overLong = outLines.filter((l) => l.length > 2000);
-if (ruleCount > 100) {
-  console.error(`✗ gen-edge-config: ${ruleCount} rules exceeds the Cloudflare Pages limit of 100.`);
+const ruleLines = outLines.filter((l) => l.startsWith("/"));
+const duplicates = ruleLines.filter((l, i) => ruleLines.indexOf(l) !== i);
+if (duplicates.length > 0) {
+  console.error(
+    `✗ gen-edge-config: duplicate path pattern(s): ${[...new Set(duplicates)].join(", ")}`
+  );
   process.exit(1);
 }
+if (ruleLines.length > 100) {
+  console.error(`✗ gen-edge-config: ${ruleLines.length} rules exceeds the Cloudflare limit of 100.`);
+  process.exit(1);
+}
+const overLong = outLines.filter((l) => l.length > 2000);
 if (overLong.length > 0) {
   console.error(`✗ gen-edge-config: ${overLong.length} line(s) exceed the 2,000-character limit.`);
   process.exit(1);
@@ -117,6 +112,6 @@ const redirects = [
 await writeFile(path.join(DIST, "_redirects"), redirects);
 
 console.log(
-  `✓ gen-edge-config: wrote _headers (${Object.keys(security.headers).length} security + ` +
-    `${cacheRules.length} cache rules) and _redirects (apex → ${canonicalHost})`
+  `✓ gen-edge-config: wrote _headers (${ruleLines.length} unique path rules) and ` +
+    `_redirects (apex → ${canonicalHost})`
 );
