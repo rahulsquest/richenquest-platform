@@ -2,6 +2,29 @@
 
 **Investigated:** 2026-08-13. Every automation path was attempted before escalating.
 
+## Exhaustive path matrix (final check, 2026-08-13)
+
+| # | Path | Supported? | Can create webform? | Can retrieve HTML? | Can retrieve xnQsjsdp/xmIwtLD/action? | Fully automatable? |
+|---|---|---|---|---|---|---|
+| 1 | Zoho CRM Core APIs | YES | NO | NO | NO | records/fields only |
+| 2 | Zoho CRM Metadata APIs (v8) | YES | NO | NO | NO | NO — v8 metadata covers modules, fields, layouts, custom views, related lists. Webforms are **not** a covered entity |
+| 3 | Zoho CRM Webform APIs | **NO — do not exist** | — | — | — | — |
+| 4 | Zoho Deluge | YES (product) | NO | NO | NO | Cannot reach the private Forms API — no OAuth scope exists |
+| 5 | Zoho Flow | YES (product) | NO | NO | NO | No MCP server connected; console-configured |
+| 6 | Zoho Catalyst | YES (product) | NO | NO | NO | MCP server present but **unauthenticated** this session |
+| 7 | Zoho Developer APIs | YES | NO | NO | NO | Extension/widget APIs; no webform entity |
+| 8 | Zoho Marketplace | YES | NO | NO | NO | Publishing an extension still requires console auth and does not expose webforms |
+| 9 | Browser automation in this environment | **NO** | — | — | — | Tool search run 4×: only Figma design tools and Zoho data tools. No browser control, computer-use, Playwright, Puppeteer or Selenium |
+| 10 | MCP servers | YES (CRM/Books/Desk/Projects) | NO | NO | NO | Searched 3×; no form-creation tool on any server |
+| 11 | Direct Zoho REST from shell | **NO** | — | — | — | `GET zohoapis.in/crm/v3/settings/modules` → **401**. MCP holds the token server-side; no client-side token exists |
+
+Additional zero-action alternatives probed and eliminated:
+- **Zoho Bookings** public portal — `richenquest.zohobookings.in` and `.com` both **404**; no portal exists.
+- **Zoho Forms** public portal — no subdomain resolves.
+- **Deriving LEADCF indices from field metadata** — impossible. Custom Leads fields expose only
+  `api_name` and `id`; there is no `column_name`, index or LEADCF hint. The mapping exists solely
+  in the generated HTML.
+
 ## Paths attempted, with evidence
 
 | Path | Result |
@@ -41,6 +64,23 @@ indices at generation time — they cannot be predicted, which is why
 keys it would POST nowhere and silently discard submissions — the exact defect File 12 records on
 the legacy site ("preventDefault → clears fields → fake success message"). Shipping that would be
 worse than having no form.
+
+## Post-action automation is already built and proven
+
+`scripts/import-webform.mjs` parses the pasted HTML and writes everything itself — the three
+config values into `site.json` and a full `LEADCF → CRM field` map into `webform-fields.json`.
+**No manual mapping, no hand-edited config, no HTML editing.**
+
+Proven against a synthetic webform before asking for anything:
+
+```
+✓ import-webform: action + xnQsjsdp + xmIwtLD written to site.json;
+  4 LEADCF field(s) mapped (3 labelled)
+  {'LEADCF7': 'WhatsApp Number', 'LEADCF3': 'Interested Country',
+   'LEADCF9': 'Budget Range', 'LEADCF12': None}
+```
+
+The test values were then reverted; no placeholder keys are committed.
 
 ## What is already done for it
 
