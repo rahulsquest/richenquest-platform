@@ -1,68 +1,68 @@
 <!-- component: lead-form — Zoho CRM Web-to-Lead form.
      ADR-003 compliant: the browser POSTs DIRECTLY to Zoho. No backend, no
-     submission handler, no website database. Zoho owns validation, dedupe,
-     assignment (Student_Lead_Routing) and every downstream workflow.
+     submission handler, no website database. Zoho owns dedupe, assignment
+     (Student_Lead_Routing) and every downstream workflow.
 
-     NOT YET WIRED INTO ANY PAGE. It activates only when the three
-     site.zoho_webform_* values are real. Rendering it before then would ship a
-     form that silently discards submissions — precisely the defect File 12
-     records on the legacy site ("preventDefault → fake success message").
+     THIS FORM CONTAINS ONLY FIELDS THE WEBFORM ACTUALLY ACCEPTS.
+     Verified by live probe 2026-08-13 (File 15): Zoho returns HTTP 200 and
+     SILENTLY DISCARDS any field absent from the webform configuration. A message
+     textarea or hidden UTM inputs would look like they worked and store nothing —
+     the exact defect File 12 records on the legacy site. Accepted fields today:
+     Company, Last Name, Email, Phone, LEADCF1 (Lead Type).
 
-     The stock field names below (Last Name, First Name, Email, Phone,
-     Description, LEADCF*) are Zoho's Web-to-Lead contract. The LEADCF indices
-     for our custom fields are assigned by Zoho when the webform is generated in
-     the console, so they arrive with the keys — see docs/15. -->
+     Company is mandatory in the webform (mndFileds = ['Company','Last Name'])
+     and students have no company, so it is sent as a fixed hidden value rather
+     than asked.
+
+     Lead Type is limited to Student/Parent. Zoho's picklist carries seven further
+     B2B options; those belong on the future collaboration form, not a student
+     consultation. One of them is also blocked by claims-guard under File 08 while
+     no signed institutional agreements exist — which is why the option list here
+     is an explicit allowlist rather than a copy of the picklist. -->
 <form class="form" method="POST" accept-charset="UTF-8"
       action="{{ site.zoho_webform_action }}" data-lead-form>
-  <!-- Zoho routing identifiers — generated per webform, not secrets. -->
   <input type="hidden" name="xnQsjsdp" value="{{ site.zoho_webform_key }}">
   <input type="hidden" name="xmIwtLD" value="{{ site.zoho_webform_digest }}">
   <input type="hidden" name="actionType" value="TGVhZHM=">
   <input type="hidden" name="returnURL" value="{{ site.zoho_webform_return_url }}">
-
-  <!-- Source attribution. Populated per page; UTM values filled by main.js from
-       the query string into the UTM_Source/Medium/Campaign fields that already
-       exist in CRM. -->
-  <input type="hidden" name="Lead Source" value="Web Form">
-  <input type="hidden" name="LEADCF_SOURCE_DETAIL" value="{{ page.lead_source_detail }}" data-lead-source-detail>
-  <input type="hidden" name="LEADCF_UTM_SOURCE" value="" data-utm="utm_source">
-  <input type="hidden" name="LEADCF_UTM_MEDIUM" value="" data-utm="utm_medium">
-  <input type="hidden" name="LEADCF_UTM_CAMPAIGN" value="" data-utm="utm_campaign">
+  <!-- Satisfies the webform's mandatory Company field without asking a student
+       for an employer they do not have. -->
+  <input type="hidden" name="Company" value="Individual">
+  <!-- Zoho's spam honeypot. Must ship empty and stay hidden. -->
+  <input type="text" name="aG9uZXlwb3Q" value="" tabindex="-1" autocomplete="off" hidden>
 
   <fieldset class="form-fieldset">
     <legend class="form-legend">Book your free consultation</legend>
 
-    <div class="grid--2">
-      <div class="form-field">
-        <label class="form-label" for="lf-first">First name</label>
-        <input class="form-input" id="lf-first" name="First Name" type="text" autocomplete="given-name">
-      </div>
-      <div class="form-field">
-        <label class="form-label" for="lf-last">Full name <abbr title="required">*</abbr></label>
-        <input class="form-input" id="lf-last" name="Last Name" type="text" required autocomplete="family-name">
-      </div>
+    <div class="form-field">
+      <label class="form-label" for="lf-name">Full name <abbr title="required">*</abbr></label>
+      <input class="form-input" id="lf-name" name="Last Name" type="text" required
+             autocomplete="name" maxlength="80">
     </div>
 
     <div class="grid--2">
       <div class="form-field">
         <label class="form-label" for="lf-email">Email <abbr title="required">*</abbr></label>
-        <input class="form-input" id="lf-email" name="Email" type="email" required autocomplete="email">
+        <input class="form-input" id="lf-email" name="Email" type="email" required
+               autocomplete="email" maxlength="100">
       </div>
       <div class="form-field">
         <label class="form-label" for="lf-phone">Phone / WhatsApp <abbr title="required">*</abbr></label>
-        <input class="form-input" id="lf-phone" name="Phone" type="tel" required autocomplete="tel" placeholder="+91">
-        <p class="form-hint">We reply on WhatsApp during office hours.</p>
+        <input class="form-input" id="lf-phone" name="Phone" type="tel" required
+               autocomplete="tel" maxlength="30" placeholder="+91">
       </div>
     </div>
 
     <div class="form-field">
-      <label class="form-label" for="lf-message">What would you like help with? <span class="form-label__optional">(optional)</span></label>
-      <textarea class="form-input" id="lf-message" name="Description" rows="4"
-                placeholder="Destination, study level, intake, and anything you're unsure about"></textarea>
+      <label class="form-label" for="lf-type">I am a <abbr title="required">*</abbr></label>
+      <select class="form-input" id="lf-type" name="LEADCF1" required>
+        <option value="Student" selected>Student</option>
+        <option value="Parent">Parent</option>
+      </select>
     </div>
 
     <label class="form-choice">
-      <input type="checkbox" name="LEADCF_CONSENT" value="Yes" required>
+      <input type="checkbox" id="lf-consent" required>
       <span>I agree to RichenQuest contacting me about my inquiry, and I have read the
         <a href="/legal/privacy/">privacy policy</a>. <abbr title="required">*</abbr></span>
     </label>
@@ -70,6 +70,10 @@
     <div class="form-actions">
       <button class="btn btn--primary" type="submit">Book free consultation</button>
     </div>
-    <p class="form-hint">Prefer to talk now? <a href="{{ site.whatsapp_href }}">Message us on WhatsApp</a>.</p>
+
+    <p class="form-hint">
+      Want to tell us more — destination, budget, intake? <a href="{{ site.whatsapp_href }}">Message
+      us on WhatsApp</a> and a counselor will read it before replying.
+    </p>
   </fieldset>
 </form>

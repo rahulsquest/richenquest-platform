@@ -14,7 +14,8 @@
   "locale": "en",
   "hq_short": "Patna, Bihar, India",
   "zoho_webform_action": "https://crm.zoho.in/crm/WebToLeadForm",
-  "zoho_webform_key": "15e423d2c2630f0e8ad8caadec30d0d612ba1bf4d04abdf620364d290ffb349c",
-  "zoho_webform_digest": "7b312d167d1ea402a8429e57975f1fe850d7724248a9896ba62d03e0ce4929f727bb8a84a3dd618c4bf25b2dbc2a4729",
-  "zoho_webform_return_url": "https://www.richenquest.com/contact/thank-you/"
+  "zoho_webform_key": "b6d85243c7b58abbc8dab9cb50eb7cf2f512501d0a50aeef0e0a4796cd877209",
+  "zoho_webform_digest": "7762c2f999883a662f7875f87d2c8c744d9cfd1bc5ce2cd9eed02c9dd1397e25197f8e36bb93ee965df94703e08d21e9",
+  "zoho_webform_return_url": "https://richenquest.pages.dev/contact/thank-you/",
+  "_zoho_webform_return_url_note": "Points at the CURRENT live origin. www.richenquest.com still serves the old Zoho Sites page, so returning there would land submitters on a 404 on the legacy site. Flip to https://www.richenquest.com/contact/thank-you/ at DNS cutover."
 }
