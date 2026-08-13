@@ -31,13 +31,18 @@ if (!src) {
 
 const html = await readFile(src, "utf8");
 
+// Zoho renders attributes as `name = 'x' value = 'y'` — with spaces around the
+// equals sign and single quotes. Tolerate both styles; a stricter regex silently
+// found nothing against the real generated form.
+const EQ = "\\s*=\\s*";
+const Q = "[\"']";
 const attr = (name) => {
-  const m = html.match(new RegExp(`name=["']${name}["'][^>]*value=["']([^"']*)["']`, "i"))
-    || html.match(new RegExp(`value=["']([^"']*)["'][^>]*name=["']${name}["']`, "i"));
+  const m = html.match(new RegExp(`name${EQ}${Q}${name}${Q}[^>]*?value${EQ}${Q}([^"']*)${Q}`, "i"))
+    || html.match(new RegExp(`value${EQ}${Q}([^"']*)${Q}[^>]*?name${EQ}${Q}${name}${Q}`, "i"));
   return m?.[1] ?? null;
 };
 
-const action = html.match(/<form[^>]*\saction=["']([^"']+)["']/i)?.[1] ?? null;
+const action = html.match(new RegExp(`<form[^>]*?\\saction${EQ}${Q}([^"']+)${Q}`, "i"))?.[1] ?? null;
 const key = attr("xnQsjsdp");
 const digest = attr("xmIwtLD");
 
@@ -53,10 +58,10 @@ if (missing.length) {
 // LEADCF mapping. Zoho renders each custom field as <label for="LEADCFn">Label</label>
 // next to its input; fall back to the input's own id/name when no label is present.
 const mapping = {};
-for (const m of html.matchAll(/<label[^>]*for=["'](LEADCF\d+)["'][^>]*>([\s\S]*?)<\/label>/gi)) {
+for (const m of html.matchAll(new RegExp(`<label[^>]*?for${EQ}${Q}(LEADCF\\d+)${Q}[^>]*>([\\s\\S]*?)</label>`, "gi"))) {
   mapping[m[1]] = m[2].replace(/<[^>]*>/g, "").replace(/\s+/g, " ").replace(/\*+$/, "").trim();
 }
-for (const m of html.matchAll(/name=["'](LEADCF\d+)["']/gi)) {
+for (const m of html.matchAll(new RegExp(`name${EQ}${Q}(LEADCF\\d+)${Q}`, "gi"))) {
   if (!(m[1] in mapping)) mapping[m[1]] = null; // present but unlabelled
 }
 

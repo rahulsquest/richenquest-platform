@@ -90,3 +90,46 @@ The test values were then reverted; no placeholder keys are committed.
 - **CSP updated** — `form-action` now permits `crm.zoho.in` / `crm.zoho.com`. This was mandatory:
   the launch CSP is `form-action 'self'`, which would have silently blocked every submission.
   Verified live in `_headers`. No other directive relaxed.
+
+
+---
+
+# WEBFORM IMPORTED — AND A CRITICAL FINDING (2026-08-13)
+
+The founder generated webform `1292318000000846014`. Keys imported into `site.json`:
+`action https://crm.zoho.in/crm/WebToLeadForm` · `xnQsjsdp` · `xmIwtLD`.
+
+**The generated form exposes only two fields: `Company` and `Last Name`.** Zero `LEADCF` fields.
+
+## Experiment: does Web-to-Lead accept fields absent from the webform config?
+
+A live POST was submitted carrying `Company`, `Last Name`, **plus** `Email`, `Phone`,
+`Description` and `Lead Source`.
+
+**Result: HTTP 200, lead created — and every unlisted field silently discarded.**
+
+```
+Company     = RQ-AUTOTEST          (in config)  -> STORED
+Last_Name   = ZZAutotestProbe      (in config)  -> STORED
+Email       = autotest.probe@…     (not in config) -> null
+Phone       = +919999999999        (not in config) -> null
+Description = Probe…               (not in config) -> null
+Lead_Source = Web Form             (not in config) -> null
+```
+
+Test record `1292318000000855001` deleted after verification.
+
+**Conclusion: the webform's field list is authoritative and enforced server-side, and violations
+fail silently with a success response.** Wiring the site form now would have captured a name and a
+company and nothing else — every lead uncontactable, with no error anywhere. This is the same
+"green but wrong" failure class as the corrupted JSON-LD and the desktop-scoring perf gate.
+
+Phase 2 therefore cannot complete until the webform carries the real fields. This is not
+recoverable in software: `createFields` creates CRM fields (they already exist); it cannot add a
+field to a webform, and no webform API exists in any Zoho product.
+
+## Importer bug found and fixed by real input
+
+`import-webform.mjs` initially matched nothing. Zoho renders attributes as `name = 'x' value = 'y'`
+with spaces around `=` and single quotes; the regexes assumed `name="x"`. Now whitespace- and
+quote-tolerant, and verified against the real payload.
