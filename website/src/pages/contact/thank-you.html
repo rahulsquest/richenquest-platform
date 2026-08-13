@@ -1,0 +1,82 @@
+<!--meta
+title: Thank you — we've got your details | RichenQuest
+description: Your consultation request reached our counseling team. Here's exactly what happens next, and how to reach us sooner if you'd like.
+layout: noindex
+sitemap: false
+-->
+<!-- Post-conversion landing for the Zoho Web-to-Lead returnURL. noindex because a
+     thank-you page carries no search intent and would otherwise dilute the site's
+     indexable set. Excluded from the sitemap for the same reason.
+     Every promise here matches File 03's SOP and the claims library — no invented
+     response times. -->
+
+<section class="page-hero">
+  <div class="container page-hero__inner">
+    <p class="kicker">Request received</p>
+    <h1>Thank you — your details reached our team</h1>
+    <p class="page-hero__lede">
+      A counselor will read what you sent and reply personally. No automated sales
+      sequence, no call centre.
+    </p>
+  </div>
+</section>
+
+<section class="container container--narrow section stack">
+  <h2>What happens next</h2>
+  <ol class="steps">
+    <li class="steps__item">
+      <span class="steps__num">1</span>
+      <div>
+        <h3 class="steps__title">A counselor reviews your request</h3>
+        <p>We read your destination, study level and budget before we reply, so the first
+          conversation starts from something useful rather than a script.</p>
+      </div>
+    </li>
+    <li class="steps__item">
+      <span class="steps__num">2</span>
+      <div>
+        <h3 class="steps__title">We reply during office hours</h3>
+        <p>{{ site.hq_short }} team, 10:00–19:00 IST, Monday to Saturday. If you wrote to us
+          outside those hours, you'll hear from us the next working morning.</p>
+      </div>
+    </li>
+    <li class="steps__item">
+      <span class="steps__num">3</span>
+      <div>
+        <h3 class="steps__title">A 30-minute consultation, free</h3>
+        <p>Goals, budget and realistic options — ending with a written summary you keep,
+          whether or not you work with us.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h2>Would you rather talk now?</h2>
+  <p>
+    You don't have to wait for our reply. WhatsApp is the fastest way to reach a counselor.
+  </p>
+  <div class="cluster">
+    <a class="btn btn--primary" href="{{ site.whatsapp_href }}">
+      <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-chat"></use></svg>
+      Chat on WhatsApp
+    </a>
+    <a class="btn btn--ghost" href="mailto:{{ site.email }}">
+      <svg class="icon" aria-hidden="true"><use href="/assets/img/icons.svg#icon-mail"></use></svg>
+      Email {{ site.email }}
+    </a>
+  </div>
+  <p class="text-small text-soft">
+    Or call <a class="tel" href="{{ site.phone_in_href }}">{{ site.phone_in }}</a> (India) ·
+    <a class="tel" href="{{ site.phone_it_href }}">{{ site.phone_it }}</a> (Italy)
+  </p>
+
+  <h2>While you wait</h2>
+  <p>
+    Our destination guides are written the way we counsel — honest costs, real requirements,
+    and the parts most agencies leave out.
+  </p>
+  <div class="cluster">
+    <a class="btn btn--quiet" href="/destinations/italy/">Study in Italy</a>
+    <a class="btn btn--quiet" href="/destinations/germany/">Study in Germany</a>
+    <a class="btn btn--quiet" href="/destinations/">All destinations</a>
+  </div>
+</section>
