@@ -81,7 +81,7 @@ Nothing below has an API in the connected tool surface. Each line is a distinct 
       and the three `Consent_*` fields to the Web-to-Lead form. Until then Zoho **silently
       discards** them (File 15). This one edit closes attribution, message capture and consent.
 - [ ] Un-mandatory `Company` on the webform (currently worked around with a hidden `Individual`).
-- [ ] **University Partnerships custom module** (File 02) — no `createModule` API exists.
+- [x] ~~University Partnerships custom module~~ — **NOT NEEDED.** Correction 2026-08-13: partnership tracking already exists on stock **Accounts** with 9 purpose-built custom fields. I had only checked for custom *modules* and wrongly reported it missing. Pipeline now populated — see §7.
 - [ ] Workflow rules (File 01 §5.1–5.5), blueprints, validation rules — no API.
 - [ ] Roles below CEO/Operations: Manager, Counselor, Finance (File 01 §1.3).
 - [ ] Email templates (File 03 §3.1 "Welcome – 60 Second Reply", §3.3 nurture).
@@ -101,3 +101,46 @@ Nothing below has an API in the connected tool surface. Each line is a distinct 
 - [ ] Zoho Forms portal — none exists; no API either way.
 - [ ] Zoho Bookings portal — none exists.
 - [ ] Confirm `official@richenquest.com` sends and receives (File 13, never confirmed).
+
+
+## 7. University partnership pipeline — CORRECTION + populated via API (2026-08-13)
+
+**My earlier finding was wrong.** File 16 §4 and File 14 said the University Partnerships module was
+missing. Partnership tracking was already built — not as a custom module, but on stock **Accounts**,
+which is the correct home for institutions. I had only queried for custom *modules*.
+
+Nine purpose-built fields already existed:
+`Partnership_Stage` · `Partnership_Type` · `Agreement_Status` · `Agreement_Signed_On` ·
+`Agreement_Expires_On` · `International_Office_Contact` · `International_Office_Email` ·
+`Campus_List` · `Accreditation`
+
+Picklists were already well designed:
+- **Stage:** Identified → Contacted → In Discussion → Agreement Drafted → Agreement Signed → Active → Dormant
+- **Type:** Recruitment (Commission) · Service Fee (Public) · Exchange · Articulation / Pathway · Research · Memorandum of Understanding · Undefined
+- **Agreement:** None · Drafted · Sent · Signed · Expired · Terminated
+
+### What was missing was data, and that is now fixed
+
+The module held **only 10 Zoho factory sample records** (US demo companies, all partnership fields
+null). Via API:
+
+- **Deleted** all 10 `(Sample)` records.
+- **Imported all 17 targets** from `docs/06-partnerships-import-batch1.csv` — 12 Germany, 3 Ireland,
+  1 Netherlands, 1 Poland — with country, contact, application URL, programs, route/lane and the
+  verified research notes preserved in `Description`.
+
+Verified by COQL: **17 records, 0 samples.**
+
+### Two judgement calls recorded
+
+1. **Every record is `Identified`, not `Contacted`** — even the four the CSV marked "Contact Found".
+   Finding an email address is not outreach. Marking them `Contacted` would overstate the pipeline
+   to anyone reading the CRM, which is the same discipline File 08 enforces on public claims.
+   Each `Description` records the original CSV stage and the reason for the mapping.
+2. **Fintiba and Expatrio are typed `Undefined`, not a partnership type** — they are service
+   providers (blocked account + insurance), not universities. They are flagged as such in
+   `Description` so nobody counts them as institutional relationships.
+
+**Nothing here claims a partnership exists.** All 17 are prospective targets at the earliest stage,
+consistent with `claims.json` (`partnerships.signed: []`) and File 08's ban on partner-university
+language.
