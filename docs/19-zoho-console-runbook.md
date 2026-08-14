@@ -5,15 +5,31 @@ the wording, field lists and rule logic are already resolved. Work top to bottom
 independent.
 
 **Why this file exists:** none of the below has an API in the connected tool surface (File 15's
-eleven-path matrix; File 16 §6). Browser automation is also unavailable — Chrome gates JavaScript
-from Apple Events behind a UI security control. So these are founder-only, and the only thing
-engineering can do is make them mechanical.
+eleven-path matrix; File 16 §6). Browser automation **is** available and did complete the webform
+(§1), but it **cannot reach the Setup wizards** — see §2b for the objective blocker. So the
+remainder is founder-only, and the only thing engineering can do is make it mechanical.
 
 ---
 
-## 1. Webform fields — the single highest-leverage task
+## 1. Webform fields — ✅ DONE 2026-08-15, by browser automation
 
-`crm.zoho.in` → **Setup → Developer Space → Webforms → "Website - Free Consultation" → Edit**
+Completed autonomously: canvas 5 → 14 fields, saved, verified end to end. No action needed.
+Mappings established empirically and recorded in `website/src/data/webform-fields.json`:
+
+| Input | CRM field | Status |
+|---|---|---|
+| `Description` | native | ✅ live |
+| `LEADCF1` | `Lead_Type` | ✅ live |
+| `LEADCF3` | `Lead_Source_Detail` | ✅ live (picklist — only `Website Form` is valid) |
+| `LEADCF9` | `WhatsApp_Number` | ✅ live |
+| `LEADCF10/11/12` | `UTM_Source/Medium/Campaign` | ✅ live |
+| `LEADCF13` | `Consent_Policy_Version` | ✅ live |
+| — | `Consent_Given`, `Consent_Timestamp` | ⚠️ on the canvas, LEADCF index unresolved |
+
+**Only remaining webform item:** read the generated embed HTML (Share → Embed) and send it, so the
+last two consent indices can be mapped. Everything else on this form is finished.
+
+<details><summary>Original instructions (historical)</summary>
 
 Drag in exactly these, then **Save → Embed → send me the HTML**:
 
@@ -35,6 +51,8 @@ future.
 
 **After you send the HTML:** `node scripts/import-webform.mjs <file>` rewrites the keys and the
 LEADCF map automatically. Note the keys **rotate on every edit** — the old ones stop working.
+
+</details>
 
 ---
 
