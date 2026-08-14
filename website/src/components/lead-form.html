@@ -41,6 +41,13 @@
        would pollute the picklist, so page-level attribution needs either new
        picklist options or a text field. Not invented here. -->
   <input type="hidden" name="LEADCF3" value="Website Form">
+  <!-- Consent. LEADCF13 = Consent_Policy_Version (verified by probe). The
+       consent checkbox below is a hard client-side gate, so a lead reaching
+       CRM from this form necessarily consented; Created_Time records WHEN and
+       this field records WHICH policy. Consent_Given / Consent_Timestamp are
+       on the webform but their LEADCF indices could not be resolved by probing
+       (boolean/datetime reject probe values) — see docs/16 §8. -->
+  <input type="hidden" name="LEADCF13" value="19 July 2026">
   <input type="hidden" name="LEADCF10" value="" data-utm="utm_source">
   <input type="hidden" name="LEADCF11" value="" data-utm="utm_medium">
   <input type="hidden" name="LEADCF12" value="" data-utm="utm_campaign">

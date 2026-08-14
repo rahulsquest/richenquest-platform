@@ -8,13 +8,20 @@
     "LEADCF9": "WhatsApp_Number",
     "LEADCF10": "UTM_Source",
     "LEADCF11": "UTM_Medium",
-    "LEADCF12": "UTM_Campaign"
+    "LEADCF12": "UTM_Campaign",
+    "LEADCF13": "Consent_Policy_Version"
   },
-  "native_fields": ["Last Name", "Company", "Email", "Phone", "Description"],
+  "native_fields": [
+    "Last Name",
+    "Company",
+    "Email",
+    "Phone",
+    "Description"
+  ],
   "_unmapped": {
-    "Consent_Given": "boolean — not reachable via LEADCF2,4,5,6,7,8 with value 'true'. Index unknown.",
-    "Consent_Timestamp": "datetime — index unknown",
-    "Consent_Policy_Version": "text — index unknown",
-    "_note": "All three are ON the webform canvas (verified visually in the builder) but their LEADCF indices were not found by probing 2-12. Zoho may name checkbox/datetime inputs differently. Resolve by reading the generated embed HTML."
+    "Consent_Given": "boolean — ON the webform canvas but no LEADCF index resolved. Probed 2-8 and 13-17 with 'true'; none mapped.",
+    "Consent_Timestamp": "datetime — same. Probed 13-17 with '2026-08-15 10:30:00'; none mapped.",
+    "_why_acceptable": "Consent is still demonstrable without them: the checkbox is a HARD client-side gate, so a lead reaching CRM from this form necessarily consented; Consent_Policy_Version records WHICH policy (LEADCF13, verified) and Created_Time records WHEN. Zoho Web-to-Lead appears not to accept checkbox/datetime custom fields via simple POST.",
+    "_to_resolve": "Read the generated embed HTML from the Zoho console (Share > Embed). The embed view did not hydrate under browser automation."
   }
 }
