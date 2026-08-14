@@ -1,0 +1,192 @@
+# File 19 — Zoho Console Runbook
+
+Every remaining console task, converted into **copy-paste**. No design decisions left in here —
+the wording, field lists and rule logic are already resolved. Work top to bottom; each section is
+independent.
+
+**Why this file exists:** none of the below has an API in the connected tool surface (File 15's
+eleven-path matrix; File 16 §6). Browser automation is also unavailable — Chrome gates JavaScript
+from Apple Events behind a UI security control. So these are founder-only, and the only thing
+engineering can do is make them mechanical.
+
+---
+
+## 1. Webform fields — the single highest-leverage task
+
+`crm.zoho.in` → **Setup → Developer Space → Webforms → "Website - Free Consultation" → Edit**
+
+Drag in exactly these, then **Save → Embed → send me the HTML**:
+
+| Field | Closes |
+|---|---|
+| `Description` | Students currently cannot describe their situation at all |
+| `Lead Source Detail` | Per-page attribution — every form lead is currently indistinguishable |
+| `UTM Source` · `UTM Medium` · `UTM Campaign` | Paid-campaign attribution, impossible today |
+| `Consent Given` · `Consent Timestamp` · `Consent Policy Version` | **Legal.** Fields exist in CRM but are unreachable from any form |
+
+Also: click `Company` → **uncheck Mandatory**. It is currently satisfied by a hidden `Individual`
+value, which works but is a workaround.
+
+**Why it matters:** Zoho enforces the webform's field list server-side and returns **HTTP 200
+anyway** for anything absent. Proven — a POST carrying `Email`, `Phone`, `Description` and
+`Lead Source` against a webform lacking them returned 200, created the lead, and stored all four
+as `null`. Until this edit lands, those fields cannot be captured by any frontend, present or
+future.
+
+**After you send the HTML:** `node scripts/import-webform.mjs <file>` rewrites the keys and the
+LEADCF map automatically. Note the keys **rotate on every edit** — the old ones stop working.
+
+---
+
+## 2. Email template — Instant welcome
+
+**Setup → Customization → Templates → Email Templates → New**, module **Leads**, name
+`Welcome — Instant Reply`.
+
+**Subject:** `We've got your details, ${Leads.Last Name} — here's what happens next`
+
+**Body:**
+
+> Hi ${Leads.Last Name},
+>
+> Thanks for reaching out to RichenQuest. Your details are with our counseling team.
+>
+> **What happens next**
+> A counselor will read what you sent and reply personally — no automated sales sequence, no call
+> centre. We work 10:00–19:00 IST, Monday to Saturday, so if you wrote outside those hours you'll
+> hear from us the next working morning.
+>
+> When we speak, it's a free 30-minute consultation covering your goals, your budget and realistic
+> options — ending with a written summary you keep, whether or not you work with us.
+>
+> **If you'd rather talk now**
+> WhatsApp is the fastest way to reach a counselor: https://wa.me/393271866329
+>
+> **While you wait**
+> Our destination guides are written the way we counsel — honest costs, real requirements, and the
+> parts most agencies leave out.
+>
+> — The RichenQuest team
+> Patna, Bihar, India · official@richenquest.com
+
+**Claims discipline applied** — read before editing:
+- No response-time promise beyond published office hours. File 03's draft said *"a counselor will
+  call you shortly (we're fast ⚡)"* — an SLA nothing enforces.
+- **No Bookings link.** File 03's draft links one; no Bookings portal exists
+  (`richenquest.zohobookings.in` → 404). A dead link in the first email is worse than none.
+- No placement, success-rate or partnership claims (File 08).
+
+---
+
+## 3. Workflow rule — Instant lead response (File 01 §5.1)
+
+**Setup → Automation → Workflow Rules → Create Rule**
+
+```
+Module      Leads
+Rule name   Instant lead response
+Execute on  Create
+Condition   (none — all new leads)
+
+Actions
+  1. Send email  ->  template "Welcome — Instant Reply"
+  2. Create task ->  Subject:  Call new lead — ${Leads.Last Name}
+                     Due:      Today
+                     Priority: Highest
+                     Assign:   Lead Owner
+  3. Field update -> Lead Status = "Attempted to Contact"
+```
+
+**Action 3 matters more than it looks.** Every lead in CRM today has `Lead_Status: null` — nothing
+sets it, so no report, view or follow-up rule can filter on status. This is the fix.
+
+---
+
+## 4. Workflow rule — Stale lead rescue (File 01 §5.2)
+
+```
+Module      Leads
+Rule name   Stale lead rescue
+Execute on  Date/time based — 3 days after Modified Time
+Condition   Lead Status is "Attempted to Contact" OR "Contacted"
+
+Actions
+  1. Create task ->  Subject: Follow up (3 days silent) — ${Leads.Last Name}
+                     Assign:  Lead Owner
+  2. After 7 days total -> Field update: Lead Status = "Nurture"
+```
+
+Leads are never deleted. `Nurture` is the entry point for the long-term drip (File 03 §3.3).
+
+---
+
+## 5. Roles (File 01 §1.3)
+
+**Setup → Users and Control → Security Control → Roles**
+
+Currently only **CEO** and **Operations** exist. Add under CEO:
+
+```
+CEO
+├── Manager
+│   ├── Counselor
+│   └── Operations   (exists — reparent under Manager)
+└── Finance
+```
+
+Data sharing: **Private** with role hierarchy — counselors see their own records, managers see
+their team, CEO sees all.
+
+---
+
+## 6. Assignment rule — verify, don't rebuild
+
+`Student_Lead_Routing` already exists (created 2026-07-23, "Config-driven Phase-1 routing (OI-4)").
+Its default assignee is `${CURRENTUSER}`, which for API-created leads resolves to the API user —
+not a counselor.
+
+**Check:** does it round-robin among counselors, or fall through to default? With one CEO and two
+Operations users and no Counselor role yet, it cannot round-robin meaningfully until §5 is done.
+
+---
+
+## 7. Books — currently not production
+
+```
+org_type / mode           "test" / "test"      <- no real financial data possible
+plan_name                 PREMIUM TRIAL
+is_registered_for_gst     false
+is_quick_setup_completed  false
+```
+
+Switch out of test mode and enter GST registration before any invoice is raised.
+
+---
+
+## 8. Desk — one default department, no channels
+
+Portal `richenquestpvtltd`, org `60077092565`. Connect an email channel to the default department,
+or Desk cannot receive anything. Create chat only if someone will staff it.
+
+---
+
+## 9. Projects — decide, don't drift
+
+`get_portals` returns `[]`. No portal exists. Either create one, or formally drop Projects from the
+architecture — File 07's partnership-tracking assumptions currently rest on a product that isn't
+there.
+
+---
+
+## 10. Verification after each change
+
+| Change | How to verify |
+|---|---|
+| Webform fields | Submit a test lead; COQL that `Email` and `Phone` are non-null. I run this |
+| Email template | Trigger the workflow with a test lead; confirm receipt |
+| Workflow rules | Create a test lead; confirm task created and `Lead_Status` no longer null |
+| Roles | `getUsers` shows the new role names |
+| Books | `list_organizations` shows `mode` ≠ `test` |
+| Desk | `getDepartments` shows a connected channel |
+
+Send me the webform HTML and I resume automatically from there.
