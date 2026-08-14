@@ -77,9 +77,10 @@ asks. These fields close that gap and are independent of any frontend.
 Nothing below has an API in the connected tool surface. Each line is a distinct console action.
 
 ### CRM
-- [ ] **Webform fields** — add `Description`, `Lead Source Detail`, `UTM Source/Medium/Campaign`,
-      and the three `Consent_*` fields to the Web-to-Lead form. Until then Zoho **silently
-      discards** them (File 15). This one edit closes attribution, message capture and consent.
+- [x] ~~**Webform fields**~~ — **DONE 2026-08-15 via browser automation.** Added Description,
+      Lead Source Detail, UTM Source/Medium/Campaign, WhatsApp Number and the three Consent fields
+      to the canvas (5 → 14) and saved. Verified end to end: all six mapped fields now persist.
+      **Consent LEADCF indices remain unresolved** — see §8.
 - [ ] Un-mandatory `Company` on the webform (currently worked around with a hidden `Individual`).
 - [x] ~~University Partnerships custom module~~ — **NOT NEEDED.** Correction 2026-08-13: partnership tracking already exists on stock **Accounts** with 9 purpose-built custom fields. I had only checked for custom *modules* and wrongly reported it missing. Pipeline now populated — see §7.
 - [ ] Workflow rules (File 01 §5.1–5.5), blueprints, validation rules — no API.
@@ -144,3 +145,54 @@ Verified by COQL: **17 records, 0 samples.**
 **Nothing here claims a partnership exists.** All 17 are prospective targets at the earliest stage,
 consistent with `claims.json` (`partnerships.signed: []`) and File 08's ban on partner-university
 language.
+
+
+## 8. Webform completed via browser automation (2026-08-15)
+
+AppleScript → Chrome JavaScript became available. Capability results, measured:
+
+| # | Capability | Result |
+|---|---|---|
+| 1 | Read DOM | **YES** — 7,507 elements enumerated |
+| 2 | Locate elements | **YES** — palette items found by label text |
+| 3 | Click | **YES** — synthetic mouse sequence works, with latency |
+| 4 | Type into inputs | not needed |
+| 5 | Execute JavaScript | **YES** |
+| 6 | **Drag-and-drop** | **YES** — Zoho uses mouse-event dragging, not HTML5 DnD, so a synthetic mousedown → mousemove ×12 → mouseup sequence works |
+
+**What was done:** navigated to `/settings/webform/<id>/edit?module=Leads` (the `/preview` route
+never hydrates), dragged 9 fields from `#availableFields` to `.sortableFields`, canvas 5 → 14,
+opened the config dialog and saved.
+
+**LEADCF mapping — established empirically.** Zoho exposes no API for it and the embed page does
+not hydrate on direct navigation, so I submitted one probe lead per index and read the result back
+by COQL, then deleted all 17 probes:
+
+| Input | CRM field |
+|---|---|
+| `Description` | native |
+| `LEADCF1` | `Lead_Type` |
+| `LEADCF3` | `Lead_Source_Detail` |
+| `LEADCF9` | `WhatsApp_Number` |
+| `LEADCF10` / `LEADCF11` / `LEADCF12` | `UTM_Source` / `UTM_Medium` / `UTM_Campaign` |
+
+**End-to-end verified** — one submission carrying every mapped field:
+
+```
+Email  final.verify@example.com   Description  "Full end-to-end verification…"
+Phone  +919333322222              WhatsApp     +919111100000
+Lead_Type Student                 Lead_Source_Detail  Website Form
+UTM_Source probe_src  UTM_Medium probe_med  UTM_Campaign probe_camp
+```
+
+### Still open
+
+- **Consent LEADCF indices unknown.** All three consent fields are on the canvas, but probing
+  `LEADCF2,4,5,6,7,8` with both string and boolean values mapped none of them. Zoho likely names
+  checkbox/datetime inputs differently. Resolve by reading the generated embed HTML — the embed
+  view did not hydrate under automation. **Consent is therefore still a client-side gate only.**
+- **`Company` left mandatory.** The hidden `Individual` value satisfies it with no risk; changing
+  field properties was judged not worth the risk against a working workaround.
+- **`Lead_Source_Detail` is a picklist**, so every page sends the one valid web value,
+  `Website Form`. Per-page attribution ("Italy Guide") would need new picklist options — not
+  invented.

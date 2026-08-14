@@ -5,7 +5,9 @@
 import { initNav } from "./modules/nav.js";
 import { initDisclosures } from "./modules/disclosure.js";
 import { initReveal } from "./modules/reveal.js";
+import { initUtm } from "./modules/utm.js";
 
 initNav();
 initDisclosures();
 initReveal();
+initUtm();

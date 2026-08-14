@@ -3,6 +3,11 @@
      submission handler, no website database. Zoho owns dedupe, assignment
      (Student_Lead_Routing) and every downstream workflow.
 
+     UPDATED 2026-08-15: the webform now carries Description, Lead Source Detail,
+     UTM Source/Medium/Campaign and WhatsApp Number — added via browser automation
+     and verified by probe. LEADCF indices in data/webform-fields.json were
+     established empirically (one probe POST per index, COQL read-back).
+
      THIS FORM CONTAINS ONLY FIELDS THE WEBFORM ACTUALLY ACCEPTS.
      Verified by live probe 2026-08-13 (File 15): Zoho returns HTTP 200 and
      SILENTLY DISCARDS any field absent from the webform configuration. A message
@@ -28,6 +33,17 @@
   <!-- Satisfies the webform's mandatory Company field without asking a student
        for an employer they do not have. -->
   <input type="hidden" name="Company" value="Individual">
+  <!-- Source + campaign attribution. LEADCF indices verified empirically
+       2026-08-15 (see data/webform-fields.json); main.js fills UTM from the
+       query string.
+       Lead Source Detail is a PICKLIST — its only valid web value is
+       "Website Form". Per-page values (e.g. "Italy Guide") would be rejected or
+       would pollute the picklist, so page-level attribution needs either new
+       picklist options or a text field. Not invented here. -->
+  <input type="hidden" name="LEADCF3" value="Website Form">
+  <input type="hidden" name="LEADCF10" value="" data-utm="utm_source">
+  <input type="hidden" name="LEADCF11" value="" data-utm="utm_medium">
+  <input type="hidden" name="LEADCF12" value="" data-utm="utm_campaign">
   <!-- Zoho's spam honeypot. Must ship empty and stay hidden. -->
   <input type="text" name="aG9uZXlwb3Q" value="" tabindex="-1" autocomplete="off" hidden>
 
@@ -53,12 +69,27 @@
       </div>
     </div>
 
+    <div class="grid--2">
+      <div class="form-field">
+        <label class="form-label" for="lf-type">I am a <abbr title="required">*</abbr></label>
+        <select class="form-input" id="lf-type" name="LEADCF1" required>
+          <option value="Student" selected>Student</option>
+          <option value="Parent">Parent</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="lf-whatsapp">WhatsApp
+          <span class="form-label__optional">(if different)</span></label>
+        <input class="form-input" id="lf-whatsapp" name="LEADCF9" type="tel"
+               autocomplete="tel" maxlength="30" placeholder="+91">
+      </div>
+    </div>
+
     <div class="form-field">
-      <label class="form-label" for="lf-type">I am a <abbr title="required">*</abbr></label>
-      <select class="form-input" id="lf-type" name="LEADCF1" required>
-        <option value="Student" selected>Student</option>
-        <option value="Parent">Parent</option>
-      </select>
+      <label class="form-label" for="lf-message">What would you like help with?
+        <span class="form-label__optional">(optional)</span></label>
+      <textarea class="form-input" id="lf-message" name="Description" rows="4"
+                placeholder="Destination, study level, intake, budget — and anything you're unsure about"></textarea>
     </div>
 
     <label class="form-choice">
@@ -72,8 +103,7 @@
     </div>
 
     <p class="form-hint">
-      Want to tell us more — destination, budget, intake? <a href="{{ site.whatsapp_href }}">Message
-      us on WhatsApp</a> and a counselor will read it before replying.
+      Prefer to talk now? <a href="{{ site.whatsapp_href }}">Message us on WhatsApp</a>.
     </p>
   </fieldset>
 </form>
