@@ -78,24 +78,50 @@ LEADCF map automatically. Note the keys **rotate on every edit** — the old one
 
 ---
 
+## 2b. AUTOMATION BLOCKER — recorded 2026-08-15, do not retry
+
+Browser automation **can** drive Zoho CRM (the webform was completed that way on 2026-08-15:
+9 fields dragged, canvas 5 → 14, saved, verified). It **cannot** reach the Setup wizards.
+
+Objective evidence:
+
+```
+/settings/automation/workflow-rules  -> redirects to /tab/Leads/custom-view/.../list
+/settings/general                    -> body 2045 chars, and a scan for
+                                        Workflow, Automation, Blueprint, Assignment,
+                                        Rules, Actions, Templates returned NONE
+```
+
+**Root cause:** Zoho CRM Setup is an SPA whose routes do not hydrate on direct navigation, and the
+Setup left-nav does not render in the automated context — so the Workflow Rules wizard cannot be
+reached at step 1, let alone completed. The webform succeeded only because
+`/settings/webform/<id>/edit?module=Leads` happens to be a route that does hydrate.
+
+**Ruling: this is founder-only work. Do not re-attempt automation in future sessions.**
+Each rule below is roughly two minutes of clicking against ~20 turns of failed DOM archaeology.
+
 ## 3. Workflow rule — Instant lead response (File 01 §5.1)
 
-**Setup → Automation → Workflow Rules → Create Rule**
+**Click-by-click:** gear icon (top right) → **Setup** → left nav **Automation** → **Workflow
+Rules** → **+ Create Rule** (top right).
 
 ```
-Module      Leads
+Module      Leads                    <- dropdown, first field
 Rule name   Instant lead response
-Execute on  Create
-Condition   (none — all new leads)
+Execute on  Create                   <- tick "Create" only
+Condition   All Leads                <- choose "All Leads", not a criteria set
 
-Actions
-  1. Send email  ->  template "Welcome — Instant Reply"
-  2. Create task ->  Subject:  Call new lead — ${Leads.Last Name}
-                     Due:      Today
+Actions  (click "+" next to Instant Actions, three times)
+  1. Send Email   -> pick template "Welcome — Instant Reply" (create it first, §2)
+  2. Task         -> Subject:  Call new lead - ${Leads.Last Name}
+                     Due Date: Same day as rule trigger
                      Priority: Highest
-                     Assign:   Lead Owner
-  3. Field update -> Lead Status = "Attempted to Contact"
+                     Assign:   Record Owner
+  3. Field Update -> Module: Leads, Field: Lead Status, Value: Attempted to Contact
 ```
+
+Then **Save**. Verify by creating one test lead — I will confirm by COQL that `Lead_Status` is no
+longer null and that a Task exists, then delete the test record.
 
 **Action 3 matters more than it looks.** Every lead in CRM today has `Lead_Status: null` — nothing
 sets it, so no report, view or follow-up rule can filter on status. This is the fix.
