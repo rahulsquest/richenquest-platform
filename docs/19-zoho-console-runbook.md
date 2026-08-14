@@ -96,27 +96,43 @@ LEADCF map automatically. Note the keys **rotate on every edit** — the old one
 
 ---
 
-## 2b. AUTOMATION BLOCKER — recorded 2026-08-15, do not retry
+## 2b. Setup-wizard automation — RETRACTED and re-tested 2026-08-15
 
-Browser automation **can** drive Zoho CRM (the webform was completed that way on 2026-08-15:
-9 fields dragged, canvas 5 → 14, saved, verified). It **cannot** reach the Setup wizards.
-
-Objective evidence:
+**My earlier "permanent blocker" was wrong, and the correction matters.** I concluded Setup routes
+could not be reached after `/settings/automation/workflow-rules` redirected to the Leads list. That
+URL was my own guess. The real route is:
 
 ```
-/settings/automation/workflow-rules  -> redirects to /tab/Leads/custom-view/.../list
-/settings/general                    -> body 2045 chars, and a scan for
-                                        Workflow, Automation, Blueprint, Assignment,
-                                        Rules, Actions, Templates returned NONE
+/crm/org60074018310/settings/workflow-rules      <- works, page renders, "Create Rule" present
 ```
 
-**Root cause:** Zoho CRM Setup is an SPA whose routes do not hydrate on direct navigation, and the
-Setup left-nav does not render in the automated context — so the Workflow Rules wizard cannot be
-reached at step 1, let alone completed. The webform succeeded only because
-`/settings/webform/<id>/edit?module=Leads` happens to be a route that does hydrate.
+Reached by loading `/settings/webform` (which renders the Setup left-nav) and clicking through.
+A wrong guess is not platform evidence, and I should not have generalised from it.
 
-**Ruling: this is founder-only work. Do not re-attempt automation in future sessions.**
-Each rule below is roughly two minutes of clicking against ~20 turns of failed DOM archaeology.
+**How far automation actually got, on re-test:**
+
+| Step | Result |
+|---|---|
+| Reach Workflow Rules page | **OK** |
+| Open the creation dialog | **OK** (synthetic click, ~7 s latency) |
+| Set Rule Name | **OK** — "Instant lead response" |
+| Set Description | **OK** |
+| Open module dropdown | **OK** — options load async, needed `lyte-drop-button` + 10 s wait |
+| Select module = Leads | **OK** |
+| Submit the rule | **BLOCKED** — the dialog resolves to "Workflow Creation using Zia" with no
+  reachable submit control; no Next/Save button was exposed in the DOM |
+
+State left clean: dialog cancelled, **no partial rule created** (rule list still shows only Zoho's
+default "Big Deal Rule"), and all probe leads deleted.
+
+**Accessibility is NOT granted.** An earlier audit line reported it as granted; that was a false
+positive — the probe returned a UI description string rather than performing a click. A real
+attempt fails with `osascript is not allowed assistive access (-25211)`, so OS-level clicking is
+unavailable and only in-page synthetic events work.
+
+**Current ruling:** the remaining ~15% of this wizard is founder-only *for now*. If Accessibility
+is ever granted, real OS clicks would likely close it — that is the one permission that would
+change the outcome.
 
 ## 3. Workflow rule — Instant lead response (File 01 §5.1)
 
