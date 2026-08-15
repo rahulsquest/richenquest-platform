@@ -1,0 +1,106 @@
+string standalone.resolveStudent(string full_name, string email, string phone)
+{
+	/*  PURPOSE
+	 *    Find-or-create the Student as a real person record (Contacts), so a
+	 *    human being has ONE stable id across everything they ever do with
+	 *    RichenQuest.
+	 *
+	 *    This closes gap G-1 in File 24. Before it, a Student Case carried the
+	 *    student's name as free text, so the same person applying twice -
+	 *    deferred intake, master's after bachelor's, sibling referral - became
+	 *    two unrelated records with nothing joining them. No "everything about
+	 *    this student" view, no parent link, no alumni identity, and nothing a
+	 *    student-portal login could ever bind to.
+	 *
+	 *  IDENTITY RULE (order matters, most reliable first)
+	 *    1. email  - unique in practice, cheap to match, self-asserted
+	 *    2. phone  - reliable in India/Nepal where email is often shared
+	 *    3. neither -> create; never guess by name alone. Two students called
+	 *       "Aarav Sharma" are two students, and silently merging them is far
+	 *       worse than holding a duplicate that a human can merge later.
+	 *
+	 *  INPUTS   full_name required; email and phone optional but at least one
+	 *           strongly recommended, else every call creates a new person
+	 *  OUTPUT   {"ok":true,"student_id":"…","created":bool,"matched_on":"email|phone|none"}
+	 *           {"ok":false,"errors":[…]}
+	 *
+	 *  FAILURE MODES
+	 *    - no full_name            -> REQUIRED
+	 *    - search returns an error -> reported, no record created
+	 *    - duplicate emails already in CRM -> first match wins, deterministic
+	 *      by search order; the duplicate is a data problem to fix, not
+	 *      something this function should silently pick between
+	 *
+	 *  DEPENDENCIES  coreValidate, generateAuditLog
+	 *  VERSION       1.0 (2026-08-15)
+	 */
+	out = Map();
+	rules = List();
+	r1 = Map();
+	r1.put("field","full_name");
+	r1.put("type","required");
+	rules.add(r1);
+	vals = Map();
+	vals.put("full_name",full_name);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("errors",check.get("errors"));
+		return out.toString();
+	}
+	found = "";
+	matched_on = "none";
+	if(email != null && email.trim() != "")
+	{
+		hits = zoho.crm.searchRecords("Contacts","(Email:equals:" + email.trim() + ")");
+		if(hits != null && hits.size() > 0)
+		{
+			first = hits.get(0);
+			found = first.get("id");
+			matched_on = "email";
+		}
+	}
+	if(found == "" && phone != null && phone.trim() != "")
+	{
+		hits2 = zoho.crm.searchRecords("Contacts","(Phone:equals:" + phone.trim() + ")");
+		if(hits2 != null && hits2.size() > 0)
+		{
+			first2 = hits2.get(0);
+			found = first2.get("id");
+			matched_on = "phone";
+		}
+	}
+	if(found != "")
+	{
+		out.put("ok",true);
+		out.put("student_id",found);
+		out.put("created",false);
+		out.put("matched_on",matched_on);
+		return out.toString();
+	}
+	person = Map();
+	person.put("Last_Name",full_name);
+	if(email != null && email.trim() != "")
+	{
+		person.put("Email",email.trim());
+	}
+	if(phone != null && phone.trim() != "")
+	{
+		person.put("Phone",phone.trim());
+	}
+	res = zoho.crm.createRecord("Contacts",person);
+	if(res.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",res.toString());
+		return out.toString();
+	}
+	sid = res.get("id");
+	standalone.generateAuditLog("Contacts",sid,"identity","student record created for " + full_name);
+	out.put("ok",true);
+	out.put("student_id",sid);
+	out.put("created",true);
+	out.put("matched_on","none");
+	return out.toString();
+}

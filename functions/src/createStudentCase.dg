@@ -1,29 +1,73 @@
-string standalone.createStudentCase(string student_name, string destination, string service_package, string counselor_id, string lead_id)
+string standalone.createStudentCase(string student_name, string student_email, string student_phone, string destination, string service_package, string counselor_id, string lead_id)
 {
-	/*  Opens a Student Case (a Deal) at the first pipeline stage.
+	/*  PURPOSE
+	 *    Opens a Student Case (a Deal) at the first pipeline stage, bound to a
+	 *    real person record.
 	 *
-	 *  Student Cases ARE the Deals module - File 01 4. The pipeline, the 11
-	 *  stages and the seven custom fields already exist; this is the guarded
-	 *  way in, so a case can never be created at an arbitrary stage or without
-	 *  a name.
+	 *    Student Cases ARE the Deals module - File 01 4. The pipeline, the 11
+	 *    stages and the seven custom fields already exist; this is the guarded
+	 *    way in, so a case can never be created at an arbitrary stage, without
+	 *    a name, or - since v2.0 - without a Student identity behind it.
 	 *
-	 *  counselor_id and lead_id are optional - pass "" to skip. Passing a
-	 *  lead_id records the origin in the audit trail; the Lead is NOT converted
-	 *  or deleted, because Leads are never destroyed (File 01 5.2).
+	 *  IDENTITY (v2.0, File 24 G-1)
+	 *    Delegates to resolveStudent, which finds-or-creates a Contact by email
+	 *    then phone. The Case is linked to that Contact, so a student applying
+	 *    twice produces two Cases against ONE person rather than two unrelated
+	 *    records. Everything downstream - portals, alumni, referrals, parent
+	 *    visibility - needs that id to exist.
 	 *
-	 *  Returns JSON: {"ok":bool,"case_id":"...","stage":"...","error":"..."}
+	 *  INPUTS
+	 *    student_name     required
+	 *    student_email    optional, but it is the primary identity key
+	 *    student_phone    optional, secondary identity key
+	 *    destination      optional picklist value
+	 *    service_package  optional picklist value
+	 *    counselor_id     optional user id
+	 *    lead_id          optional; recorded in audit only - the Lead is NOT
+	 *                     converted or deleted (File 01 5.2)
+	 *
+	 *  OUTPUT
+	 *    {"ok":true,"case_id":"…","student_id":"…","student_created":bool,"stage":"New Inquiry"}
+	 *    {"ok":false,"errors":[…]}  |  {"ok":false,"error":"…"}
+	 *
+	 *  FAILURE MODES
+	 *    - missing student_name        -> REQUIRED from coreValidate
+	 *    - identity resolution fails   -> returned unchanged, NO Case created.
+	 *      A case without a student is exactly the orphan record this version
+	 *      exists to prevent, so it fails closed.
+	 *    - Deal create fails           -> error returned; the Contact may
+	 *      already exist, which is harmless and reused on retry
+	 *
+	 *  DEPENDENCIES  coreValidate, resolveStudent, generateAuditLog
+	 *  VERSION       2.0 (2026-08-15) - added identity binding. 1.0 took a
+	 *                bare name and created an orphan Deal.
 	 */
 	out = Map();
-	if(student_name == null || student_name.trim() == "")
+	rules = List();
+	r1 = Map();
+	r1.put("field","student_name");
+	r1.put("type","required");
+	rules.add(r1);
+	vals = Map();
+	vals.put("student_name",student_name);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
 	{
 		out.put("ok",false);
-		out.put("error","student_name is required");
+		out.put("errors",check.get("errors"));
 		return out.toString();
 	}
+	ident = standalone.resolveStudent(student_name,student_email,student_phone).toMap();
+	if(ident.get("ok") != true)
+	{
+		return ident.toString();
+	}
+	student_id = ident.get("student_id");
 	deal = Map();
 	deal.put("Deal_Name",student_name);
 	deal.put("Stage","New Inquiry");
 	deal.put("Closing_Date",zoho.currentdate.addDay(120).toString("yyyy-MM-dd"));
+	deal.put("Contact_Name",student_id);
 	if(destination != null && destination.trim() != "")
 	{
 		deal.put("Destination_Country",destination);
@@ -46,14 +90,16 @@ string standalone.createStudentCase(string student_name, string destination, str
 		return out.toString();
 	}
 	case_id = resp.get("id");
-	origin = "case opened";
+	origin = "case opened for student " + student_id;
 	if(lead_id != null && lead_id.trim() != "")
 	{
-		origin = "case opened from lead " + lead_id;
+		origin = origin + " from lead " + lead_id;
 	}
 	standalone.generateAuditLog("Deals",case_id,"create",origin + "; stage New Inquiry");
 	out.put("ok",true);
 	out.put("case_id",case_id);
+	out.put("student_id",student_id);
+	out.put("student_created",ident.get("created"));
 	out.put("stage","New Inquiry");
 	return out.toString();
 }
