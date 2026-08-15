@@ -1,0 +1,37 @@
+string standalone.sendPlatformAlert(string subject, string body)
+{
+	/*  PURPOSE
+	 *    The one place the platform notifies a human. Every alert - regression
+	 *    failure, quota warning, lapsed watch subscription - goes through here,
+	 *    so the channel is tested once rather than per-caller.
+	 *
+	 *  FROM ADDRESS
+	 *    zoho.loginuserid. A literal address is rejected unless verified in
+	 *    Zoho: "The 'from' address can only be either zoho.loginuserid or a
+	 *    verified email address" (checked 2026-08-16).
+	 *
+	 *  DELIVERY IS NOT CONFIRMABLE FROM HERE. sendmail returning without error
+	 *  means Zoho accepted it, not that it arrived. The channel must be
+	 *  confirmed once by a human checking the inbox - that is why this exists as
+	 *  a callable function rather than inline code.
+	 *
+	 *  VERSION 1.0 (2026-08-16)
+	 */
+	out = Map();
+	if(subject == null || subject.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","subject is required");
+		return out.toString();
+	}
+	sendmail
+	[
+		from : zoho.loginuserid
+		to : "rahul@richenquest.com"
+		subject : subject
+		message : body + "\n\n--\nSent automatically by the RichenQuest platform.\nIf you did not expect this, the alerting path is misconfigured."
+	]
+	out.put("ok",true);
+	out.put("sent_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

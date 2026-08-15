@@ -1,23 +1,65 @@
 void scheduler.schedNightlyVerify()
 {
 	/*  PURPOSE
-	 *    Runs the regression suite nightly, unattended.
+	 *    Runs the regression suite nightly and EMAILS ONLY ON FAILURE.
 	 *
-	 *    Closes half of File 28 R-6: detection was pull-only, so a broken guard
-	 *    stayed invisible until someone ran platform-health.sh by hand. Now it
-	 *    runs every night and the result is written to the function log.
+	 *    Closes File 28 R-6. Detection was pull-only: a broken guard stayed
+	 *    invisible until someone ran platform-health.sh by hand.
 	 *
-	 *    verifyPlatform is self-cleaning and leak-detecting, so running it
-	 *    unattended is safe: it deletes its own probes and reports anything it
-	 *    could not delete.
+	 *  WHY SILENT WHEN HEALTHY
+	 *    A nightly "all good" email gets filtered within a week, and then the
+	 *    failure email gets filtered with it. Alerting that fires only on a real
+	 *    problem stays trusted. If this is quiet, the platform is green.
 	 *
-	 *  NOT YET ALERTING. This produces a log entry, not a notification. Turning
-	 *  a FAIL into an email needs a notification path that does not exist yet.
+	 *  WHAT TRIGGERS AN ALERT
+	 *    - any assertion FAILS, or
+	 *    - any probe record LEAKED (cleanup could not delete it), or
+	 *    - the suite could not be parsed at all (which is itself a failure)
 	 *
-	 *  OWNER    platform
-	 *  DEPENDS  verifyPlatform
-	 *  VERSION  1.0 (2026-08-16)
+	 *  DELIVERY goes through sendPlatformAlert, the single notification path, so
+	 *  the channel is tested once rather than per-caller.
+	 *
+	 *  VERSION 3.0 (2026-08-16) - 1.0 only logged; 2.0 inlined sendmail.
 	 */
-	result = standalone.verifyPlatform();
-	info "nightly regression: " + result;
+	raw = standalone.verifyPlatform();
+	result = raw.toMap();
+	failed = result.get("fail");
+	leaked = result.get("cleanup").get("leaked");
+	broken = false;
+	if(failed == null)
+	{
+		broken = true;
+	}
+	else if(failed > 0)
+	{
+		broken = true;
+	}
+	if(leaked != null && leaked.size() > 0)
+	{
+		broken = true;
+	}
+	if(broken)
+	{
+		body = "RichenQuest platform regression FAILED overnight.\n\n";
+		body = body + "Run at: " + result.get("run_at") + "\n";
+		body = body + "Passed:  " + result.get("pass") + "\n";
+		body = body + "Failed:  " + result.get("fail") + "\n";
+		body = body + "Leaked probe records: " + leaked.toString() + "\n\n";
+		body = body + "Failing checks:\n";
+		for each c in result.get("checks")
+		{
+			if(c.get("status") != "PASS")
+			{
+				body = body + "  - " + c.get("name") + "\n    " + c.get("detail") + "\n";
+			}
+		}
+		body = body + "\nWhat to do: docs/29 RB-01 (roll back the function) or RB-08 (incident response).";
+		body = body + "\nIf probes leaked, delete them manually - they are prefixed VERIFYPROBE.";
+		standalone.sendPlatformAlert("[RichenQuest] Platform regression FAILED",body);
+		info "ALERT SENT: regression failed";
+	}
+	else
+	{
+		info "nightly regression green: " + result.get("pass") + " passed, no leaks";
+	}
 }
