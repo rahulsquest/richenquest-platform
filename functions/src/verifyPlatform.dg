@@ -34,6 +34,7 @@ string standalone.verifyPlatform()
 	cleanup_deals = List();
 	cleanup_contacts = List();
 	cleanup_accounts = List();
+	cleanup_leads = List();
 	pass = 0;
 	fail = 0;
 
@@ -326,6 +327,116 @@ string standalone.verifyPlatform()
 		checks.add(c12);
 	}
 
+	/* ---- 8b. createUniversityFollowup raises the 3-step cadence ---- */
+	if(aid != "")
+	{
+		uf = standalone.createUniversityFollowup(aid).toMap();
+		c14 = Map();
+		c14.put("name","createUniversityFollowup raises a 3-task cadence");
+		if(uf.get("ok") == true && uf.get("tasks").contains("\"count\":3"))
+		{
+			c14.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c14.put("status","FAIL");
+			c14.put("detail",uf.toString());
+			fail = fail + 1;
+		}
+		checks.add(c14);
+
+		/* ---- 8c. archiveExpiredPartnership archives a lapsed agreement ----
+		 *  Backdates the probe account's expiry, runs the sweep, and asserts
+		 *  the record actually moved to Dormant. Reuses the existing probe so
+		 *  no extra record is created.
+		 */
+		back = Map();
+		back.put("Agreement_Expires_On",zoho.currentdate.subDay(30).toString("yyyy-MM-dd"));
+		back.put("Partnership_Stage","Active");
+		zoho.crm.updateRecord("Accounts",aid,back);
+		standalone.archiveExpiredPartnership();
+		after = zoho.crm.getRecordById("Accounts",aid.toLong());
+		c15 = Map();
+		c15.put("name","archiveExpiredPartnership moves a lapsed agreement to Dormant");
+		if(after.get("Partnership_Stage") == "Dormant")
+		{
+			c15.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c15.put("status","FAIL");
+			c15.put("detail","stage is " + after.get("Partnership_Stage"));
+			fail = fail + 1;
+		}
+		checks.add(c15);
+	}
+
+	/* ---- 8d. updateLeadLifecycle validates and applies a status ---- */
+	lead = Map();
+	lead.put("Last_Name","VERIFYPROBE Lead");
+	lead.put("Company","Individual");
+	lead.put("Email","verifyprobe.lead." + zoho.currenttime.toString("HHmmss") + "@example.com");
+	lres = zoho.crm.createRecord("Leads",lead);
+	if(lres.get("id") != null)
+	{
+		lid = lres.get("id");
+		cleanup_leads.add(lid);
+		bad_status = standalone.updateLeadLifecycle(lid,"Nurture","probe").toMap();
+		c16 = Map();
+		c16.put("name","updateLeadLifecycle refuses a status outside the picklist");
+		if(bad_status.get("ok") == false)
+		{
+			c16.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c16.put("status","FAIL");
+			c16.put("detail",bad_status.toString());
+			fail = fail + 1;
+		}
+		checks.add(c16);
+
+		/* ---- 8e. wfLeadCreated composes lifecycle + task ----
+		 *  Called directly rather than through the workflow rule, because
+		 *  Deluge writes do not fire workflow rules (File 22 D-1). This asserts
+		 *  the composition, not the trigger.
+		 */
+		wf = standalone.wfLeadCreated(lid).toMap();
+		c18 = Map();
+		c18.put("name","wfLeadCreated sets lifecycle and raises the call task");
+		if(wf.get("lifecycle") != null && wf.get("tasks").contains("\"count\":1"))
+		{
+			c18.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c18.put("status","FAIL");
+			c18.put("detail",wf.toString());
+			fail = fail + 1;
+		}
+		checks.add(c18);
+
+		good_status = standalone.updateLeadLifecycle(lid,"Contacted","probe").toMap();
+		c17 = Map();
+		c17.put("name","updateLeadLifecycle applies a valid status");
+		if(good_status.get("ok") == true && good_status.get("to") == "Contacted")
+		{
+			c17.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c17.put("status","FAIL");
+			c17.put("detail",good_status.toString());
+			fail = fail + 1;
+		}
+		checks.add(c17);
+	}
+
 	/* ---- 9. KPI function returns a usable shape ---- */
 	kpi = standalone.partnershipKPIs().toMap();
 	c13 = Map();
@@ -402,6 +513,22 @@ string standalone.verifyPlatform()
 		else
 		{
 			leaked.add("Contacts/" + ct);
+		}
+	}
+	for each lz in cleanup_leads
+	{
+		dm_lz = Map();
+		dm_lz.put("module","Leads");
+		dm_lz.put("id",lz);
+		zoho.crm.invokeConnector("crm.delete",dm_lz);
+		backl = zoho.crm.getRecordById("Leads",lz.toLong());
+		if(backl == null || backl.get("id") == null)
+		{
+			deleted.add("Leads/" + lz);
+		}
+		else
+		{
+			leaked.add("Leads/" + lz);
 		}
 	}
 	cl = Map();

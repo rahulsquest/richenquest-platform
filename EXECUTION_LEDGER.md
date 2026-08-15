@@ -41,8 +41,8 @@ converts "no university will sign us without references" from a blocker into a s
 ### Platform (frozen — maintenance only)
 | Item | Evidence |
 |---|---|
-| CRM: 16 Deluge functions, 7 workflow rules, all verified | `./scripts/platform-health.sh` → 13/13 |
-| Regression suite, self-cleaning, leak-detecting | `verifyPlatform` |
+| CRM: 18 Deluge functions, 7 workflow rules, 2 nightly schedules | `./scripts/platform-health.sh` → 18/18 |
+| Regression suite — **18 assertions, 16 of 17 functions covered**, self-cleaning, leak-detecting | `verifyPlatform` → 18/18 |
 | Health monitoring, one command | `platform-health.sh` |
 | Founder dashboard, read-only | `founder-dashboard.sh` |
 | Automated backup + verification | `backup-crm.sh`, `verify-backup.sh` |
@@ -137,6 +137,7 @@ a forecast instead of a guess.
 | 2026-08-16 | Wave 1 (6) and Wave 2 (5) outreach written and send-ready. Ledger established. |
 | 2026-08-16 | **ApplyBoard verified — 1,500+ institutions incl. Germany/Ireland, no stated reference requirement. Promoted to F0, ahead of everything.** Aggregator commission is lower than direct, but it creates the university references that unlock the direct agreements. |
 | 2026-08-16 | GyanDhan education-loan referral verified: ₹3,000 per successful referral plus ₹10,000 every 5, self-serve, paid on disbursal. |
+| 2026-08-16 | **Regression coverage closed from 13 to 18 assertions (D-6).** Added: createUniversityFollowup 3-task cadence; archiveExpiredPartnership actually moving a backdated agreement to Dormant; updateLeadLifecycle both refusing an off-picklist status and applying a valid one; wfLeadCreated composition. Coverage now 16 of 17 functions. **assignCounselor's happy path remains the only untestable one** — it needs a user holding the Counselor role, and creating users consumes licences, so that is a founder action not an engineering gap. |
 | 2026-08-16 | **Schedules API solved and 2 jobs deployed.** Previous 500 was the wrong endpoint — it is `/crm/v9/settings/automation/schedules`, not `/crm/v8/settings/schedules`. Schema read from Zoho's own `schedules-store.js`: `frequency` is an OBJECT (`{type:"daily"}`), and `execution_ending_details` needs `{execution_end:"never"}`. Critically, **schedules reject `standalone` functions** — the function must be category `scheduler` ("The function id given seems to be invalid" otherwise). Created two thin scheduler wrappers that delegate to existing logic rather than duplicating it. Closes D-3 and half of R-6: regression now runs unattended nightly. |
 | 2026-08-16 | **Website legal-name mismatch found before it caused a rejection.** richenquest.com displays "RichenQuest Global"; the entity is "RichenQuest Private Limited", and no address or CIN appears on the homepage or contact page. ApplyBoard explicitly cross-checks the business document against the company website. Logged as F11. |
 | 2026-08-16 | **Country portfolio narrowed to two, against a brief asking for eleven.** Hungary was the standout on paper — Stipendium Hungaricum is fully funded with tuition, stipend, accommodation and insurance — and is commercially worthless to RichenQuest: applications are nominated through the Ministry of Education/UGC, ~200 seats for all of India, clean centralised process, no agent role. That produced the ranking principle: **RichenQuest's opportunity is proportional to bureaucratic complexity, not scholarship generosity.** Italy's DSU is commercially superior to Hungary's Stipendium precisely BECAUSE it is decentralised and document-heavy. Declined to build 11 country operating models or a global knowledge graph, with reasons stated rather than omitted. |
