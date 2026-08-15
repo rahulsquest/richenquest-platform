@@ -8,7 +8,7 @@ record of *how the platform was built* and the Deluge gotchas learned doing it. 
 **this file is current**.
 
 **State verified 2026-08-15 22:07** via `./scripts/platform-health.sh`:
-16 functions · 8 workflow rules · 0 schedules · 0 watches · 0 custom modules · 8 dashboards ·
+16 functions · 7 workflow rules · 0 schedules · 0 watches · 0 custom modules · 8 dashboards ·
 regression 13/13 · API quota 467/60,000 (0.8%).
 
 ---
@@ -132,7 +132,7 @@ Contacts-only and returns `INVALID_DATA` for a Lead — verified.
 
 ## 3. Workflow rule reference
 
-All 8 are **active**. Rules are triggers; they do **not** fire on Deluge writes (File 22 §D-1) —
+All 7 are **active**, and all 7 are RichenQuest's. Zoho's factory `Big Deal Rule` was removed 2026-08-15 (File 32). Rules are triggers; they do **not** fire on Deluge writes (File 22 §D-1) —
 that divergence is the strongest argument for the deferred D-1 migration.
 
 | Rule | Module | Trigger | Condition | Actions | Business purpose |
@@ -144,7 +144,6 @@ that divergence is the strongest argument for the deferred D-1 migration.
 | **Partner onboarding** | Accounts | `field_update` → `Agreement Signed` | same | 3 tasks: file agreement, load programs, brief counselors | Signing is the start of work, not the end |
 | **Agreement renewal guard** | Accounts | `date_or_datetime`, 30 days **before** `Agreement_Expires_On` | — | task `renew or close` | Agreements lapse silently otherwise |
 | **Overdue task reminder** | Tasks | `date_or_datetime`, 1 day past `Due_Date` | status ≠ Completed | email to `${!Tasks.Owner}` | Managers see exceptions only; nobody plays follow-up police |
-| **Big Deal Rule** | Deals | `create_or_edit` | `Amount ≥ 1000` AND `Probability = 100` | email `Big Deal Alert` to Rahul Kumar | **⚠ Zoho factory default, not ours** — see File 28 R-4 |
 
 **Verification** — flip the trigger on a probe record, assert the effect, delete the probe. Three
 date-triggered rules (Stale lead rescue, Agreement renewal guard, Overdue task reminder) **cannot

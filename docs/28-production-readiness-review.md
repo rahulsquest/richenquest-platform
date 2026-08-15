@@ -1,6 +1,6 @@
 # File 28 — Production readiness review & technical debt register
 
-**Reviewed 2026-08-15** against verified state, not memory: 16 functions, 8 workflow rules,
+**Reviewed 2026-08-15** against verified state, not memory: 16 functions, 7 workflow rules,
 0 schedules, 0 watches, 0 custom modules, regression 13/13, quota 467/60,000.
 
 **Overall verdict: the platform is production-ready for its current load and is *not* ready for
@@ -20,7 +20,7 @@ that no amount of code removes.
 | **Performance** | **Adequate** | No latency-sensitive path today. Two functions page-and-filter in Deluge — correct at 17 records, wrong at 50,000 (D-3 below). |
 | **Observability** | **Fair** | One command shows platform health, and it has already caught two real defects. But it is **pull-only** — nothing tells anyone when something breaks. |
 | **Compliance** | **Partial** | Consent policy version captured per submission; audit trail on every mutation. `Consent_Given`/`Consent_Timestamp` still inferred, not transmitted. **No retention policy exists.** |
-| **Disaster recovery** | **Weak** | Logic is recoverable from git. **Data is not backed up by us at all** — see R-1. |
+| **Disaster recovery** | **Fair** | Logic from git; CRM data now exported and verified by script (File 31). Still: one machine, unrehearsed, unscheduled. |
 | **Operational risk** | **Moderate** | Concentrated in one person's knowledge and one browser session. |
 
 ---
@@ -31,7 +31,7 @@ that no amount of code removes.
 |---|---|---|
 | **S-1** | **The session-based transport.** All deployment and health checking runs through an authenticated Chrome tab (File 19 §2b) | No CI, no unattended deploy, no second operator without the same browser. **This is the largest structural SPOF.** |
 | **S-2** | **One CRM org.** No sandbox verified | Every deploy and every probe runs against production data |
-| **S-3** | **One admin user.** `assignCounselor` has no counselor pool; `Big Deal Rule` mails one person | Bus-factor 1 for both access and workflow |
+| **S-3** | **One admin user.** `assignCounselor` has no counselor pool | Bus-factor 1 for both access and workflow |
 | **S-4** | **`generateAuditLog`** | Every mutating function depends on it. If it silently failed, mutations would still succeed and the audit trail would quietly go incomplete |
 | **S-5** | **No event consumer** | The event backbone is verified but carries nothing; anything designed to depend on events today would fail silently |
 
@@ -41,14 +41,17 @@ that no amount of code removes.
 
 Priority = Impact × Likelihood, adjusted for whether detection exists.
 
-### R-1 · No independent data backup — **P1**
+### R-1 · No independent data backup — **LARGELY CLOSED 2026-08-15**
 **Risk** All business data exists only in Zoho. No export, no snapshot, no restore procedure.
 **Impact** Catastrophic. Accidental mass delete, a bad bulk update, or account loss is
 unrecoverable. `verifyPlatform` and every probe run write to **production**.
 **Likelihood** Low per event, but cumulative and permanent.
-**Mitigation** Scheduled COQL export of Leads/Contacts/Accounts/Deals/Notes to versioned storage.
-Zoho's own Data Backup exists but has **not been verified on this plan**.
-**Owner** platform. **Effort** ~half a day. **Blocking?** For unattended operation, yes.
+**Resolved in part.** `./scripts/backup-crm.sh` exports all six modules via the Bulk Read API with
+dynamic field discovery; `./scripts/verify-backup.sh` proves each archive parses, reconciles row
+counts against the manifest and carries an `Id` column. First real run verified (File 31).
+**Remaining, and they matter:** the backup lives **only on this laptop**, no restore has been
+**rehearsed**, and it is **not scheduled**. Zoho's console Data Backup was **not** locatable via API.
+**Owner** founder (off-machine storage) + platform (scheduling, rehearsal).
 
 ### R-2 · API ceiling — **P1 (structural)**
 **Risk** 60,000 calls/day, org-wide, scaling with **user licences, not students**.
@@ -66,16 +69,18 @@ Zoho's own Data Backup exists but has **not been verified on this plan**.
 until the schedules create-schema is solved (File 22 §D-3).
 **Owner** platform. **Blocking?** Blocks the first event consumer, not today.
 
-### R-4 · `Big Deal Rule` is an unowned factory default — **P3**
+### R-4 · `Big Deal Rule` — **CLOSED 2026-08-15**
 **Risk** Zoho's stock rule is **active on Deals**, which is labelled *Student Cases*. On
 `Amount ≥ 1000` AND `Probability = 100` — i.e. **every won student case with a fee** — it emails
 "Good News for us! We have got a Major Deal recently" to one user.
 **Impact** Low but real: unowned automation, wrong register for this business, and a rule nobody
 wrote will fire on live student data.
 **Likelihood** Certain once cases carry amounts.
-**Mitigation** Decide deliberately — repurpose as a won-case alert, or deactivate. Do **not** leave
-it as an accident.
-**Owner** founder. **Effort** minutes.
+**Resolved.** Deleted, along with its notification, template, two sample orchestrations, two sample
+blueprints and five orphaned task actions — 12 Zoho artifacts in total. Full before/after in
+**File 32**. Regression re-run: 13/13 unchanged, so nothing we own depended on any of it.
+**Note for DR:** a rebuilt org re-imports Zoho's samples, so File 32 must be repeated after any
+org rebuild.
 
 ### R-5 · Probing runs against production — **P2**
 **Risk** No sandbox. `verifyPlatform` creates and deletes real records in the live org.

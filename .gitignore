@@ -30,3 +30,9 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# CRM data exports — CONTAIN STUDENT PII (names, emails, phones, case history).
+# Never commit. Backups belong in encrypted off-machine storage, not in git:
+# git history is permanent, widely cloned, and cannot be selectively redacted.
+# See docs/31 for where they should live instead.
+backups/
