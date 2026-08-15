@@ -95,6 +95,10 @@ availability **not tested**.
 invisible until someone runs the command.
 **Impact** Moderate — delayed detection, not data loss.
 **Mitigation** Schedule the health check and alert on `ok:false` (needs D-3).
+**Design constraint discovered 2026-08-15:** `consumed_limit` is a **cached snapshot refreshed on
+the hour**, not a live counter (`next_refresh_time` confirms). A quota alert can therefore be up to
+60 minutes stale, so thresholds must leave a full hour of headroom — a burst starting at 22:01 is
+invisible until 23:00. See File 34 Phase 3.
 **Owner** platform.
 
 ### R-7 · No retention policy — **P3 (compliance)**
