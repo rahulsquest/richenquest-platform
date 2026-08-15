@@ -13,6 +13,65 @@ Everything below is finished work. **Review, adjust the bracketed bits, press Se
 
 ---
 
+# PART 0 — DO THIS FIRST: the aggregator route
+
+**This solves the problem that blocks everything else.**
+
+File 40 identified the chicken-and-egg: CBS wants *"at least 2 references of a university you are
+working with"*, and `partnerships.signed` is `[]`. Most established universities will say the same.
+**The first direct partnership is structurally the hardest.**
+
+Aggregator platforms exist precisely because of this. They sign agencies at scale and give access to
+hundreds of institutions through one relationship.
+
+## ApplyBoard — verified
+
+| | |
+|---|---|
+| **Register** | `https://www.applyboard.com/new_associate` (alt: `/register`) |
+| **Scale** | **1,500+ institutions**, "150,000+ Global Study Programs" |
+| **Destinations** | Canada, US, UK, Australia, **Ireland**, **Germany** |
+| **Partner network** | "over 10,000 recruitment partners" |
+| **Also includes** | "360 Solutions" — **loans, GICs, language test vouchers, financial services** |
+| **Commission** | mentioned ("higher commission" via their Elevate rewards tier) but **rates not published** |
+| **Stated requirements** | **none published** — no reference requirement stated anywhere on the recruiter page |
+
+**Why this changes the sequencing:**
+
+1. **Germany and Ireland are both covered** — the two destinations your entire university pipeline
+   targets.
+2. **No stated reference requirement.** With 10,000+ partners, the barrier is clearly low by design;
+   they scale by signing agencies, not by filtering them.
+3. **It creates the reference you lack.** Once you have sent real applications through ApplyBoard,
+   the CBS question — *"two references of a university you are working with"* — has an answer. **The
+   aggregator is the on-ramp to the direct partnerships, not an alternative to them.**
+4. **The financial-services layer overlaps** with Part C, so one relationship may cover several
+   revenue lines.
+
+**The honest trade-off:** aggregator commission is split with the platform, so per-student revenue is
+**lower than a direct agreement**. That is the price of immediate access with no references. **Take
+it now, negotiate direct agreements later from a position of evidence.**
+
+**Alternatives, same category, not yet verified:** Adventus.io, Edvoy (Chennai-based), MSM Abcodo,
+Leverage Edu's UniValley. **Do ApplyBoard first** — it is the largest and the only one whose recruiter
+terms I have read directly.
+
+## What to do
+
+1. **Register at `applyboard.com/new_associate`.** Founder action, ~30 minutes.
+2. When they respond, ask three questions:
+   - What is the commission structure for Germany and Ireland placements?
+   - Are there minimum volume requirements or partner tiers?
+   - Which of the universities already in our CRM are on your platform?
+3. **Cross-reference the answer to Q3 against your 17.** Any overlap means you can start sending
+   applications to a university you were about to cold-email — and you approach them later as a
+   partner who has already sent them students.
+
+**Do this before Part A.** Wave 1 is still worth sending — direct agreements pay better — but the
+aggregator is what lets you serve a student *next month* instead of next year.
+
+---
+
 # PART A — Universities, Wave 1 (6 emails)
 
 These six have a real partnerships desk. Send these first.
