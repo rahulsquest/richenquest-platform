@@ -115,9 +115,13 @@ model can only express the outcome, never the process — and the process is the
 **Consequence:** no per-university status, no offer comparison, no answer to "which universities
 convert best for us", which is exactly the metric that should drive the partnership programme.
 
-**Fix:** applications need their own records. With **zero custom modules** on this plan, the honest
-options are (a) `Quotes`/`Products` repurposed — ugly, or (b) a custom module, which needs a plan
-check. **Not decided; needs a licence answer first.** Recorded, not guessed.
+**RESOLVED 2026-08-15 — custom modules ARE available on this plan.** Tested end to end: module
+created (`201`), lookups to `Deals`/`Accounts`/`Contacts` created, a record held a live university
+lookup and was COQL-queryable, and the related list auto-appeared on the parent. Probe deleted.
+
+**Decision: Application is a custom module (junction entity).** Full reasoning, including why not
+Deals / Quotes / subforms, in **File 25 §G-5**. Architecture verified; implementation awaits an
+agreed field list.
 
 ### G-3 · Document has no home
 
@@ -125,7 +129,10 @@ Document collection is a core service (SOP-03) and a File 01 §6 WorkDrive struc
 but no WorkDrive API has been probed and no document entity exists. Attachments on records are the
 zero-cost fallback.
 
-**Not yet investigated — do not assume absent.** Probe the WorkDrive API before designing.
+**INVESTIGATED 2026-08-15 — WorkDrive is provisioned and has a working REST API**
+(`workdrive.zoho.in/api/v1`, JSON:API), including `datatemplates` for custom file metadata. Deluge
+reaches it natively: `zoho.workdrive.uploadFile` is a recognised integration task. `zoho.crm.attachFile`
+also compiles, giving a zero-dependency fallback. Design in **File 25 §G-3**.
 
 ### G-4 · Money is in test mode
 
@@ -219,6 +226,6 @@ Ordered by leverage, not by ease:
 1. ~~**G-1 Student entity**~~ — **done**, see §3.
 2. **Knowledge corpus into `Solutions`** — module exists, no dependencies, immediately useful.
 3. **G-3 Document** — probe WorkDrive before designing.
-4. **G-2 Application** — needs a licence answer on custom modules first.
+4. ~~**G-2 Application**~~ — **unblocked**; custom modules verified available (File 25 §G-5).
 5. **Retention policy** — writing, not code.
 6. **API versioning decision** — cheap now, expensive after the second client.
