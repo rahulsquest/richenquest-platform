@@ -23,6 +23,7 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
 | `assignCounselor.dg` | Least-loaded active Counselor; refuses when there are none |
 | `createUniversityFollowup.dg` | Partnership day 4/9/16 cadence, on demand |
 | `archiveExpiredPartnership.dg` | Scheduled sweep: lapsed agreements → Dormant |
+| `visaOpsPlan.dg` | Phase 9 backward planner. Course start − country lead time → risk flag + next deadline. Task **only on a risk transition** |
 
 ## Rules for adding one
 
@@ -40,7 +41,11 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
 7. **Verify against live records, then delete the probes.** Compiling is not evidence. Every
    function in the table above was executed and its effect confirmed by COQL.
 8. **Deploy = create-if-absent, then PUT the script.** Creating twice silently produces
-   `<name>1`. See File 21 §6.
+   `<name>1`. Use `scripts/deploy-function.sh <Name> <param:type>…`, which encodes two traps:
+   **`api_name` is ignored on create and rejected as `DUPLICATE_DATA` on update**, so it is never
+   sent; and **a freshly created function answers every execute call with `NOT_ACTIVE`** until
+   `rest_api: [{type: oauth, active: true}]` is PUT. Creating is not the same as exposing.
+   See File 21 §6.
 
 ## Verifying a change
 

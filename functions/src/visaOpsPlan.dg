@@ -1,0 +1,254 @@
+string standalone.visaOpsPlan(string case_id)
+{
+	/*  PURPOSE
+	 *    The Phase 9 backward planner, and the whole of Phase 9's automation.
+	 *
+	 *    File 45 §1 establishes that appointment-slot monitoring is not
+	 *    legitimately automatable for any country in the portfolio: no mission
+	 *    or VFS API exists, and defeating the bot protection on a government
+	 *    booking queue breaches the terms of use of every site involved and
+	 *    risks the student's own application.
+	 *
+	 *    What IS automatable — and what actually loses students an intake — is
+	 *    lead time. Italy's own consulate states D-visa processing can reach
+	 *    90 days from receipt. A student who books an appointment eight weeks
+	 *    before the course starts has already lost the intake, and no amount
+	 *    of slot monitoring would have saved them.
+	 *
+	 *    So this function anchors on Course_Start_Date, subtracts the verified
+	 *    country lead time, and raises the flag on the day the case falls
+	 *    behind — months before a human would notice.
+	 *
+	 *  INPUTS
+	 *    case_id   numeric Deal id
+	 *
+	 *  OUTPUT
+	 *    {"ok":true,"risk":"Green|Amber|Red","file_by":"…","next_deadline":"…",
+	 *     "milestones":[{"label":"…","due":"…","state":"due|upcoming|overdue"}],
+	 *     "country_confidence":"high|low","changed":true|false}
+	 *    {"ok":false,"errors":[…]}   validation
+	 *    {"ok":false,"error":"…"}    business rule / not found
+	 *
+	 *  DESIGN NOTES
+	 *    - No day-count arithmetic anywhere. Every threshold is a date built by
+	 *      subtracting from Course_Start_Date, then compared with >. Deluge's
+	 *      day-difference helpers use a 360-day year and would drift.
+	 *    - A task is raised ONLY when the risk level actually changes. This runs
+	 *      nightly across every open case; anything else would be task spam, and
+	 *      an alert nobody reads is worse than no alert.
+	 *    - A case with no Course_Start_Date is "Not computed", never guessed. A
+	 *      fabricated anchor would produce confident, wrong deadlines — the exact
+	 *      failure this platform exists to avoid.
+	 *    - An unlisted destination gets the CONSERVATIVE default and is reported
+	 *      with country_confidence "low". It does not silently look planned.
+	 *
+	 *  LEAD TIMES  see File 45 §2 for the source and confidence of each figure.
+	 *    Italy    file 100 days out — official: processing up to 90 days
+	 *    Germany  file 105 days out — APS (4-8 wks) must PRECEDE the application
+	 *    Ireland  file 100 days out — ~40 working days first instance
+	 *    Poland    file 75 days out — 15 working days, extendable to 30-60
+	 *    Hungary   file 75 days out — ~2 weeks reported, slots scarce at peak
+	 *    Malta     file 70 days out — 15 days, longer outside Delhi
+	 *    default  file 120 days out — deliberately pessimistic
+	 *
+	 *  DEPENDENCIES  coreValidate, createFollowUpTasks, generateAuditLog
+	 *  VERSION       1.0 (2026-08-16)
+	 */
+	out = Map();
+	rules = List();
+	r1 = Map();
+	r1.put("field","case_id");
+	r1.put("type","id");
+	rules.add(r1);
+	vals = Map();
+	vals.put("case_id",case_id);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("errors",check.get("errors"));
+		return out.toString();
+	}
+	deal = zoho.crm.getRecordById("Deals",case_id.toLong());
+	if(deal.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","case not found: " + case_id);
+		return out.toString();
+	}
+	name = deal.get("Deal_Name");
+	country = deal.get("Destination_Country");
+	start_raw = deal.get("Course_Start_Date");
+	prior_risk = deal.get("Visa_Ops_Risk");
+	decision = deal.get("Visa_Decision");
+	/*  No anchor, no plan. Say so and stop. */
+	if(start_raw == null || start_raw == "")
+	{
+		upd0 = Map();
+		upd0.put("Visa_Ops_Risk","Not computed");
+		zoho.crm.updateRecord("Deals",case_id,upd0);
+		out.put("ok",false);
+		out.put("error","Course_Start_Date is empty; nothing can be planned backwards from an unknown date");
+		out.put("risk","Not computed");
+		return out.toString();
+	}
+	course_start = start_raw.toString().subString(0,10).toDate();
+	today = zoho.currentdate;
+	/*  Country lead-time profile. file_by is the LAST safe filing date,
+	 *  expressed as days before the course starts.
+	 */
+	file_by_days = 120;
+	confidence = "low";
+	pre_label = "Country pre-step started";
+	pre_days = 150;
+	if(country == "Italy")
+	{
+		file_by_days = 100;
+		confidence = "high";
+		pre_label = "Universitaly pre-enrolment submitted";
+		pre_days = 150;
+	}
+	else if(country == "Germany")
+	{
+		file_by_days = 105;
+		confidence = "high";
+		pre_label = "APS application started (4-8 weeks, must precede the visa)";
+		pre_days = 210;
+	}
+	else if(country == "Ireland")
+	{
+		file_by_days = 100;
+		confidence = "high";
+		pre_label = "AVATS application created (documents due at VFS within 30 days)";
+		pre_days = 130;
+	}
+	else if(country == "Poland")
+	{
+		file_by_days = 75;
+		confidence = "high";
+		pre_label = "e-Konsulat registration completed";
+		pre_days = 110;
+	}
+	else if(country == "Hungary")
+	{
+		file_by_days = 75;
+		confidence = "high";
+		pre_label = "D-visa document set started";
+		pre_days = 110;
+	}
+	else if(country == "Malta")
+	{
+		file_by_days = 70;
+		confidence = "high";
+		pre_label = "Type D document set started (approved-insurer list applies from 1 Jan 2026)";
+		pre_days = 105;
+	}
+	/*  Milestones, earliest first. Every date is derived from course_start. */
+	file_by = course_start.subDay(file_by_days);
+	amber_on = course_start.subDay(file_by_days + 30);
+	ms = List();
+	m1 = Map();
+	m1.put("label",pre_label);
+	m1.put("due",course_start.subDay(pre_days));
+	ms.add(m1);
+	m2 = Map();
+	m2.put("label","Funds arranged in the form this consulate accepts");
+	m2.put("due",course_start.subDay(file_by_days + 45));
+	ms.add(m2);
+	m3 = Map();
+	m3.put("label","Document set complete and checked (File 46 section A)");
+	m3.put("due",course_start.subDay(file_by_days + 20));
+	ms.add(m3);
+	m4 = Map();
+	m4.put("label","Appointment attended and passport submitted - LAST SAFE DATE");
+	m4.put("due",file_by);
+	ms.add(m4);
+	m5 = Map();
+	m5.put("label","Decision expected; chase only after the published time");
+	m5.put("due",course_start.subDay(14));
+	ms.add(m5);
+	m6 = Map();
+	m6.put("label","Travel and arrival arranged");
+	m6.put("due",course_start.subDay(7));
+	ms.add(m6);
+	/*  Risk. An approved visa outranks every date on the list. */
+	risk = "Green";
+	if(decision == "Approved")
+	{
+		risk = "Green";
+	}
+	else if(today > file_by)
+	{
+		risk = "Red";
+	}
+	else if(today > amber_on)
+	{
+		risk = "Amber";
+	}
+	/*  Next deadline = the first milestone that has not yet passed. */
+	next_due = null;
+	shaped = List();
+	for each m in ms
+	{
+		d = m.get("due");
+		state = "upcoming";
+		if(d < today)
+		{
+			state = "overdue";
+		}
+		else if(next_due == null)
+		{
+			state = "due";
+			next_due = d;
+		}
+		row = Map();
+		row.put("label",m.get("label"));
+		row.put("due",d.toString("yyyy-MM-dd"));
+		row.put("state",state);
+		shaped.add(row);
+	}
+	upd = Map();
+	upd.put("Visa_Ops_Risk",risk);
+	if(next_due != null)
+	{
+		upd.put("Next_Deadline",next_due.toString("yyyy-MM-dd"));
+	}
+	res = zoho.crm.updateRecord("Deals",case_id,upd);
+	if(res.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",res.toString());
+		return out.toString();
+	}
+	/*  Raise a task only on a genuine transition. Nightly re-runs stay silent. */
+	changed = false;
+	if(prior_risk != risk)
+	{
+		changed = true;
+		if(risk == "Amber" || risk == "Red")
+		{
+			spec = List();
+			t = Map();
+			t.put("days",0);
+			t.put("subject","Visa ops " + risk + " - " + name + " - last safe filing date " + file_by.toString("yyyy-MM-dd"));
+			t.put("priority","High");
+			spec.add(t);
+			standalone.createFollowUpTasks("Deals",case_id,spec.toString());
+		}
+		detail = "Visa ops risk " + prior_risk + " -> " + risk + " (" + country + ", file by " + file_by.toString("yyyy-MM-dd") + ")";
+		standalone.generateAuditLog("Deals",case_id,"visa-ops",detail);
+	}
+	out.put("ok",true);
+	out.put("risk",risk);
+	out.put("country",country);
+	out.put("country_confidence",confidence);
+	out.put("file_by",file_by.toString("yyyy-MM-dd"));
+	out.put("course_start",course_start.toString("yyyy-MM-dd"));
+	out.put("milestones",shaped);
+	out.put("changed",changed);
+	if(next_due != null)
+	{
+		out.put("next_deadline",next_due.toString("yyyy-MM-dd"));
+	}
+	return out.toString();
+}
