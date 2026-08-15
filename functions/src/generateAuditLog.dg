@@ -1,0 +1,29 @@
+string standalone.generateAuditLog(string module_name, string record_id, string action, string detail)
+{
+	/*  Writes an audit entry as a Note on the record itself.
+	 *
+	 *  Deliberately uses Notes rather than a custom module: notes are already
+	 *  permission-scoped to the record, survive a frontend rewrite, and need no
+	 *  new infrastructure (ADR-003).
+	 *
+	 *  Returns JSON: {"ok":true,"note_id":"..."} or {"ok":false,"error":"..."}
+	 */
+	note = Map();
+	note.put("Note_Title","[audit] " + action);
+	note.put("Note_Content",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss") + " | " + action + " | " + detail);
+	note.put("Parent_Id",record_id);
+	note.put("$se_module",module_name);
+	resp = zoho.crm.createRecord("Notes",note);
+	out = Map();
+	if(resp.get("id") != null)
+	{
+		out.put("ok",true);
+		out.put("note_id",resp.get("id"));
+	}
+	else
+	{
+		out.put("ok",false);
+		out.put("error",resp.toString());
+	}
+	return out.toString();
+}

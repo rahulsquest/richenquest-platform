@@ -98,11 +98,16 @@ Feasibility here is **measured**, not assumed — each row was probed this sessi
 | 7 | AI knowledge base | **REPO WORK — open** | File 04 §1 has drafted FAQ content; needs fact-checking against `claims.json` before it can be published anywhere |
 | 8 | SOP generation | **REPO WORK — open** | File 04 §2 has 7 SOPs drafted (SOP-01…07). Target was Zoho Learn — no MCP server; deliver as repo artifacts |
 | 9 | Reporting | **PARTIAL** | COQL works today and is how every verification in this project is done. Scheduled reports depend on §5 |
-| 10 | Backend services for the new frontend | **HIGH VALUE, unbuilt** | `/crm/v8/settings/functions` → **204** (endpoint live, none defined) and `/settings/schedules` → **200, 20 slots**. CRM Functions are REST-callable Deluge — the ADR-003-compliant way to give a frontend server-side behaviour with **no custom backend** |
+| 10 | Backend services for the new frontend | **BUILT — File 21** | 6 Deluge functions deployed, REST-enabled, each verified against live records |
 
-**Item 10 is the highest-leverage unbuilt thing in this table.** It is the only path to
-server-side logic that does not violate ADR-003, and it is what a future frontend will need for
-anything the Web-to-Lead form cannot express.
+**Item 10 is done.** Six CRM Functions now form the backend layer — `createFollowUpTasks`,
+`generateAuditLog`, `updateLeadLifecycle`, `assignCounselor`, `createUniversityFollowup`,
+`archiveExpiredPartnership`. Source in `functions/src/`, API and evidence in **File 21**.
+
+This also began paying down §0's duplication: task creation existed as **11 near-identical
+workflow Task actions**; it is now one function that the others call. The workflow rules still
+fire their own actions — migrating them to call the function is the next consolidation step, and
+is deliberately being done one rule at a time with a probe each rather than blind.
 
 ---
 

@@ -1,0 +1,43 @@
+string standalone.createUniversityFollowup(string account_id)
+{
+	/*  The partnership outreach cadence, as a callable function.
+	 *
+	 *  Same day 4 / 9 / 16 sequence the "Partnership outreach cadence" workflow
+	 *  rule fires, but invocable on demand - e.g. to restart a sequence after a
+	 *  dormant university re-engages, without round-tripping through a stage
+	 *  change. Delegates to createFollowUpTasks so the cadence is defined once.
+	 *
+	 *  Returns JSON from createFollowUpTasks, plus the account name.
+	 */
+	acct = zoho.crm.getRecordById("Accounts",account_id.toLong());
+	out = Map();
+	if(acct.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","account not found: " + account_id);
+		return out.toString();
+	}
+	name = acct.get("Account_Name");
+	spec = List();
+	s1 = Map();
+	s1.put("days",4);
+	s1.put("subject","Partnership follow-up 1 of 3 - " + name);
+	s1.put("priority","High");
+	spec.add(s1);
+	s2 = Map();
+	s2.put("days",9);
+	s2.put("subject","Partnership follow-up 2 of 3 - " + name);
+	s2.put("priority","High");
+	spec.add(s2);
+	s3 = Map();
+	s3.put("days",16);
+	s3.put("subject","Partnership follow-up 3 of 3 (final) - " + name);
+	s3.put("priority","High");
+	spec.add(s3);
+	result = standalone.createFollowUpTasks("Accounts",account_id,spec.toString());
+	standalone.generateAuditLog("Accounts",account_id,"outreach","3-step follow-up cadence created");
+	out.put("ok",true);
+	out.put("account",name);
+	out.put("tasks",result);
+	return out.toString();
+}

@@ -1,0 +1,78 @@
+string standalone.archiveExpiredPartnership()
+{
+	/*  Moves lapsed partnerships out of the active pipeline.
+	 *
+	 *  Any Account whose Agreement_Expires_On is in the past and which is not
+	 *  already Dormant becomes Partnership_Stage = Dormant and
+	 *  Agreement_Status = Expired, with an audit note.
+	 *
+	 *  Takes no arguments so it can be attached to a Schedule. Nothing is ever
+	 *  deleted - File 01's rule is that relationships go dormant, not away.
+	 *
+	 *  Why it pages and filters in Deluge rather than querying: searchRecords
+	 *  rejects less_than on a date field (INVALID_QUERY, "invalid operator
+	 *  found", verified live 2026-08-15). At the current scale - 17 accounts -
+	 *  paging is cheap. Revisit past a few thousand accounts.
+	 *
+	 *  Returns JSON: {"scanned":n,"archived":[names],"errors":[...]}
+	 */
+	archived = List();
+	errors = List();
+	scanned = 0;
+	today = zoho.currentdate.toString("yyyy-MM-dd").toDate();
+	/*  Deluge in CRM functions has no `while`; paging is therefore a bounded
+	 *  for-each over an explicit page list. 5 x 200 = 1000 accounts, which is
+	 *  far beyond the current 17. `more` short-circuits once a partial page
+	 *  comes back.
+	 */
+	more = true;
+	pages = {1,2,3,4,5};
+	for each page in pages
+	{
+		if(more)
+		{
+			batch = zoho.crm.getRecords("Accounts",page,200);
+			if(batch == null || batch.size() == 0)
+			{
+				more = false;
+			}
+			else
+			{
+				for each a in batch
+				{
+					scanned = scanned + 1;
+					expires = a.get("Agreement_Expires_On");
+					stage = a.get("Partnership_Stage");
+					if(expires != null && stage != "Dormant")
+					{
+						if(expires.toDate() < today)
+						{
+							upd = Map();
+							upd.put("Partnership_Stage","Dormant");
+							upd.put("Agreement_Status","Expired");
+							res = zoho.crm.updateRecord("Accounts",a.get("id"),upd);
+							if(res.get("id") != null)
+							{
+								archived.add(a.get("Account_Name"));
+								standalone.generateAuditLog("Accounts",a.get("id"),"archive","agreement expired " + expires + "; stage " + stage + " -> Dormant");
+							}
+							else
+							{
+								errors.add(res.toString());
+							}
+						}
+					}
+				}
+				if(batch.size() < 200)
+				{
+					more = false;
+				}
+			}
+		}
+	}
+	out = Map();
+	out.put("scanned",scanned);
+	out.put("archived",archived);
+	out.put("errors",errors);
+	return out.toString();
+}

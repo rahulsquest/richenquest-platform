@@ -1,0 +1,53 @@
+string standalone.createFollowUpTasks(string module_name, string record_id, string spec_json)
+{
+	/*  The one place a follow-up task is created.
+	 *
+	 *  Replaces 11 near-identical workflow Task actions. A caller passes a JSON
+	 *  list of {days, subject, priority}; each becomes a Task linked back to the
+	 *  originating record.
+	 *
+	 *  module_name  "Leads" | "Accounts" | "Deals" | any module Tasks relate to
+	 *  record_id    id of the record the tasks hang off
+	 *  spec_json    [{"days":4,"subject":"...","priority":"High"}, ...]
+	 *
+	 *  Returns JSON: {"count":n,"created":[ids],"errors":[...]}
+	 */
+	created = List();
+	errors = List();
+	specs = spec_json.toJSONList();
+	for each entry in specs
+	{
+		item = entry.toMap();
+		days = item.get("days").toLong();
+		priority = item.get("priority");
+		if(priority == null)
+		{
+			priority = "Normal";
+		}
+		task = Map();
+		task.put("Subject",item.get("subject"));
+		task.put("Due_Date",zoho.currentdate.addDay(days).toString("yyyy-MM-dd"));
+		task.put("Priority",priority);
+		task.put("Status","Not Started");
+		/*  Every module Tasks can relate to - Leads included - uses What_Id
+		 *  plus $se_module. Who_Id is Contacts-only and returns INVALID_DATA
+		 *  for a Lead; verified live 2026-08-15.
+		 */
+		task.put("What_Id",record_id);
+		task.put("$se_module",module_name);
+		resp = zoho.crm.createRecord("Tasks",task);
+		if(resp.get("id") != null)
+		{
+			created.add(resp.get("id"));
+		}
+		else
+		{
+			errors.add(resp.toString());
+		}
+	}
+	out = Map();
+	out.put("count",created.size());
+	out.put("created",created);
+	out.put("errors",errors);
+	return out.toString();
+}

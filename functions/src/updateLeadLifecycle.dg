@@ -1,0 +1,53 @@
+string standalone.updateLeadLifecycle(string lead_id, string new_status, string reason)
+{
+	/*  The single entry point for changing a lead's status.
+	 *
+	 *  Centralises what would otherwise be scattered across workflow field
+	 *  updates: it validates against the live picklist, refuses no-op writes,
+	 *  and records why the change happened. A frontend can call this without
+	 *  needing to know the picklist or the audit convention.
+	 *
+	 *  Returns JSON: {"ok":bool,"from":"...","to":"...","reason":"...","error":"..."}
+	 */
+	allowed = {"Attempted to Contact","Contact in Future","Contacted","Junk Lead","Lost Lead","Not Contacted","Pre-Qualified","Not Qualified","-None-"};
+	out = Map();
+	if(!allowed.contains(new_status))
+	{
+		out.put("ok",false);
+		out.put("error","status not in Lead_Status picklist: " + new_status);
+		return out.toString();
+	}
+	lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
+	if(lead.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","lead not found: " + lead_id);
+		return out.toString();
+	}
+	current = lead.get("Lead_Status");
+	if(current == new_status)
+	{
+		out.put("ok",true);
+		out.put("from",current);
+		out.put("to",new_status);
+		out.put("reason","no-op, already in this status");
+		return out.toString();
+	}
+	upd = Map();
+	upd.put("Lead_Status",new_status);
+	resp = zoho.crm.updateRecord("Leads",lead_id,upd);
+	if(resp.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",resp.toString());
+		return out.toString();
+	}
+	detail = "Lead_Status " + current + " -> " + new_status + " (" + reason + ")";
+	audit = standalone.generateAuditLog("Leads",lead_id,"lifecycle",detail);
+	out.put("ok",true);
+	out.put("from",current);
+	out.put("to",new_status);
+	out.put("reason",reason);
+	out.put("audit",audit);
+	return out.toString();
+}

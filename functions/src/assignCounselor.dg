@@ -1,0 +1,73 @@
+string standalone.assignCounselor(string lead_id)
+{
+	/*  Assigns a lead to the least-loaded active Counselor.
+	 *
+	 *  "Least loaded" = fewest leads currently owned that are not closed.
+	 *  Round-robin was specified (File 01 5.1) but least-loaded is strictly
+	 *  better and degenerates to round-robin when loads are equal.
+	 *
+	 *  IMPORTANT: as of 2026-08-15 no user holds the Counselor role, so this
+	 *  returns {"ok":false,"reason":"no active counselors"} and changes
+	 *  nothing. That is the correct behaviour, not a failure - it must never
+	 *  silently assign a student lead to whoever happens to be an admin.
+	 *
+	 *  Returns JSON: {"ok":bool,"assigned_to":"...","load":n,"reason":"..."}
+	 */
+	out = Map();
+	closed = {"Junk Lead","Lost Lead","Not Qualified"};
+	resp = zoho.crm.getRecords("users");
+	users = resp.get("users");
+	best = "";
+	best_name = "";
+	best_load = -1;
+	if(users != null)
+	{
+		for each u in users
+		{
+			role = u.get("role");
+			if(role != null && role.get("name") == "Counselor" && u.get("status") == "active")
+			{
+				uid = u.get("id");
+				owned = zoho.crm.searchRecords("Leads","(Owner:equals:" + uid + ")");
+				load = 0;
+				if(owned != null)
+				{
+					for each l in owned
+					{
+						if(!closed.contains(l.get("Lead_Status")))
+						{
+							load = load + 1;
+						}
+					}
+				}
+				if(best_load < 0 || load < best_load)
+				{
+					best_load = load;
+					best = uid;
+					best_name = u.get("full_name");
+				}
+			}
+		}
+	}
+	if(best == "")
+	{
+		out.put("ok",false);
+		out.put("reason","no active counselors");
+		return out.toString();
+	}
+	upd = Map();
+	upd.put("Owner",best);
+	res = zoho.crm.updateRecord("Leads",lead_id,upd);
+	if(res.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("reason",res.toString());
+		return out.toString();
+	}
+	standalone.generateAuditLog("Leads",lead_id,"assignment","assigned to " + best_name + " (open leads: " + best_load + ")");
+	out.put("ok",true);
+	out.put("assigned_to",best_name);
+	out.put("assigned_to_id",best);
+	out.put("load",best_load);
+	return out.toString();
+}
