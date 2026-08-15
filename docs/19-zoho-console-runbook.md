@@ -125,14 +125,61 @@ A wrong guess is not platform evidence, and I should not have generalised from i
 State left clean: dialog cancelled, **no partial rule created** (rule list still shows only Zoho's
 default "Big Deal Rule"), and all probe leads deleted.
 
-**Accessibility is NOT granted.** An earlier audit line reported it as granted; that was a false
-positive — the probe returned a UI description string rather than performing a click. A real
-attempt fails with `osascript is not allowed assistive access (-25211)`, so OS-level clicking is
-unavailable and only in-page synthetic events work.
+**ACCESSIBILITY — FINAL, 2026-08-15. Do not retest.**
 
-**Current ruling:** the remaining ~15% of this wizard is founder-only *for now*. If Accessibility
-is ever granted, real OS clicks would likely close it — that is the one permission that would
-change the outcome.
+Granted to Antigravity IDE.app and the app restarted, as requested. Retested; the result is
+partial and insufficient:
+
+```
+click at {10, 10}    -> SUCCEEDS  ("menu bar item Apple ... process Electron")
+click at {800, 500}  -> -25211 osascript is not allowed assistive access
+keystroke ""         -> succeeds
+sqlite3 TCC.db       -> authorization denied (cannot self-inspect the grant)
+```
+
+The pattern is consistent: **menu-bar coordinates are reachable, window content areas are not.**
+Menu-bar interaction goes through a path that does not require the full grant. Driving the Zoho
+wizard needs clicks inside the page, which are exactly what is refused.
+
+Synthetic in-page events remain available and got 6 of 7 wizard steps done (§2b) — everything
+except the final submit, which the Zia dialog does not expose to the DOM.
+
+**Ruling: OS-level clicking is permanently unavailable on this machine. Stop retrying.**
+The remaining console tasks below are founder-only and total roughly 6 minutes.
+
+## SHORTEST PATH — all remaining console work, in order
+
+Do these in one sitting; each depends on the one before.
+
+**A. Email template (2 min)** — needed by rule B.
+`Setup → Customization → Templates → Email Templates → + New Template → Leads → Blank`
+Name `Welcome — Instant Reply`. Subject and body: copy §2 verbatim. **Save.**
+
+**B. Workflow rule 1 (2 min)** — the one that fixes `Lead_Status: null`.
+`Setup → Automation → Workflow Rules → + Create Rule`
+Module `Leads` · Name `Instant lead response` · **Next**
+Execute on **Create** · **Next** · Condition **All Leads** · **Next**
+Instant Actions → **+** three times:
+  1. **Email Notification** → `Welcome — Instant Reply`
+  2. **Task** → Subject `Call new lead - ${Leads.Last Name}`, Due **Same day**, Priority **Highest**, Assign **Record Owner**
+  3. **Field Update** → `Lead Status` = `Attempted to Contact`
+**Save.**
+
+**C. Workflow rule 2 (1 min)**
+`+ Create Rule` · Module `Leads` · Name `Stale lead rescue` · **Next**
+Execute on **Date/Time** → 3 days after **Modified Time** · **Next**
+Condition: `Lead Status` is `Attempted to Contact` or `Contacted` · **Next**
+Action → **Task** → Subject `Follow up (3 days silent) - ${Leads.Last Name}`, Assign **Record Owner**
+**Save.**
+
+**D. Roles (1 min)**
+`Setup → Users and Control → Security Control → Roles`
+Add under **CEO**: `Manager`; under Manager: `Counselor`; reparent `Operations` under Manager;
+add `Finance` under CEO.
+
+**Then tell me "console done."** I verify all four by API — COQL that `Lead_Status` is no longer
+null on a fresh test lead, that a Task was created, and `getUsers` for the new roles — then delete
+every test record. No further input needed from you.
 
 ## 3. Workflow rule — Instant lead response (File 01 §5.1)
 
