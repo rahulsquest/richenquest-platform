@@ -14,7 +14,7 @@ they are logged here. Reference material lives in `docs/`; send-ready work lives
 | **F0** | **Register with ApplyBoard** — `applyboard.com/new_associate`. **Run the 10-min pre-flight check first** (`outreach/` Part 0) | **The reference chicken-and-egg.** Verified: needs only a business registration certificate + ID verification, **no institutional references**. 48-hour review. 1,500+ institutions incl. Germany & Ireland | ~40 min |
 | **F1** | **Set the price.** File 40 recommends **₹1,20,000** for the first ten students | Every sales conversation. Cannot counsel a lead without it | 1 decision |
 | **F2** | **Commission stance** — File 40 recommends *disclosed and rebated* | What the outreach asks universities for; whether the independence claim can be made | 1 decision |
-| **F3** | **Send Wave 1** — 6 emails, written and waiting in `outreach/READY-TO-SEND.md` | All partnership progress. Longest lead time in the business | ~30 min |
+| **F3** | **Send Wave 1** — now **6 one-click links** in `outreach/ONE-CLICK-SEND.md`. Click, read, Send | All partnership progress. Longest lead time in the business | **~5 min** (was 30) |
 | **F4** | **Register with Fintiba** — `pi.fintiba.com/partners/register` | Fastest revenue line. Self-serve form, no references required | ~20 min |
 | **F5** | **Claim Google Business Profile** | Highest-intent free lead channel | ~1 hr |
 | **F6** | **Message 50 past students** for referrals | Cheapest leads available; the 1,000+ base already exists | ~2 hrs |
