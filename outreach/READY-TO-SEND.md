@@ -24,48 +24,67 @@ working with"*, and `partnerships.signed` is `[]`. Most established universities
 Aggregator platforms exist precisely because of this. They sign agencies at scale and give access to
 hundreds of institutions through one relationship.
 
-## ApplyBoard — verified
+## Aggregator comparison — verified requirements
 
-| | |
-|---|---|
-| **Register** | `https://www.applyboard.com/new_associate` (alt: `/register`) |
-| **Scale** | **1,500+ institutions**, "150,000+ Global Study Programs" |
-| **Destinations** | Canada, US, UK, Australia, **Ireland**, **Germany** |
-| **Partner network** | "over 10,000 recruitment partners" |
-| **Also includes** | "360 Solutions" — **loans, GICs, language test vouchers, financial services** |
-| **Commission** | mentioned ("higher commission" via their Elevate rewards tier) but **rates not published** |
-| **Stated requirements** | **none published** — no reference requirement stated anywhere on the recruiter page |
+**The requirement that matters is references.** Two of the three platforms researched demand them,
+which reproduces exactly the blocker that stops the direct university route.
 
-**Why this changes the sequencing:**
+| | **ApplyBoard** | **MSM Unify** | **Adventus** |
+|---|---|---|---|
+| Business registration | ✅ required — **you have it** | ✅ required | not published |
+| **Institutional references** | **❌ NOT required** | **⚠️ TWO required** | not published |
+| Office photographs | not required | ⚠️ required | not published |
+| ID verification | photo ID + liveness check | background check | not published |
+| Approval time | **48 business hours** | meeting → evaluation form → reference check → sign-up | not published |
+| Institutions | 1,500+ | "around the world" incl. Germany | 1,500+ |
+| Germany | ✅ | ✅ | UK & Europe (unspecified) |
+| Ireland | ✅ | ✅ (stated) | unspecified |
+| **Italy** | ❌ not in the six primary destinations | not stated | unspecified |
+| Commission | "higher commission" tier; **rates not published** | "high commissions", structure chosen per model; **rates not published** | "100% commission plans"; **rates not published** |
+| Support contact | `recruitersupport@applyboard.com` | via local manager | `adventus.io/contact-us` |
 
-1. **Germany and Ireland are both covered** — the two destinations your entire university pipeline
-   targets.
-2. **No stated reference requirement.** With 10,000+ partners, the barrier is clearly low by design;
-   they scale by signing agencies, not by filtering them.
-3. **It creates the reference you lack.** Once you have sent real applications through ApplyBoard,
-   the CBS question — *"two references of a university you are working with"* — has an answer. **The
-   aggregator is the on-ramp to the direct partnerships, not an alternative to them.**
-4. **The financial-services layer overlaps** with Part C, so one relationship may cover several
-   revenue lines.
+### Verdict — join in this order
 
-**The honest trade-off:** aggregator commission is split with the platform, so per-student revenue is
-**lower than a direct agreement**. That is the price of immediate access with no references. **Take
-it now, negotiate direct agreements later from a position of evidence.**
+**1. ApplyBoard — apply now.** It is the only platform verified to require **no institutional
+references**. Its stated requirements are a business registration certificate and identity
+verification, both of which RichenQuest satisfies today. **48-hour review.**
 
-**Alternatives, same category, not yet verified:** Adventus.io, Edvoy (Chennai-based), MSM Abcodo,
-Leverage Edu's UniValley. **Do ApplyBoard first** — it is the largest and the only one whose recruiter
-terms I have read directly.
+**2. MSM Unify — after your first placements.** Their two-reference requirement is the same wall as
+CBS. Revisit once ApplyBoard placements give you referenceable relationships. Applying now wastes the
+first impression.
 
-## What to do
+**3. Adventus — research further before applying.** A signup route exists but requirements,
+commission and Germany/Ireland specifics are not published. **Not enough information to act on.**
 
-1. **Register at `applyboard.com/new_associate`.** Founder action, ~30 minutes.
-2. When they respond, ask three questions:
-   - What is the commission structure for Germany and Ireland placements?
-   - Are there minimum volume requirements or partner tiers?
-   - Which of the universities already in our CRM are on your platform?
-3. **Cross-reference the answer to Q3 against your 17.** Any overlap means you can start sending
-   applications to a university you were about to cold-email — and you approach them later as a
-   partner who has already sent them students.
+**Do not apply to all three at once.** Splitting volume across platforms weakens every commission
+tier — all three reward concentration.
+
+### ⚠️ Pre-flight check before you register (10 minutes, avoids rejection)
+
+ApplyBoard states: *"the information on the business document must match what is listed on the
+government website, the application form, and the company's website or social media profiles."*
+Mismatches trigger a demand for a signed Letter of Statement and delay approval.
+
+**Confirm these are identical everywhere before you submit:**
+
+- [ ] Company name — exactly as on the MCA/registration certificate (**"RichenQuest Private Limited"**)
+- [ ] Registered address — same on the certificate, the website, and social profiles
+- [ ] Owner/director name — matches the government record
+- [ ] Website and social profiles show the same name and address as the certificate
+- [ ] Photo ID ready for liveness verification
+
+**`richenquest.com` is the public reference ApplyBoard will check.** If the site shows a different
+address or trading name than the registration, fix that first — it is the most likely cause of a
+delayed approval, and it is the one thing here that touches the website (a data correction, not a
+feature).
+
+### What to ask once approved
+
+1. Commission structure for **Germany and Ireland** placements, and payout timing.
+2. Minimum volume or partner tiers, and what unlocks the higher-commission tier.
+3. **Which of our 17 CRM universities are on the platform?** Any overlap means you can send
+   applications immediately to a university you were about to cold-email — and approach it later as
+   a partner who has already sent students.
 
 **Do this before Part A.** Wave 1 is still worth sending — direct agreements pay better — but the
 aggregator is what lets you serve a student *next month* instead of next year.
