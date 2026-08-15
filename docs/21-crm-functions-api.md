@@ -1,6 +1,6 @@
 # File 21 — CRM Functions: the backend layer
 
-**This is the backend the future frontend calls.** Nine Deluge functions, deployed to Zoho CRM,
+**This is the backend the future frontend calls.** Twelve Deluge functions, deployed to Zoho CRM,
 each exposed over REST. No server, no container, no database — ADR-003 holds exactly as written.
 
 Source of truth is `functions/src/*.dg` in this repo. What runs in CRM is deployed *from* those
@@ -113,6 +113,54 @@ Creating a task at every boundary would train people to ignore them.
 → {"ok":false,"error":"unknown stage: Bogus"}
 ```
 
+### `partnershipKPIs()`
+Every partnership figure in one call. Exists as a function rather than only a dashboard because a
+number that can be *fetched* is reusable — CRM dashboard, future frontend and a scheduled digest
+all read the same figures and cannot disagree.
+
+```
+→ {"total":17,"by_stage":{"Identified":17},"by_agreement":{"None":17},
+   "contactable":1,"uncontactable":16,
+   "expiring_30_days":[],"expired_active":[],"generated_at":"…"}
+```
+
+`contactable: 1 / uncontactable: 16` is the live number and it is the outreach blocker in one
+figure: 16 of 17 universities have no `International_Office_Email`, so no automation can contact
+them. `expired_active` should always be empty — anything in it is an agreement that lapsed without
+being archived.
+
+### `logPartnershipContact(account_id, channel, direction, summary, next_action_days)`
+Records one interaction **and** advances the pipeline. Communication history lives as Notes on the
+Account, prefixed `[contact]` so it is filterable and distinct from `[audit]`. A dedicated custom
+module was rejected: Notes are already timeline-rendered, permission-scoped and searchable.
+
+`channel` ∈ `email|call|meeting|form|linkedin|other` · `direction` ∈ `outbound|inbound` ·
+`next_action_days` `""` for none.
+
+```
+→ {"ok":true,"note_id":"…","stage":"Contacted","task":"{\"count\":1,…}"}
+→ {"ok":false,"error":"channel must be one of: email,call,meeting,form,linkedin,other"}
+```
+
+**Deliberate side effect:** first *outbound* contact moves `Identified → Contacted`; an *inbound*
+reply moves it to `In Discussion`. Logging what happened and recording where it leaves the
+relationship is one action — splitting them is how pipelines end up lying.
+
+### `renewPartnership(account_id, new_expiry, signed_on)`
+Closes the loop `archiveExpiredPartnership` opens. Refuses an expiry in the past — renewing into
+the past would simply be re-archived by the next sweep.
+
+```
+Agreement Signed → Active → (expiry passes) → Dormant/Expired
+                      ^                              |
+                      +------ renewPartnership ------+
+```
+
+```
+→ {"ok":true,"account":"…","from_stage":"In Discussion","expires":"2027-08-15"}
+→ {"ok":false,"error":"new_expiry must be in the future; got 2020-01-01"}
+```
+
 ---
 
 ## 3. Calling them
@@ -146,6 +194,9 @@ Every function was executed against live records, not just compiled.
 | `createUniversityFollowup` | 3 tasks created through the delegated primitive |
 | `archiveExpiredPartnership` | `scanned:18, archived:1` — archived only the probe, left all 17 real universities untouched |
 | `createStudentCase` | case opened at New Inquiry; separately **refused** an empty `student_name` |
+| `partnershipKPIs` | returned `total:17, Identified:17, contactable:1` — matches the pipeline exactly; re-run after probe deletion confirmed baseline restored |
+| `logPartnershipContact` | outbound email moved `Identified → Contacted` + raised the task; inbound moved it to `In Discussion`; **refused** channel `telepathy` |
+| `renewPartnership` | set `Active` / `Signed` / expires 2027-08-15; **refused** an expiry of 2020-01-01 |
 | `updateStudentCaseStage` | `New Inquiry → Agreement Sent` raised the chase task; **refused** `Closed Lost` with no reason and **refused** an unknown stage; valid `Closed Lost` + `Budget` set `Probability: 0` |
 
 All probes deleted afterwards: 3 probe records (lead, account, case), 8 probe tasks (all
@@ -231,6 +282,37 @@ native actions. The functions are already written.
 **Also parked:** `POST /crm/v8/settings/schedules` returns `500 INTERNAL_ERROR` on the payload
 tried. The endpoint lists fine (`200`, 20 slots free). Schema not yet determined — not proven
 blocked, just not solved.
+
+## 6c. Reports and Dashboards — endpoints DISCOVERED, not absent
+
+I previously recorded that `/crm/v8/settings/reports` and `/settings/dashboards` returned
+`INVALID_REQUEST` and flagged them as "not located". They were not located because **I was
+guessing URLs again**. Located properly, by reading what the CRM UI itself requests
+(`performance.getEntriesByType('resource')` on the Reports and Dashboards tabs):
+
+| Surface | Real endpoint |
+|---|---|
+| Reports | `GET /crm/v8/Reports?category=everything` |
+| Report folders | `GET /crm/v8/Reports/Folders?per_page=2000` |
+| Report config | `GET /crm/v8/Reports/Configuration` |
+| Dashboards | `GET /crm/v2.2/Analytics?category=everything` |
+| Dashboard metadata | `GET /crm/v2.2/Analytics/metadata` |
+| Run a component | `POST /crm/v2.2/Analytics/<id>/Components/<cid>/actions/run` |
+
+They are **module-style paths, not `/settings/*` paths** — which is exactly why the guesses
+failed. Both return `200`.
+
+Already present in the org: report folders including **Student Case Reports** and **Lead
+Reports**; dashboards including **Org Overview**, **Lead Analytics** and **Student Case Insights**.
+Building new reporting should extend these, not duplicate them.
+
+**Creating a dashboard works** — `University Partnership KPIs` (`1292318000000918001`) created via
+`POST /crm/v2.2/Analytics` with `access_type: "public"` (`private` and `organization` are rejected;
+`shared` needs an extra dependent field). **Adding components does not yet** — see File 22 §D-4.
+
+This is the third time a guessed URL produced a false "no API" conclusion (File 15 row 11, the
+Setup wizard route, and this). The rule stands: **read what the UI requests; never infer absence
+from a URL you invented.**
 
 ## 7. Open items
 

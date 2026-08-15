@@ -1,0 +1,105 @@
+string standalone.partnershipKPIs()
+{
+	/*  Computes the university partnership KPIs in one call.
+	 *
+	 *  Exists as a function rather than only as a dashboard because a number
+	 *  that can be fetched is reusable: the CRM dashboard, a future frontend,
+	 *  and a scheduled digest can all read the same figures, and they cannot
+	 *  disagree with each other.
+	 *
+	 *  Returns JSON:
+	 *    by_stage           {stage: count}
+	 *    by_agreement       {status: count}
+	 *    total              int
+	 *    contactable        have an International_Office_Email
+	 *    uncontactable      do not - outreach cannot start for these
+	 *    expiring_30_days   agreements lapsing within 30 days
+	 *    expired_active     lapsed but still not Dormant (should be zero)
+	 */
+	by_stage = Map();
+	by_agreement = Map();
+	total = 0;
+	contactable = 0;
+	expiring = List();
+	expired_active = List();
+	today = zoho.currentdate.toString("yyyy-MM-dd").toDate();
+	horizon = zoho.currentdate.addDay(30).toString("yyyy-MM-dd").toDate();
+	more = true;
+	pages = {1,2,3,4,5};
+	for each page in pages
+	{
+		if(more)
+		{
+			batch = zoho.crm.getRecords("Accounts",page,200);
+			if(batch == null || batch.size() == 0)
+			{
+				more = false;
+			}
+			else
+			{
+				for each a in batch
+				{
+					total = total + 1;
+					stage = a.get("Partnership_Stage");
+					if(stage == null)
+					{
+						stage = "(unset)";
+					}
+					if(by_stage.get(stage) == null)
+					{
+						by_stage.put(stage,1);
+					}
+					else
+					{
+						by_stage.put(stage,by_stage.get(stage) + 1);
+					}
+					ag = a.get("Agreement_Status");
+					if(ag == null)
+					{
+						ag = "(unset)";
+					}
+					if(by_agreement.get(ag) == null)
+					{
+						by_agreement.put(ag,1);
+					}
+					else
+					{
+						by_agreement.put(ag,by_agreement.get(ag) + 1);
+					}
+					email = a.get("International_Office_Email");
+					if(email != null && email != "")
+					{
+						contactable = contactable + 1;
+					}
+					exp = a.get("Agreement_Expires_On");
+					if(exp != null)
+					{
+						d = exp.toDate();
+						if(d < today && stage != "Dormant")
+						{
+							expired_active.add(a.get("Account_Name"));
+						}
+						else if(d >= today && d <= horizon)
+						{
+							expiring.add(a.get("Account_Name"));
+						}
+					}
+				}
+				if(batch.size() < 200)
+				{
+					more = false;
+				}
+			}
+		}
+	}
+	out = Map();
+	out.put("total",total);
+	out.put("by_stage",by_stage);
+	out.put("by_agreement",by_agreement);
+	out.put("contactable",contactable);
+	out.put("uncontactable",total - contactable);
+	out.put("expiring_30_days",expiring);
+	out.put("expired_active",expired_active);
+	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

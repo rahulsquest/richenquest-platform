@@ -1,0 +1,97 @@
+string standalone.logPartnershipContact(string account_id, string channel, string direction, string summary, string next_action_days)
+{
+	/*  Records one interaction with a university, and advances the pipeline if
+	 *  the interaction warrants it.
+	 *
+	 *  Communication history lives as Notes on the Account. A dedicated custom
+	 *  module was rejected: Notes are already timeline-rendered, already
+	 *  permission-scoped, already searchable, and need no new schema. The
+	 *  "[contact]" title prefix makes them filterable and distinguishes them
+	 *  from "[audit]" entries written by generateAuditLog.
+	 *
+	 *  channel     email | call | meeting | form | linkedin | other
+	 *  direction   outbound | inbound
+	 *  next_action_days  "" for none, else a follow-up task is raised
+	 *
+	 *  Side effect, deliberate: the first OUTBOUND contact moves a university
+	 *  from Identified to Contacted, which is what fires the outreach cadence.
+	 *  An INBOUND reply moves it to In Discussion. Logging what happened and
+	 *  recording where that leaves the relationship is one action, not two -
+	 *  splitting them is how pipelines end up lying.
+	 *
+	 *  Returns JSON: {"ok":bool,"note_id":"...","stage":"...","task":…}
+	 */
+	channels = {"email","call","meeting","form","linkedin","other"};
+	out = Map();
+	if(!channels.contains(channel))
+	{
+		out.put("ok",false);
+		out.put("error","channel must be one of: " + channels.toString());
+		return out.toString();
+	}
+	if(direction != "outbound" && direction != "inbound")
+	{
+		out.put("ok",false);
+		out.put("error","direction must be outbound or inbound");
+		return out.toString();
+	}
+	if(summary == null || summary.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","summary is required - an untitled contact is not history");
+		return out.toString();
+	}
+	acct = zoho.crm.getRecordById("Accounts",account_id.toLong());
+	if(acct.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","account not found: " + account_id);
+		return out.toString();
+	}
+	name = acct.get("Account_Name");
+	stage = acct.get("Partnership_Stage");
+	note = Map();
+	note.put("Note_Title","[contact] " + direction + " / " + channel);
+	note.put("Note_Content",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss") + " | " + direction + " | " + channel + " | " + summary);
+	note.put("Parent_Id",account_id);
+	note.put("$se_module","Accounts");
+	nres = zoho.crm.createRecord("Notes",note);
+	if(nres.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",nres.toString());
+		return out.toString();
+	}
+	new_stage = stage;
+	if(direction == "outbound" && stage == "Identified")
+	{
+		new_stage = "Contacted";
+	}
+	else if(direction == "inbound" && (stage == "Identified" || stage == "Contacted"))
+	{
+		new_stage = "In Discussion";
+	}
+	if(new_stage != stage)
+	{
+		upd = Map();
+		upd.put("Partnership_Stage",new_stage);
+		zoho.crm.updateRecord("Accounts",account_id,upd);
+		standalone.generateAuditLog("Accounts",account_id,"stage","Partnership_Stage " + stage + " -> " + new_stage + " (via " + direction + " " + channel + ")");
+	}
+	task_out = "none";
+	if(next_action_days != null && next_action_days.trim() != "")
+	{
+		spec = List();
+		t = Map();
+		t.put("days",next_action_days.toLong());
+		t.put("subject","Partnership next action - " + name);
+		t.put("priority","High");
+		spec.add(t);
+		task_out = standalone.createFollowUpTasks("Accounts",account_id,spec.toString());
+	}
+	out.put("ok",true);
+	out.put("note_id",nres.get("id"));
+	out.put("stage",new_stage);
+	out.put("task",task_out);
+	return out.toString();
+}

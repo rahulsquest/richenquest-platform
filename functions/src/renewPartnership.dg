@@ -1,0 +1,62 @@
+string standalone.renewPartnership(string account_id, string new_expiry, string signed_on)
+{
+	/*  Closes the renewal loop that archiveExpiredPartnership opens.
+	 *
+	 *  A renewed agreement moves back to Active with a fresh expiry, whether it
+	 *  had already lapsed to Dormant or is being renewed early. Together the two
+	 *  functions are the whole agreement lifecycle:
+	 *
+	 *      Agreement Signed -> Active -> (expiry passes) -> Dormant/Expired
+	 *                             ^                              |
+	 *                             +------ renewPartnership -------+
+	 *
+	 *  new_expiry  yyyy-MM-dd, must be in the future - renewing into the past
+	 *              would immediately be re-archived by the nightly sweep
+	 *  signed_on   yyyy-MM-dd, "" to leave the existing date untouched
+	 *
+	 *  Returns JSON: {"ok":bool,"account":"...","from_stage":"...","expires":"..."}
+	 */
+	out = Map();
+	if(new_expiry == null || new_expiry.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","new_expiry is required (yyyy-MM-dd)");
+		return out.toString();
+	}
+	exp = new_expiry.toDate();
+	if(exp <= zoho.currentdate.toString("yyyy-MM-dd").toDate())
+	{
+		out.put("ok",false);
+		out.put("error","new_expiry must be in the future; got " + new_expiry);
+		return out.toString();
+	}
+	acct = zoho.crm.getRecordById("Accounts",account_id.toLong());
+	if(acct.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","account not found: " + account_id);
+		return out.toString();
+	}
+	from_stage = acct.get("Partnership_Stage");
+	upd = Map();
+	upd.put("Partnership_Stage","Active");
+	upd.put("Agreement_Status","Signed");
+	upd.put("Agreement_Expires_On",new_expiry);
+	if(signed_on != null && signed_on.trim() != "")
+	{
+		upd.put("Agreement_Signed_On",signed_on);
+	}
+	res = zoho.crm.updateRecord("Accounts",account_id,upd);
+	if(res.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",res.toString());
+		return out.toString();
+	}
+	standalone.generateAuditLog("Accounts",account_id,"renewal","stage " + from_stage + " -> Active; agreement expires " + new_expiry);
+	out.put("ok",true);
+	out.put("account",acct.get("Account_Name"));
+	out.put("from_stage",from_stage);
+	out.put("expires",new_expiry);
+	return out.toString();
+}
