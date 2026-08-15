@@ -1,0 +1,108 @@
+string standalone.updateStudentCaseStage(string case_id, string new_stage, string lost_reason)
+{
+	/*  The single guarded entry point for moving a Student Case through the
+	 *  pipeline. Everything that should happen at a stage boundary happens
+	 *  here, once, rather than being spread across workflow field updates.
+	 *
+	 *  Enforces three things the picklist alone cannot:
+	 *    1. the stage exists (File 01 4's eleven);
+	 *    2. Closed Lost REQUIRES a lost_reason from the approved list - a lost
+	 *       case with no reason is unanalysable, and File 01 4 marks it
+	 *       mandatory;
+	 *    3. the boundary is audited, with the from/to pair.
+	 *
+	 *  Stage-entry tasks are raised through createFollowUpTasks so the task
+	 *  definition stays in one place.
+	 *
+	 *  Returns JSON: {"ok":bool,"from":"...","to":"...","tasks":…,"error":"..."}
+	 */
+	stages = {"New Inquiry","Counseling Booked","Counseling Done","Agreement Sent","Agreement Signed","Documents in Progress","Applications Submitted","Offer Received","Visa Filed","Visa Approved — Won","Closed Lost"};
+	reasons = {"Went Silent","Chose Competitor","Budget","Not Eligible","Postponed","Visa Refused"};
+	out = Map();
+	if(!stages.contains(new_stage))
+	{
+		out.put("ok",false);
+		out.put("error","unknown stage: " + new_stage);
+		return out.toString();
+	}
+	if(new_stage == "Closed Lost" && !reasons.contains(lost_reason))
+	{
+		out.put("ok",false);
+		out.put("error","Closed Lost requires a lost_reason from: " + reasons.toString());
+		return out.toString();
+	}
+	deal = zoho.crm.getRecordById("Deals",case_id.toLong());
+	if(deal.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","case not found: " + case_id);
+		return out.toString();
+	}
+	current = deal.get("Stage");
+	name = deal.get("Deal_Name");
+	upd = Map();
+	upd.put("Stage",new_stage);
+	if(new_stage == "Closed Lost")
+	{
+		upd.put("Lost_Reason",lost_reason);
+	}
+	res = zoho.crm.updateRecord("Deals",case_id,upd);
+	if(res.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",res.toString());
+		return out.toString();
+	}
+	/*  Stage-entry work. Only stages that genuinely need a human action get a
+	 *  task - creating one at every boundary would train people to ignore them.
+	 */
+	spec = List();
+	if(new_stage == "Agreement Sent")
+	{
+		t = Map();
+		t.put("days",2);
+		t.put("subject","Chase unsigned agreement - " + name);
+		t.put("priority","High");
+		spec.add(t);
+	}
+	else if(new_stage == "Agreement Signed")
+	{
+		t = Map();
+		t.put("days",1);
+		t.put("subject","Open document checklist + WorkDrive folder - " + name);
+		t.put("priority","High");
+		spec.add(t);
+	}
+	else if(new_stage == "Offer Received")
+	{
+		t = Map();
+		t.put("days",1);
+		t.put("subject","Brief student on offer + start visa prep - " + name);
+		t.put("priority","Highest");
+		spec.add(t);
+	}
+	else if(new_stage == "Visa Filed")
+	{
+		t = Map();
+		t.put("days",7);
+		t.put("subject","Check visa progress - " + name);
+		t.put("priority","High");
+		spec.add(t);
+	}
+	tasks = "none";
+	if(spec.size() > 0)
+	{
+		tasks = standalone.createFollowUpTasks("Deals",case_id,spec.toString());
+	}
+	detail = "Stage " + current + " -> " + new_stage;
+	if(new_stage == "Closed Lost")
+	{
+		detail = detail + " (" + lost_reason + ")";
+	}
+	standalone.generateAuditLog("Deals",case_id,"stage",detail);
+	out.put("ok",true);
+	out.put("from",current);
+	out.put("to",new_stage);
+	out.put("tasks",tasks);
+	return out.toString();
+}

@@ -1,0 +1,59 @@
+string standalone.createStudentCase(string student_name, string destination, string service_package, string counselor_id, string lead_id)
+{
+	/*  Opens a Student Case (a Deal) at the first pipeline stage.
+	 *
+	 *  Student Cases ARE the Deals module - File 01 4. The pipeline, the 11
+	 *  stages and the seven custom fields already exist; this is the guarded
+	 *  way in, so a case can never be created at an arbitrary stage or without
+	 *  a name.
+	 *
+	 *  counselor_id and lead_id are optional - pass "" to skip. Passing a
+	 *  lead_id records the origin in the audit trail; the Lead is NOT converted
+	 *  or deleted, because Leads are never destroyed (File 01 5.2).
+	 *
+	 *  Returns JSON: {"ok":bool,"case_id":"...","stage":"...","error":"..."}
+	 */
+	out = Map();
+	if(student_name == null || student_name.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","student_name is required");
+		return out.toString();
+	}
+	deal = Map();
+	deal.put("Deal_Name",student_name);
+	deal.put("Stage","New Inquiry");
+	deal.put("Closing_Date",zoho.currentdate.addDay(120).toString("yyyy-MM-dd"));
+	if(destination != null && destination.trim() != "")
+	{
+		deal.put("Destination_Country",destination);
+	}
+	if(service_package != null && service_package.trim() != "")
+	{
+		deal.put("Service_Package",service_package);
+	}
+	if(counselor_id != null && counselor_id.trim() != "")
+	{
+		deal.put("Assigned_Counselor",counselor_id);
+	}
+	deal.put("Document_Status","Not Started");
+	deal.put("Visa_Status","N/A");
+	resp = zoho.crm.createRecord("Deals",deal);
+	if(resp.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",resp.toString());
+		return out.toString();
+	}
+	case_id = resp.get("id");
+	origin = "case opened";
+	if(lead_id != null && lead_id.trim() != "")
+	{
+		origin = "case opened from lead " + lead_id;
+	}
+	standalone.generateAuditLog("Deals",case_id,"create",origin + "; stage New Inquiry");
+	out.put("ok",true);
+	out.put("case_id",case_id);
+	out.put("stage","New Inquiry");
+	return out.toString();
+}

@@ -1,6 +1,6 @@
 # File 21 — CRM Functions: the backend layer
 
-**This is the backend the future frontend calls.** Six Deluge functions, deployed to Zoho CRM,
+**This is the backend the future frontend calls.** Nine Deluge functions, deployed to Zoho CRM,
 each exposed over REST. No server, no container, no database — ADR-003 holds exactly as written.
 
 Source of truth is `functions/src/*.dg` in this repo. What runs in CRM is deployed *from* those
@@ -20,7 +20,7 @@ they fire lives in one place.
 
 ---
 
-## 2. The six functions
+## 2. The functions
 
 All are `standalone` category, Deluge, REST-enabled with **OAuth**. All return a JSON string.
 
@@ -86,6 +86,33 @@ note. Nothing is ever deleted — File 01's rule is that relationships go dorman
 → {"scanned":18,"archived":["FNPROBE Expired University"],"errors":[]}
 ```
 
+### `createStudentCase(student_name, destination, service_package, counselor_id, lead_id)`
+Opens a Student Case — **a Deal** — at `New Inquiry`. Student Cases *are* the Deals module
+(File 01 §4); the pipeline and fields already existed, this is the guarded way in. Optional
+arguments take `""`. Sets `Document_Status: Not Started`, `Visa_Status: N/A`, and a 120-day
+`Closing_Date`.
+
+```
+→ {"ok":true,"case_id":"1292318000000912001","stage":"New Inquiry"}
+→ {"ok":false,"error":"student_name is required"}
+```
+
+A `lead_id` is recorded in the audit trail only — the Lead is **not** converted or deleted, because
+leads are never destroyed (File 01 §5.2).
+
+### `updateStudentCaseStage(case_id, new_stage, lost_reason)`
+The guarded pipeline transition. Enforces three things the picklist cannot: the stage exists;
+**`Closed Lost` requires a `lost_reason`** from the approved six; and the boundary is audited with
+the from/to pair. Raises a stage-entry task — via `createFollowUpTasks` — only at the four stages
+where a human genuinely must act (Agreement Sent, Agreement Signed, Offer Received, Visa Filed).
+Creating a task at every boundary would train people to ignore them.
+
+```
+→ {"ok":true,"from":"New Inquiry","to":"Agreement Sent","tasks":"{\"count\":1,…}"}
+→ {"ok":false,"error":"Closed Lost requires a lost_reason from: Went Silent,Chose Competitor,…"}
+→ {"ok":false,"error":"unknown stage: Bogus"}
+```
+
 ---
 
 ## 3. Calling them
@@ -118,9 +145,12 @@ Every function was executed against live records, not just compiled.
 | `assignCounselor` | returned `no active counselors` and changed nothing — the correct refusal |
 | `createUniversityFollowup` | 3 tasks created through the delegated primitive |
 | `archiveExpiredPartnership` | `scanned:18, archived:1` — archived only the probe, left all 17 real universities untouched |
+| `createStudentCase` | case opened at New Inquiry; separately **refused** an empty `student_name` |
+| `updateStudentCaseStage` | `New Inquiry → Agreement Sent` raised the chase task; **refused** `Closed Lost` with no reason and **refused** an unknown stage; valid `Closed Lost` + `Budget` set `Probability: 0` |
 
-All probes deleted afterwards: 2 probe records, 7 probe tasks (cascaded), 4 probe functions.
-Confirmed by COQL returning zero rows and the university pipeline reading 17 / all `Identified`.
+All probes deleted afterwards: 3 probe records (lead, account, case), 8 probe tasks (all
+cascaded), 5 probe functions. Confirmed by COQL returning zero rows on Leads probes, Tasks, and
+Deals; the university pipeline reads 17 / all `Identified`.
 
 ---
 
@@ -157,6 +187,50 @@ Note the namespace is **`crm/v2/settings`** for functions — not v8 or v9 like 
 objects. It came from Zoho's own `function-model.js`.
 
 ---
+
+## 6b. Phase 1 migration — BLOCKED BY LICENCE (founder-only: payment)
+
+**Goal:** make every workflow rule a thin trigger that calls a Deluge function, so business logic
+exists once. **Status: blocked, with the boundary identified precisely.**
+
+Workflow rules *do* support a function action — `"functions"` is a valid action type, and the
+action family `/crm/v8/settings/automation/functions?module=Leads` returns `200`. Creating one is
+what fails:
+
+```
+POST /crm/v8/settings/automation/functions
+  {…,"language":"deluge"}                → MANDATORY_NOT_FOUND: script
+  {…,"language":"deluge","script":"…"}   → NOT_ALLOWED "permission denied"
+```
+
+`NOT_ALLOWED` on the `script` field, consistently, for both body-only and full-signature forms.
+
+**Why it is a licence limit, not a payload bug.** The org reports:
+
+```
+license_details: { paid: false, paid_type: "free", trial_type: "zohooneenterprise" }
+```
+
+Custom functions *in workflow rules* are a paid-edition feature in Zoho CRM, while standalone
+functions are not — which matches exactly what is observed: seven standalone functions deploy and
+execute fine, and only the workflow-action binding is refused. **This is a payment boundary, one
+of the four founder-only categories.**
+
+Scoped honestly, per the File 15 lesson: what is proven is that *this org, on this licence,
+cannot create a workflow function action through this endpoint*. Confirming the licence is the
+cause requires a paid plan to test against. **Cannot verify further from here.**
+
+**What this costs.** The seven live workflow rules keep their native actions, so the 11 task
+actions remain. The duplication removal Phase 1 asked for is not achievable on the current plan.
+
+**What still holds.** The shared logic exists and is authoritative for everything *not* triggered
+by a workflow rule — the REST API layer, on-demand calls, and future schedules. When the plan is
+upgraded, migration is mechanical: create one function action per rule, then strip the rule's
+native actions. The functions are already written.
+
+**Also parked:** `POST /crm/v8/settings/schedules` returns `500 INTERNAL_ERROR` on the payload
+tried. The endpoint lists fine (`200`, 20 slots free). Schema not yet determined — not proven
+blocked, just not solved.
 
 ## 7. Open items
 

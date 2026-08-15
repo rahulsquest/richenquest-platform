@@ -1,0 +1,34 @@
+string standalone.wfLeadCreated(string lead_id)
+{
+	/*  Thin trigger body for the "Instant lead response" workflow rule.
+	 *
+	 *  The rule is now a trigger and nothing else: it fires this, which
+	 *  delegates to the shared standalone functions. The status transition and
+	 *  the task no longer exist as separate workflow actions, so there is one
+	 *  definition of "what happens to a new lead" instead of three.
+	 *
+	 *  The welcome email stays a native Email Notification action on the rule.
+	 *  That is declarative platform config, not business logic - moving it into
+	 *  Deluge would lose the template editor for no gain.
+	 *
+	 *  Returns JSON: {"lifecycle":…,"tasks":…}
+	 */
+	lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
+	name = lead.get("Last_Name");
+	if(name == null)
+	{
+		name = lead_id;
+	}
+	lifecycle = standalone.updateLeadLifecycle(lead_id,"Attempted to Contact","new lead auto-triage");
+	spec = List();
+	s1 = Map();
+	s1.put("days",0);
+	s1.put("subject","Call new lead - " + name);
+	s1.put("priority","Highest");
+	spec.add(s1);
+	tasks = standalone.createFollowUpTasks("Leads",lead_id,spec.toString());
+	out = Map();
+	out.put("lifecycle",lifecycle);
+	out.put("tasks",tasks);
+	return out.toString();
+}

@@ -76,9 +76,16 @@ Not built, and honestly scoped:
 - **§5.4 second stage** (3 days overdue → notify owner's manager). Needs the `Owner's Manager`
   recipient type, which exists in the UI picker but whose API enum has not been read out of
   `alert.js` yet. Straightforward; not yet done.
-- **§5.3 stage-triggered client updates** and **§5.5 deadline guardian** — both are on **Deals**,
-  and the Deals pipeline in File 01 §4 (Student Cases) **has not been built**. Automating a
-  pipeline that does not exist would be inventing it. Build the pipeline first.
+- **§5.3 stage-triggered client updates** and **§5.5 deadline guardian** — both are on **Deals**.
+
+  **CORRECTION 2026-08-15: I previously wrote here that "the Deals pipeline in File 01 §4 has not
+  been built". That was wrong, and I asserted it without checking.** The Student Cases pipeline is
+  fully configured: all 11 stages at the exact probabilities File 01 §4 specifies (New Inquiry 10
+  → Visa Approved — Won 100, Closed Lost 0), the `Lost_Reason` picklist with all six values, and
+  every one of the seven custom fields (`Destination_Country`, `Course_University_Final`,
+  `Assigned_Counselor`, `Service_Package`, `Document_Status`, `Visa_Status`, `Next_Deadline`).
+
+  What is actually missing is **records** — `Deals` is empty — and the automation on top.
 - **Cliq notifications** (`#leads`, `#wins`) — Cliq has no MCP server connected. Not attempted.
 
 ---
