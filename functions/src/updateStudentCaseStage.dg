@@ -16,19 +16,48 @@ string standalone.updateStudentCaseStage(string case_id, string new_stage, strin
 	 *
 	 *  Returns JSON: {"ok":bool,"from":"...","to":"...","tasks":…,"error":"..."}
 	 */
+	/*  Input contract is declared as DATA and checked by coreValidate, not by
+	 *  hand-rolled ifs. The Closed Lost rule is conditional, so the contract is
+	 *  built per call - rules being data is exactly what makes that possible.
+	 */
 	stages = {"New Inquiry","Counseling Booked","Counseling Done","Agreement Sent","Agreement Signed","Documents in Progress","Applications Submitted","Offer Received","Visa Filed","Visa Approved — Won","Closed Lost"};
 	reasons = {"Went Silent","Chose Competitor","Budget","Not Eligible","Postponed","Visa Refused"};
 	out = Map();
-	if(!stages.contains(new_stage))
+	rules = List();
+	r1 = Map();
+	r1.put("field","case_id");
+	r1.put("type","id");
+	rules.add(r1);
+	r2 = Map();
+	r2.put("field","new_stage");
+	r2.put("type","enum");
+	r2.put("values",stages);
+	rules.add(r2);
+	r3 = Map();
+	r3.put("field","new_stage");
+	r3.put("type","required");
+	rules.add(r3);
+	if(new_stage == "Closed Lost")
 	{
-		out.put("ok",false);
-		out.put("error","unknown stage: " + new_stage);
-		return out.toString();
+		r4 = Map();
+		r4.put("field","lost_reason");
+		r4.put("type","required");
+		rules.add(r4);
+		r5 = Map();
+		r5.put("field","lost_reason");
+		r5.put("type","enum");
+		r5.put("values",reasons);
+		rules.add(r5);
 	}
-	if(new_stage == "Closed Lost" && !reasons.contains(lost_reason))
+	vals = Map();
+	vals.put("case_id",case_id);
+	vals.put("new_stage",new_stage);
+	vals.put("lost_reason",lost_reason);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
 	{
 		out.put("ok",false);
-		out.put("error","Closed Lost requires a lost_reason from: " + reasons.toString());
+		out.put("errors",check.get("errors"));
 		return out.toString();
 	}
 	deal = zoho.crm.getRecordById("Deals",case_id.toLong());

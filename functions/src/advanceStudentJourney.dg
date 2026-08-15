@@ -1,0 +1,142 @@
+string standalone.advanceStudentJourney(string case_id, string journey_stage, string note)
+{
+	/*  PURPOSE
+	 *    Drives the post-admission half of the student lifecycle:
+	 *      Pre-Departure -> Accommodation Confirmed -> Arrived -> Enrolled
+	 *                    -> Success Story -> Alumni
+	 *
+	 *    These are deliberately NOT Deal stages. A Student Case is genuinely
+	 *    won at "Visa Approved — Won"; bolting arrival and alumni onto the
+	 *    sales pipeline would corrupt Probability, forecasting and every
+	 *    conversion report. The journey is a separate axis on the same record.
+	 *
+	 *  INPUTS
+	 *    case_id        numeric Deal id
+	 *    journey_stage  one of the six above
+	 *    note           free text, "" allowed; recorded in the audit entry
+	 *
+	 *  OUTPUT
+	 *    {"ok":true,"from":"…","to":"…","tasks":…}
+	 *    {"ok":false,"errors":[…]}                 validation
+	 *    {"ok":false,"error":"…"}                  business rule / not found
+	 *
+	 *  FAILURE MODES
+	 *    - unknown stage            -> ENUM error from coreValidate
+	 *    - non-numeric case_id      -> NOT_AN_ID
+	 *    - backwards move           -> refused; the journey only goes forward.
+	 *                                  Correcting a mistake is a data fix, not
+	 *                                  a transition, and should be visible.
+	 *    - "Arrived" or later while the case is not yet Visa Approved — Won
+	 *                               -> refused. A student cannot arrive on a
+	 *                                  visa that was never approved, and
+	 *                                  letting the record say so would poison
+	 *                                  every downstream success metric.
+	 *
+	 *  DEPENDENCIES  coreValidate, createFollowUpTasks, generateAuditLog
+	 *  VERSION       1.0 (2026-08-15)
+	 */
+	order = {"Pre-Departure","Accommodation Confirmed","Arrived","Enrolled","Success Story","Alumni"};
+	out = Map();
+	rules = List();
+	r1 = Map();
+	r1.put("field","case_id");
+	r1.put("type","id");
+	rules.add(r1);
+	r2 = Map();
+	r2.put("field","journey_stage");
+	r2.put("type","required");
+	rules.add(r2);
+	r3 = Map();
+	r3.put("field","journey_stage");
+	r3.put("type","enum");
+	r3.put("values",order);
+	rules.add(r3);
+	vals = Map();
+	vals.put("case_id",case_id);
+	vals.put("journey_stage",journey_stage);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("errors",check.get("errors"));
+		return out.toString();
+	}
+	deal = zoho.crm.getRecordById("Deals",case_id.toLong());
+	if(deal.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","case not found: " + case_id);
+		return out.toString();
+	}
+	name = deal.get("Deal_Name");
+	sales_stage = deal.get("Stage");
+	current = deal.get("Student_Journey_Stage");
+	target_idx = order.indexOf(journey_stage);
+	current_idx = -1;
+	if(current != null)
+	{
+		current_idx = order.indexOf(current);
+	}
+	if(target_idx <= current_idx)
+	{
+		out.put("ok",false);
+		out.put("error","journey only moves forward; already at " + current);
+		return out.toString();
+	}
+	if(target_idx >= 2 && sales_stage != "Visa Approved — Won")
+	{
+		out.put("ok",false);
+		out.put("error","cannot reach " + journey_stage + " while the case is at " + sales_stage + "; visa must be approved first");
+		return out.toString();
+	}
+	upd = Map();
+	upd.put("Student_Journey_Stage",journey_stage);
+	res = zoho.crm.updateRecord("Deals",case_id,upd);
+	if(res.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",res.toString());
+		return out.toString();
+	}
+	spec = List();
+	if(journey_stage == "Pre-Departure")
+	{
+		t = Map();
+		t.put("days",3);
+		t.put("subject","Pre-departure briefing - " + name);
+		t.put("priority","High");
+		spec.add(t);
+	}
+	else if(journey_stage == "Arrived")
+	{
+		t = Map();
+		t.put("days",2);
+		t.put("subject","Arrival check-in call - " + name);
+		t.put("priority","High");
+		spec.add(t);
+	}
+	else if(journey_stage == "Enrolled")
+	{
+		t = Map();
+		t.put("days",14);
+		t.put("subject","Ask for success story consent - " + name);
+		t.put("priority","Normal");
+		spec.add(t);
+	}
+	tasks = "none";
+	if(spec.size() > 0)
+	{
+		tasks = standalone.createFollowUpTasks("Deals",case_id,spec.toString());
+	}
+	detail = "Journey " + current + " -> " + journey_stage;
+	if(note != null && note.trim() != "")
+	{
+		detail = detail + " (" + note + ")";
+	}
+	standalone.generateAuditLog("Deals",case_id,"journey",detail);
+	out.put("ok",true);
+	out.put("from",current);
+	out.put("to",journey_stage);
+	out.put("tasks",tasks);
+	return out.toString();
+}

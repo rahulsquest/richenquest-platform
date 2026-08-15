@@ -1,6 +1,7 @@
 # File 21 — CRM Functions: the backend layer
 
-**This is the backend the future frontend calls.** Twelve Deluge functions, deployed to Zoho CRM,
+**This is the backend every client calls** — website, mobile, admin panel, AI assistant, portals.
+Fourteen Deluge functions, deployed to Zoho CRM,
 each exposed over REST. No server, no container, no database — ADR-003 holds exactly as written.
 
 Source of truth is `functions/src/*.dg` in this repo. What runs in CRM is deployed *from* those
@@ -161,6 +162,42 @@ Agreement Signed → Active → (expiry passes) → Dormant/Expired
 → {"ok":false,"error":"new_expiry must be in the future; got 2020-01-01"}
 ```
 
+### `coreValidate(rules_json, values_json)` — the one validator
+Every platform function declares its input contract **as data** and calls this, instead of
+hand-rolling `if x == null`. Before it existed, six functions each carried their own required /
+enum / date checks with slightly different wording — the exact duplication this platform is meant
+not to have.
+
+```
+rules  [{"field":"case_id","type":"id"},
+        {"field":"stage","type":"enum","values":["A","B"]},
+        {"field":"expiry","type":"date_future"}]
+values {"case_id":"12345","stage":"A","expiry":"2027-01-01"}
+
+→ {"ok":true}
+→ {"ok":false,"errors":[{"field":"case_id","code":"NOT_AN_ID","message":"…"}]}
+```
+
+Types: `required` · `id` · `enum` · `date` · `date_future`.
+Codes: `REQUIRED` · `NOT_AN_ID` · `ENUM` · `NOT_A_DATE` · `NOT_FUTURE` · `UNKNOWN_RULE`.
+
+Because rules are data, a **conditional** contract is just a different list — `updateStudentCaseStage`
+adds the `lost_reason` rules only when the target stage is `Closed Lost`.
+
+**An unknown rule type is an error, not a pass.** A typo in a contract must never silently weaken
+validation.
+
+### `advanceStudentJourney(case_id, journey_stage, note)`
+The post-admission lifecycle: `Pre-Departure → Accommodation Confirmed → Arrived → Enrolled →
+Success Story → Alumni`. Deliberately **not** Deal stages — see File 23 for why. Forward-only, and
+nothing may reach `Arrived` unless the case is `Visa Approved — Won`.
+
+```
+→ {"ok":true,"from":"Accommodation Confirmed","to":"Arrived","tasks":"{\"count\":1,…}"}
+→ {"ok":false,"error":"cannot reach Arrived while the case is at Agreement Sent; visa must be approved first"}
+→ {"ok":false,"error":"journey only moves forward; already at Pre-Departure"}
+```
+
 ---
 
 ## 3. Calling them
@@ -194,6 +231,9 @@ Every function was executed against live records, not just compiled.
 | `createUniversityFollowup` | 3 tasks created through the delegated primitive |
 | `archiveExpiredPartnership` | `scanned:18, archived:1` — archived only the probe, left all 17 real universities untouched |
 | `createStudentCase` | case opened at New Inquiry; separately **refused** an empty `student_name` |
+| `coreValidate` | all-valid case passed; a 4-rule case returned all four distinct error codes; an unknown rule type returned `UNKNOWN_RULE` rather than passing |
+| `advanceStudentJourney` | `Pre-Departure` allowed pre-win; `Arrived` **refused** pre-win; backwards **refused**; `Graduated` **refused**; after winning, `Accommodation Confirmed → Arrived` allowed and raised the check-in task |
+| `updateStudentCaseStage` (refactored) | after moving to `coreValidate`: all previous guards intact **plus** a new `NOT_AN_ID` check the hand-rolled version never had |
 | `partnershipKPIs` | returned `total:17, Identified:17, contactable:1` — matches the pipeline exactly; re-run after probe deletion confirmed baseline restored |
 | `logPartnershipContact` | outbound email moved `Identified → Contacted` + raised the task; inbound moved it to `In Discussion`; **refused** channel `telepathy` |
 | `renewPartnership` | set `Active` / `Signed` / expires 2027-08-15; **refused** an expiry of 2020-01-01 |

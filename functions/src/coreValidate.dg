@@ -1,0 +1,146 @@
+string standalone.coreValidate(string rules_json, string values_json)
+{
+	/*  PURPOSE
+	 *    The one validator. Every platform function declares its input contract
+	 *    as data and calls this, instead of hand-rolling "if x == null" checks.
+	 *    Before this existed, six functions each carried their own required /
+	 *    enum / date checks with slightly different error text - the exact
+	 *    duplication this platform is meant not to have.
+	 *
+	 *  INPUTS
+	 *    rules_json   [{"field":"lead_id","type":"required"},
+	 *                  {"field":"stage","type":"enum","values":["A","B"]},
+	 *                  {"field":"expiry","type":"date_future"}]
+	 *    values_json  {"lead_id":"123","stage":"A","expiry":"2027-01-01"}
+	 *
+	 *  TYPES
+	 *    required     non-null, non-blank
+	 *    enum         must appear in values[]; blank allowed unless also required
+	 *    id           non-blank and numeric
+	 *    date         parses as yyyy-MM-dd
+	 *    date_future  parses AND is strictly after today
+	 *
+	 *  OUTPUT
+	 *    {"ok":true}
+	 *    {"ok":false,"errors":[{"field":"stage","code":"ENUM","message":"..."}]}
+	 *
+	 *  FAILURE MODES
+	 *    Malformed rules_json / values_json throws at parse time - that is a
+	 *    programming error in the caller, not user input, and should be loud.
+	 *    An unknown rule type is reported as an UNKNOWN_RULE error rather than
+	 *    silently passing, so a typo in a contract cannot weaken validation.
+	 *
+	 *  VERIFICATION
+	 *    See File 21 4. Exercised with a passing case, each failing type, and
+	 *    an unknown rule type.
+	 */
+	rules = rules_json.toJSONList();
+	values = values_json.toMap();
+	errors = List();
+	for each r in rules
+	{
+		rule = r.toMap();
+		fname = rule.get("field");
+		ftype = rule.get("type");
+		raw = values.get(fname);
+		sval = "";
+		if(raw != null)
+		{
+			sval = raw.toString().trim();
+		}
+		blank = (sval == "");
+		if(ftype == "required")
+		{
+			if(blank)
+			{
+				e = Map();
+				e.put("field",fname);
+				e.put("code","REQUIRED");
+				e.put("message",fname + " is required");
+				errors.add(e);
+			}
+		}
+		else if(ftype == "id")
+		{
+			if(blank)
+			{
+				e = Map();
+				e.put("field",fname);
+				e.put("code","REQUIRED");
+				e.put("message",fname + " is required");
+				errors.add(e);
+			}
+			else if(!sval.matches("^[0-9]+$"))
+			{
+				e = Map();
+				e.put("field",fname);
+				e.put("code","NOT_AN_ID");
+				e.put("message",fname + " must be a numeric record id; got " + sval);
+				errors.add(e);
+			}
+		}
+		else if(ftype == "enum")
+		{
+			allowed = rule.get("values");
+			if(!blank && !allowed.contains(sval))
+			{
+				e = Map();
+				e.put("field",fname);
+				e.put("code","ENUM");
+				e.put("message",fname + " must be one of: " + allowed.toString() + "; got " + sval);
+				errors.add(e);
+			}
+		}
+		else if(ftype == "date" || ftype == "date_future")
+		{
+			if(!blank)
+			{
+				ok_date = true;
+				parsed = null;
+				try
+				{
+					parsed = sval.toDate();
+				}
+				catch (e1)
+				{
+					ok_date = false;
+				}
+				if(!ok_date || parsed == null)
+				{
+					e = Map();
+					e.put("field",fname);
+					e.put("code","NOT_A_DATE");
+					e.put("message",fname + " must be yyyy-MM-dd; got " + sval);
+					errors.add(e);
+				}
+				else if(ftype == "date_future" && parsed <= zoho.currentdate.toString("yyyy-MM-dd").toDate())
+				{
+					e = Map();
+					e.put("field",fname);
+					e.put("code","NOT_FUTURE");
+					e.put("message",fname + " must be in the future; got " + sval);
+					errors.add(e);
+				}
+			}
+		}
+		else
+		{
+			e = Map();
+			e.put("field",fname);
+			e.put("code","UNKNOWN_RULE");
+			e.put("message","unknown rule type: " + ftype);
+			errors.add(e);
+		}
+	}
+	out = Map();
+	if(errors.size() == 0)
+	{
+		out.put("ok",true);
+	}
+	else
+	{
+		out.put("ok",false);
+		out.put("errors",errors);
+	}
+	return out.toString();
+}
