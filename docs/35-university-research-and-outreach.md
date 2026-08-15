@@ -6,73 +6,103 @@ inference. Every record carries its source URL in `Description`, so any entry ca
 
 ---
 
-## 1. Research results
+## 1. Research results — COMPLETE
 
-**Contactability: 1/17 → 5/17 (6% → 29%)**, verified live on the founder dashboard.
+**Every one of the 17 records now has either a verified contact address or a documented reason it
+cannot be obtained automatically.** That was the stopping condition; it is met.
 
-### Verified and imported
+**Contactability: 1/17 → 11/17.** Excluding the two service providers that are out of scope,
+**11 of 15 universities (73%) are contactable.**
 
-| University | Address | Type | Source |
-|---|---|---|---|
-| IU International University | `partners@iu.org` | **Partnerships** | [iu.org/about/our-partners](https://www.iu.org/about/our-partners/) — "If you are interested in a partnership with us, please contact" |
-| Gisma University | `partners@gisma.com` | **Partnerships** | [gisma.com/contact-us](https://www.gisma.com/contact-us) — labelled "partnership enquiries" |
-| University of Europe (UE) | `partners@ue-germany.com` | **Agencies** | [ue-germany.com/contact](https://www.ue-germany.com/contact) — labelled "Educational agencies and career consultants" |
-| Wittenborg University | `admission@wittenborg.nl` | Admissions | [wittenborg.eu/contact.htm](https://www.wittenborg.eu/contact.htm) — the only address published |
-| Berlin School of Business & Innovation | `info@berlinsbi.com` | **General only** | [berlinsbi.com/about-us/contact-us](https://www.berlinsbi.com/about-us/contact-us) |
+### Verified contacts — 11
 
-**The type column matters.** Three are genuine partnership channels. Wittenborg's is admissions and
-BSBI's is a general inbox — both are recorded as such in `Description` so nobody assumes a
-partnership route exists where it does not. A partnership pitch to an admissions inbox is a
-different email from one to a partnerships desk.
+Ranked by channel quality, because a partnerships desk and a general inbox are not the same asset.
 
-### Blocked, with the reason
+| # | University | Address | Channel | Named contact |
+|---|---|---|---|---|
+| 1 | **CBS International** | `representatives@cbs.de` | **Agent representatives** | Mirjam Zimmermann-Nixdorf, Operational Teamlead International Sales |
+| 2 | **Vistula Warsaw** | `cooperation@vistula.edu.pl` | **Educational agency partnerships** | — |
+| 3 | **University of Europe** | `partners@ue-germany.com` | **Agencies & career consultants** | — |
+| 4 | **IU International** | `partners@iu.org` | **Partnerships** | Partnerships Team |
+| 5 | **Gisma** | `partners@gisma.com` | **Partnerships** | — |
+| 6 | **Munich Business School** | `incoming@munich-business-school.de` | International Mobility **& Partnership** Coordinator | Sirin Dureidi |
+| 7 | Griffith College | `international@griffith.ie` | International / Global Engagement | — |
+| 8 | Arden University Berlin | `studyberlin@arden.ac.uk` | Berlin campus | — |
+| 9 | Wittenborg | `admission@wittenborg.nl` | Admissions | — |
+| 10 | Constructor Bremen | `study@constructor.university` | Admissions / study | — |
+| 11 | BSBI | `info@berlinsbi.com` | General inbox only | — |
 
-| University | Obstacle |
-|---|---|
-| **SRH Berlin** | Emails are **obfuscated** on-page (rendered as `[email protected]`). A search snippet suggested `info.hsbe@srh.de`; **not recorded** — snippets are not verification |
-| **National College of Ireland** | Contact page publishes **no email at all**; contact form only |
-| **Dublin Business School** | HTTP 403 to automated fetch |
-| **Macromedia** | HTTP 403 |
-| **Munich Business School** | HTTP 404 on the contact path tried |
-| Constructor Bremen, CBS International, Arden Berlin, Griffith College, Vistula Warsaw | Not yet attempted |
-| Fintiba, Expatrio | Service providers, not universities — **deliberately out of scope** for partnership outreach |
+**Six of these are true partnership channels** (#1–6). The remaining five are admissions or general
+inboxes — usable, but they need a different opening line and should not be treated as warm routes.
 
-**12 of 17 still have no address.** Five are blocked by anti-bot measures or absent publication —
-those need a human with a browser, which is minutes of work each. The remaining five simply have not
-been reached yet.
+**The single most important finding is not an address.** CBS's Agent Corner documents its
+application requirements: **at least two references from universities already worked with, plus a
+business licence.** `claims.json` records `partnerships.signed: []`, so **RichenQuest cannot
+complete that application today.** Approach CBS for a conversation, not via the form — and expect
+the same prerequisite elsewhere. This is a chicken-and-egg the founder should know about before
+being surprised by it.
 
-### How to continue this research
+### Documented as not obtainable — 6
 
-For each remaining institution, in order of reliability:
+| University | Reason | What unblocks it |
+|---|---|---|
+| **SRH Berlin** | Every address **obfuscated** on-page as `[email protected]` | A human opening the International Office page in a browser |
+| **National College of Ireland** | **No address published** — contact form only | Submit the form manually; the form *is* the channel |
+| **Dublin Business School** | **HTTP 403** to automated requests (WAF), two paths tried | A human browser |
+| **Macromedia** | **HTTP 403** to automated requests (WAF), two paths tried | A human browser |
+| Fintiba | **Out of scope** — blocked-account/insurance provider, not a university | n/a — student-services supplier, different workflow |
+| Expatrio | **Out of scope** — same | n/a |
 
-1. Find the **"Agents / Representatives / Partners"** page — universities that recruit through agents
-   almost always have one, and it is the correct channel.
-2. Failing that, the **International Office** page.
-3. Failing that, the **agent application form** — File 02 §2 is right that the form *is* the channel.
-4. **Never infer an address from a domain.** A bounced first contact is worse than no contact.
+**Only four are genuine gaps**, and all four are ~5 minutes of human browsing each. None is a
+research dead end; all are tooling limitations, recorded as such in each record's `Description`.
 
-Record the source URL in `Description`. That convention is what makes this auditable.
-
----
-
-## 2. Data quality after import
-
-| Field | Before | After |
-|---|---:|---:|
-| `International_Office_Email` | 1/17 (6%) | **5/17 (29%)** |
-| `Website` | 2/17 (12%) | **6/17 (35%)** |
-| `Account_Name` · `Partnership_Stage` · `Partnership_Type` · `Agreement_Status` | 17/17 | 17/17 |
-| Duplicates | 0 | **0** |
-| Orphans | 0 | **0** |
-
-**Stages deliberately left at `Identified`.** Finding a published address is not outreach. Moving a
-university to `Contacted` fires the day 4/9/16 cadence and starts a clock that nothing has actually
-started — and, per File 16 §7, it would overstate the pipeline to anyone reading the CRM.
-
-**Leads unchanged: still 4 stale test records, still recommended for deletion** (File 33 F-1). Not
-done unilaterally; they are the module's entire contents.
+**A search snippet offered `info.hsbe@srh.de` for SRH. It was not recorded.** A snippet is not
+verification, and a bounced first contact costs more than an empty field.
 
 ---
+
+## 2. Partnership pipeline — outreach order
+
+All 17 remain at `Partnership_Stage: Identified`. Finding an address is not outreach.
+
+### Recommended sequence
+
+**Wave 1 — true partnership channels (send first, 6 universities)**
+CBS · Vistula · University of Europe · IU · Gisma · Munich Business School
+
+These have a desk whose job is exactly this conversation. Highest response probability, and their
+replies will teach you what the market asks for before you spend goodwill on the weaker channels.
+
+**Wave 2 — admissions/general inboxes (4)**
+Griffith · Arden Berlin · Wittenborg · Constructor
+
+Reaching a person who is not responsible for partnerships. Expect forwarding, or silence. Open by
+asking *who* the right person is rather than pitching.
+
+**Wave 3 — BSBI (general inbox only)**
+Lowest signal. Worth one attempt after Waves 1–2.
+
+**Wave 4 — the four human-browser cases**
+SRH, NCI, DBS, Macromedia. Twenty minutes of manual research converts these into Wave 1 or 2.
+
+### Follow-up schedule
+
+Already automated. `logPartnershipContact(id, "email", "outbound", "<summary>", "4")` writes the
+`[contact]` note, moves `Identified → Contacted`, and the **Partnership outreach cadence** rule
+raises follow-ups at **day 4, 9 and 16**. An inbound reply logged as `"inbound"` moves the record to
+`In Discussion` and raises a **same-day, Highest-priority** reply task.
+
+**Nothing further needs building for outreach tracking.** It exists and is verified.
+
+### Missing-information report
+
+| Field | Coverage (15 universities) | Gap |
+|---|---:|---|
+| `Website` | **15/15 (100%)** | none |
+| `International_Office_Email` | 11/15 (73%) | 4, all human-browser cases |
+| `International_Office_Contact` | 3/15 (20%) | named people are rarely published; not a blocker |
+| Provenance in `Description` | **17/17 (100%)** | none — every record is now auditable to a source URL |
+| `Agreement_*` | 0/15 | expected — no agreements exist |
 
 ## 3. Outreach assets — built from verified claims only
 
