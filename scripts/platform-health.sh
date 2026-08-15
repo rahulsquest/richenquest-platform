@@ -80,12 +80,13 @@ for w in j.get('workflow_rules',[]):
 done
 
 echo "\n▸ SCHEDULES"
-zcall GET "/crm/v8/settings/schedules" | jparse "
+zcall GET "/crm/v9/settings/automation/schedules?page=1&per_page=50" | jparse "
 import sys,json
 r=sys.stdin.read(); j=json.loads(r.split(' ',1)[1],strict=False)
 s=j.get('schedules',[])
-print('  defined: %d / capacity %s' % (len(s), j.get('schedules_count','?')))
-if not s: print('  NOTE: archiveExpiredPartnership is not scheduled (File 22 D-3)')
+print('  defined: %d / capacity 50' % len(s))
+for x in s: print('    %-32s %-8s next=%s' % (x.get('name'), (x.get('frequency') or {}).get('type'), x.get('next_execution_time')))
+if not s: print('  NOTE: no schedules defined')
 "
 
 echo "\n▸ WATCH SUBSCRIPTIONS  (event backbone)"

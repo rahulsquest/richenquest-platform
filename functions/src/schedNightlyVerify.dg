@@ -1,0 +1,23 @@
+void scheduler.schedNightlyVerify()
+{
+	/*  PURPOSE
+	 *    Runs the regression suite nightly, unattended.
+	 *
+	 *    Closes half of File 28 R-6: detection was pull-only, so a broken guard
+	 *    stayed invisible until someone ran platform-health.sh by hand. Now it
+	 *    runs every night and the result is written to the function log.
+	 *
+	 *    verifyPlatform is self-cleaning and leak-detecting, so running it
+	 *    unattended is safe: it deletes its own probes and reports anything it
+	 *    could not delete.
+	 *
+	 *  NOT YET ALERTING. This produces a log entry, not a notification. Turning
+	 *  a FAIL into an email needs a notification path that does not exist yet.
+	 *
+	 *  OWNER    platform
+	 *  DEPENDS  verifyPlatform
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	result = standalone.verifyPlatform();
+	info "nightly regression: " + result;
+}
