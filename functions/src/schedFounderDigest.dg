@@ -1,0 +1,153 @@
+void scheduler.schedFounderDigest()
+{
+	/*  PURPOSE
+	 *    The Founder Copilot. Emails a morning digest ONLY when something
+	 *    happened or something needs attention.
+	 *
+	 *  WHY IT IS SILENT ON EMPTY DAYS
+	 *    A daily "0 leads, 0 students" email trains you to ignore it, and then
+	 *    the day a real lead arrives you ignore that one too. Silence means
+	 *    nothing moved. An email means something did.
+	 *
+	 *    This matters most RIGHT NOW, at zero volume: the first real lead will
+	 *    arrive on a day nobody is watching the CRM, and this is what makes sure
+	 *    it is not sitting unnoticed for a week.
+	 *
+	 *  IT SENDS WHEN
+	 *    - a lead arrived in the last 24h, or
+	 *    - any task is overdue, or
+	 *    - any partnership moved off Identified, or
+	 *    - any student case is open
+	 *
+	 *  DEPENDS  sendPlatformAlert
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	since = zoho.currentdate.subDay(1);
+	new_leads = 0;
+	unqualified = 0;
+	page = 1;
+	more = true;
+	pages = {1,2,3,4,5};
+	for each p in pages
+	{
+		if(more)
+		{
+			batch = zoho.crm.getRecords("Leads",p,200);
+			if(batch == null || batch.size() == 0)
+			{
+				more = false;
+			}
+			else
+			{
+				for each l in batch
+				{
+					ct = l.get("Created_Time");
+					if(ct != null && ct.toString().subString(0,10).toDate() >= since)
+					{
+						new_leads = new_leads + 1;
+					}
+					if(l.get("Lead_Status") == null)
+					{
+						unqualified = unqualified + 1;
+					}
+				}
+				if(batch.size() < 200)
+				{
+					more = false;
+				}
+			}
+		}
+	}
+	open_cases = 0;
+	cmore = true;
+	for each p2 in pages
+	{
+		if(cmore)
+		{
+			cb = zoho.crm.getRecords("Deals",p2,200);
+			if(cb == null || cb.size() == 0)
+			{
+				cmore = false;
+			}
+			else
+			{
+				for each d in cb
+				{
+					st = d.get("Stage");
+					if(st != "Visa Approved — Won" && st != "Closed Lost")
+					{
+						open_cases = open_cases + 1;
+					}
+				}
+				if(cb.size() < 200)
+				{
+					cmore = false;
+				}
+			}
+		}
+	}
+	overdue = 0;
+	today = zoho.currentdate.toString("yyyy-MM-dd").toDate();
+	tmore = true;
+	for each p3 in pages
+	{
+		if(tmore)
+		{
+			tb = zoho.crm.getRecords("Tasks",p3,200);
+			if(tb == null || tb.size() == 0)
+			{
+				tmore = false;
+			}
+			else
+			{
+				for each t in tb
+				{
+					if(t.get("Status") != "Completed" && t.get("Due_Date") != null)
+					{
+						if(t.get("Due_Date").toDate() < today)
+						{
+							overdue = overdue + 1;
+						}
+					}
+				}
+				if(tb.size() < 200)
+				{
+					tmore = false;
+				}
+			}
+		}
+	}
+	kpi = standalone.partnershipKPIs().toMap();
+	moving = kpi.get("total") - kpi.get("by_stage").get("Identified").toLong();
+
+	if(new_leads == 0 && overdue == 0 && open_cases == 0 && moving <= 0)
+	{
+		info "digest suppressed - nothing moved";
+		return;
+	}
+	b = "RichenQuest — daily brief, " + zoho.currentdate.toString("yyyy-MM-dd") + "\n\n";
+	if(new_leads > 0)
+	{
+		b = b + "*** " + new_leads + " NEW LEAD(S) in the last 24h — call today. Speed to first contact is the single biggest conversion lever. ***\n\n";
+	}
+	b = b + "PIPELINE\n";
+	b = b + "  New leads (24h):      " + new_leads + "\n";
+	b = b + "  Leads with no status: " + unqualified + "\n";
+	b = b + "  Open student cases:   " + open_cases + "\n\n";
+	b = b + "WORK\n";
+	if(overdue > 0)
+	{
+		b = b + "  OVERDUE TASKS:        " + overdue + "  <- a student or university is waiting\n\n";
+	}
+	else
+	{
+		b = b + "  Overdue tasks:        0\n\n";
+	}
+	b = b + "PARTNERSHIPS\n";
+	b = b + "  Universities:         " + kpi.get("total") + "\n";
+	b = b + "  Contactable:          " + kpi.get("contactable") + "\n";
+	b = b + "  Moved off Identified: " + moving + "\n\n";
+	b = b + "Full detail: ./scripts/founder-dashboard.sh\n";
+	standalone.sendPlatformAlert("[RichenQuest] Daily brief — " + new_leads + " new lead(s), " + overdue + " overdue",b);
+	info "digest sent";
+}
