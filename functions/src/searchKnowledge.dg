@@ -1,0 +1,97 @@
+string standalone.searchKnowledge(string query)
+{
+	/*  PURPOSE
+	 *    Retrieval for the knowledge base. One call any client can make -
+	 *    counselor tool, future portal, future assistant - so every surface
+	 *    answers from the same verified corpus.
+	 *
+	 *  WHY IT PAGES AND FILTERS INSTEAD OF SEARCHING
+	 *    zoho.crm.searchRecords rejects `contains` on Solutions ("invalid
+	 *    operator found", verified 2026-08-16) and only offers starts_with /
+	 *    equals, which is useless for a knowledge base. The REST endpoint does
+	 *    support full-text `word=` search, but Deluge cannot reach it without an
+	 *    OAuth connection.
+	 *
+	 *    So this fetches the corpus and filters in memory. That is correct at
+	 *    the current scale - a knowledge base is dozens of articles, not
+	 *    thousands - and it searches TITLE, QUESTION AND ANSWER, which is better
+	 *    matching than any available operator would give. Revisit past a few
+	 *    hundred articles.
+	 *
+	 *  MATCHING
+	 *    Case-insensitive substring. KEYWORD, not semantic: "documents for a
+	 *    German visa" will not find "blocked account" unless a word overlaps.
+	 *    Sufficient for a counselor who knows roughly what they want;
+	 *    insufficient for a natural-language assistant. Revisit the index when
+	 *    an assistant exists, not before (File 25 G-6).
+	 *
+	 *  OUTPUT  {"count":n,"results":[{"title","question","answer"}]}
+	 *
+	 *  Answers carry their own source and last-verified date, appended at
+	 *  publish time, so anything returned here is traceable. Several articles
+	 *  deliberately say DO NOT ADVISE - those matter as much as the ones that
+	 *  give an answer.
+	 *
+	 *  VERSION 2.0 (2026-08-16) - 1.0 used searchRecords and always returned 0.
+	 */
+	out = Map();
+	results = List();
+	if(query == null || query.trim() == "")
+	{
+		out.put("count",0);
+		out.put("results",results);
+		out.put("error","query is required");
+		return out.toString();
+	}
+	q = query.trim().toLowerCase();
+	more = true;
+	pages = {1,2,3};
+	for each page in pages
+	{
+		if(more)
+		{
+			batch = zoho.crm.getRecords("Solutions",page,200);
+			if(batch == null || batch.size() == 0)
+			{
+				more = false;
+			}
+			else
+			{
+				for each a in batch
+				{
+					title = a.get("Solution_Title");
+					question = a.get("Question");
+					answer = a.get("Answer");
+					hay = "";
+					if(title != null)
+					{
+						hay = hay + title.toLowerCase();
+					}
+					if(question != null)
+					{
+						hay = hay + " " + question.toLowerCase();
+					}
+					if(answer != null)
+					{
+						hay = hay + " " + answer.toLowerCase();
+					}
+					if(hay.contains(q))
+					{
+						r = Map();
+						r.put("title",title);
+						r.put("question",question);
+						r.put("answer",answer);
+						results.add(r);
+					}
+				}
+				if(batch.size() < 200)
+				{
+					more = false;
+				}
+			}
+		}
+	}
+	out.put("count",results.size());
+	out.put("results",results);
+	return out.toString();
+}

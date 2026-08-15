@@ -1,0 +1,87 @@
+string standalone.publishKnowledgeArticle(string title, string question, string answer, string tags, string source)
+{
+	/*  PURPOSE
+	 *    Publishes one verified fact into the Solutions module, which is Zoho's
+	 *    knowledge-article store (available on this plan, previously unused).
+	 *
+	 *    UPSERT BY TITLE, never blind insert - otherwise every re-run duplicates
+	 *    the corpus. Verified 2026-08-16.
+	 *
+	 *  WHY SOLUTIONS
+	 *    Already timeline-rendered, permission-scoped and searchable through the
+	 *    standard record APIs. No new system to operate (File 25 G-6).
+	 *
+	 *  INPUTS
+	 *    title     unique key. Changing it creates a new article, not an edit
+	 *    question  what a counselor would actually ask
+	 *    answer    the verified answer, INCLUDING its caveat
+	 *    tags      comma-separated, e.g. "italy,dsu,scholarship"
+	 *    source    where the fact came from - a URL or a File reference
+	 *
+	 *  OUTPUT  {"ok":bool,"id":"…","created":bool}
+	 *
+	 *  DISCIPLINE
+	 *    Never publish a fact without a source. An article with no provenance is
+	 *    an assertion, and counselors will repeat it to students as if checked.
+	 *    Source is appended to the answer so it travels with the content.
+	 *
+	 *  VERSION 1.0 (2026-08-16)
+	 */
+	out = Map();
+	rules = List();
+	r1 = Map();
+	r1.put("field","title");
+	r1.put("type","required");
+	rules.add(r1);
+	r2 = Map();
+	r2.put("field","answer");
+	r2.put("type","required");
+	rules.add(r2);
+	r3 = Map();
+	r3.put("field","source");
+	r3.put("type","required");
+	rules.add(r3);
+	vals = Map();
+	vals.put("title",title);
+	vals.put("answer",answer);
+	vals.put("source",source);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("errors",check.get("errors"));
+		return out.toString();
+	}
+	body = answer + "\n\n---\nSource: " + source + "\nLast verified: " + zoho.currentdate.toString("yyyy-MM-dd");
+	rec = Map();
+	rec.put("Solution_Title",title);
+	rec.put("Question",question);
+	rec.put("Answer",body);
+	rec.put("Status","Approved");
+	rec.put("Published",true);
+	if(tags != null && tags.trim() != "")
+	{
+		rec.put("Tag",tags);
+	}
+	existing = zoho.crm.searchRecords("Solutions","(Solution_Title:equals:" + title + ")");
+	if(existing != null && existing.size() > 0)
+	{
+		first = existing.get(0);
+		res = zoho.crm.updateRecord("Solutions",first.get("id"),rec);
+		out.put("ok",res.get("id") != null);
+		out.put("id",first.get("id"));
+		out.put("created",false);
+		return out.toString();
+	}
+	res2 = zoho.crm.createRecord("Solutions",rec);
+	if(res2.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error",res2.toString());
+		return out.toString();
+	}
+	out.put("ok",true);
+	out.put("id",res2.get("id"));
+	out.put("created",true);
+	return out.toString();
+}

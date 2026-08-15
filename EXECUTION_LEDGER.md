@@ -41,11 +41,12 @@ converts "no university will sign us without references" from a blocker into a s
 ### Platform (frozen — maintenance only)
 | Item | Evidence |
 |---|---|
-| CRM: 18 Deluge functions, 7 workflow rules, 2 nightly schedules | `./scripts/platform-health.sh` → 18/18 |
+| CRM: 20 Deluge functions, 7 workflow rules, 2 nightly schedules | `./scripts/platform-health.sh` → 18/18 |
 | Regression suite — **18 assertions, 16 of 17 functions covered**, self-cleaning, leak-detecting | `verifyPlatform` → 18/18 |
 | Health monitoring, one command | `platform-health.sh` |
 | Founder dashboard, read-only | `founder-dashboard.sh` |
 | Automated backup + verification | `backup-crm.sh`, `verify-backup.sh` |
+| **Knowledge base LIVE — 12 verified articles in `Solutions`** | `publishKnowledgeArticle` (upsert by title, **refuses an article with no source**) + `searchKnowledge` (page-and-filter across title/question/answer). Includes 2 deliberate DO-NOT-ADVISE articles | verified: query "DSU"→5, "proof of funds"→2 |
 | **Scheduled jobs — 2 live, unattended** | `Nightly partnership archive` 02:00 · `Nightly platform regression` 03:00. Verified `next_execution_time` set | 
 | 12 Zoho factory artifacts removed | File 32 |
 | Student identity resolution, lifecycle, partnership automation | Files 21, 23 |
@@ -137,6 +138,7 @@ a forecast instead of a guess.
 | 2026-08-16 | Wave 1 (6) and Wave 2 (5) outreach written and send-ready. Ledger established. |
 | 2026-08-16 | **ApplyBoard verified — 1,500+ institutions incl. Germany/Ireland, no stated reference requirement. Promoted to F0, ahead of everything.** Aggregator commission is lower than direct, but it creates the university references that unlock the direct agreements. |
 | 2026-08-16 | GyanDhan education-loan referral verified: ₹3,000 per successful referral plus ₹10,000 every 5, self-serve, paid on disbursal. |
+| 2026-08-16 | **Knowledge base built and populated (Phase 6).** 12 verified articles published into `Solutions` covering DSU, ISEE Parificato, Italian tuition, the disputed visa figure, Italy-vs-Germany proof of funds, Universitaly, quota-exempt work conversion, what RichenQuest may claim, and the "why pay when IDP is free" answer. **Every article carries its source and last-verified date; the publisher REFUSES an article with no source.** Two articles deliberately say DO NOT ADVISE (part-time work hours; and the visa figure, which conflicts across three sources). Search rewritten to page-and-filter after finding `contains` is an invalid operator on `searchRecords` — verified working. Noted: `Published` accepts a write but silently stays false (portal-controlled, not operationally blocking); `Tag` is a special field needing the tags API, not a field write. |
 | 2026-08-16 | **Regression coverage closed from 13 to 18 assertions (D-6).** Added: createUniversityFollowup 3-task cadence; archiveExpiredPartnership actually moving a backdated agreement to Dormant; updateLeadLifecycle both refusing an off-picklist status and applying a valid one; wfLeadCreated composition. Coverage now 16 of 17 functions. **assignCounselor's happy path remains the only untestable one** — it needs a user holding the Counselor role, and creating users consumes licences, so that is a founder action not an engineering gap. |
 | 2026-08-16 | **Schedules API solved and 2 jobs deployed.** Previous 500 was the wrong endpoint — it is `/crm/v9/settings/automation/schedules`, not `/crm/v8/settings/schedules`. Schema read from Zoho's own `schedules-store.js`: `frequency` is an OBJECT (`{type:"daily"}`), and `execution_ending_details` needs `{execution_end:"never"}`. Critically, **schedules reject `standalone` functions** — the function must be category `scheduler` ("The function id given seems to be invalid" otherwise). Created two thin scheduler wrappers that delegate to existing logic rather than duplicating it. Closes D-3 and half of R-6: regression now runs unattended nightly. |
 | 2026-08-16 | **Website legal-name mismatch found before it caused a rejection.** richenquest.com displays "RichenQuest Global"; the entity is "RichenQuest Private Limited", and no address or CIN appears on the homepage or contact page. ApplyBoard explicitly cross-checks the business document against the company website. Logged as F11. |
