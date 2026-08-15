@@ -1,0 +1,219 @@
+string standalone.qualifyLead(string lead_id)
+{
+	/*  PURPOSE
+	 *    Two jobs a counselor should never do by hand, on every single lead:
+	 *      1. check whether we already know this person
+	 *      2. work out what information is still missing
+	 *
+	 *    DEDUPLICATION MATTERS AT LEAD #2, NOT LEAD #200. The same student
+	 *    enquiring twice - website then WhatsApp - creates two records, two
+	 *    counselors call them, and the company looks disorganised on first
+	 *    contact. This catches it before anyone dials.
+	 *
+	 *  READINESS IS A COMPLETENESS SCORE, NOT A PREDICTION.
+	 *    It counts which qualification facts we hold (File 39 checklist). It
+	 *    does NOT estimate conversion likelihood, admission chance or value.
+	 *    A high score means "ready to counsel", never "likely to convert".
+	 *
+	 *  OUTPUT
+	 *    {"ok":true,"readiness":"n/7","have":[…],"missing":[…],
+	 *     "duplicates":[{id,name,why}],"next_action":"…"}
+	 *
+	 *  DEPENDS  coreValidate, generateAuditLog
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	out = Map();
+	rules = List();
+	r1 = Map();
+	r1.put("field","lead_id");
+	r1.put("type","id");
+	rules.add(r1);
+	vals = Map();
+	vals.put("lead_id",lead_id);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("errors",check.get("errors"));
+		return out.toString();
+	}
+	lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
+	if(lead == null || lead.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","lead not found: " + lead_id);
+		return out.toString();
+	}
+	have = List();
+	missing = List();
+	score = 0;
+	email = lead.get("Email");
+	phone = lead.get("Phone");
+	name = lead.get("Last_Name");
+
+	if(email != null && email != "")
+	{
+		have.add("email");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Email - without it the lead is uncontactable by our main channel");
+	}
+	if(phone != null && phone != "")
+	{
+		have.add("phone");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Phone - WhatsApp is the working channel in this market");
+	}
+	if(lead.get("Interested_Country") != null)
+	{
+		have.add("country");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Interested country - decides which rules and costs apply");
+	}
+	if(lead.get("Interested_Level") != null)
+	{
+		have.add("level");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Study level - Bachelors/Masters changes everything downstream");
+	}
+	if(lead.get("Intended_Intake") != null)
+	{
+		have.add("intake");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Intended intake - decides whether the timeline is feasible at all");
+	}
+	if(lead.get("Budget_Range") != null)
+	{
+		have.add("budget");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Budget - decides which destinations are open. Germany needs cash deposited; Italy accepts a loan");
+	}
+	if(lead.get("Lead_Source_Detail") != null || lead.get("Lead_Source") != null)
+	{
+		have.add("source");
+		score = score + 1;
+	}
+	else
+	{
+		missing.add("Lead source - without it we cannot tell which channel works");
+	}
+
+	/* ---------- duplicate detection: email, then phone ---------- */
+	dupes = List();
+	if(email != null && email != "")
+	{
+		hits = zoho.crm.searchRecords("Leads","(Email:equals:" + email + ")");
+		if(hits != null && hits.size() > 0)
+		{
+			for each h in hits
+			{
+				try
+				{
+					hid = h.get("id");
+					if(hid != null && hid != lead_id)
+					{
+						d = Map();
+						d.put("id",hid);
+						d.put("name",h.get("Last_Name"));
+						d.put("why","same email");
+						dupes.add(d);
+					}
+				}
+				catch (e1)
+				{
+				}
+			}
+		}
+	}
+	if(phone != null && phone != "")
+	{
+		phits = zoho.crm.searchRecords("Leads","(Phone:equals:" + phone + ")");
+		if(phits != null && phits.size() > 0)
+		{
+			for each p in phits
+			{
+				try
+				{
+					pid = p.get("id");
+					if(pid != null && pid != lead_id)
+					{
+						d2 = Map();
+						d2.put("id",pid);
+						d2.put("name",p.get("Last_Name"));
+						d2.put("why","same phone");
+						dupes.add(d2);
+					}
+				}
+				catch (e2)
+				{
+				}
+			}
+		}
+	}
+	/* also check whether they are already a Student (Contact) */
+	existing_student = "";
+	if(email != null && email != "")
+	{
+		chits = zoho.crm.searchRecords("Contacts","(Email:equals:" + email + ")");
+		if(chits != null && chits.size() > 0)
+		{
+			try
+			{
+				existing_student = chits.get(0).get("id");
+			}
+			catch (e3)
+			{
+			}
+		}
+	}
+
+	next_action = "";
+	if(dupes.size() > 0)
+	{
+		next_action = "DUPLICATE - merge before contacting. Calling twice is the worst possible first impression.";
+	}
+	else if(existing_student != "")
+	{
+		next_action = "This person is ALREADY A STUDENT (Contact " + existing_student + "). Route to their existing counselor, do not treat as new.";
+	}
+	else if(score <= 3)
+	{
+		next_action = "Call to qualify - most of the picture is missing. Do not send a proposal yet.";
+	}
+	else if(score <= 5)
+	{
+		next_action = "Ready to counsel. Gather the remaining items during the consultation.";
+	}
+	else
+	{
+		next_action = "Well qualified - book the consultation and prepare a brief with generateCounsellingBrief.";
+	}
+	standalone.generateAuditLog("Leads",lead_id,"qualify","readiness " + score + "/7; duplicates " + dupes.size());
+	out.put("ok",true);
+	out.put("lead",name);
+	out.put("readiness",score + "/7");
+	out.put("have",have);
+	out.put("missing",missing);
+	out.put("duplicates",dupes);
+	out.put("already_a_student",existing_student);
+	out.put("next_action",next_action);
+	out.put("note","Readiness is a COMPLETENESS score, not a prediction of conversion.");
+	return out.toString();
+}
