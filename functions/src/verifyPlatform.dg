@@ -1,0 +1,418 @@
+string standalone.verifyPlatform()
+{
+	/*  PURPOSE
+	 *    The regression harness. Exercises every guard in the platform against
+	 *    throwaway records and reports PASS/FAIL, so correctness stops
+	 *    depending on someone remembering to probe by hand.
+	 *
+	 *    This closes F-1 in File 26: manual probing is adequate at 14 functions
+	 *    and one engineer, and is how a silent regression ships at 50 functions
+	 *    and five engineers.
+	 *
+	 *  OWNER         platform
+	 *  DEPENDENCIES  every standalone function it asserts against
+	 *  INPUTS        none - it builds its own fixtures
+	 *  OUTPUT        {"pass":n,"fail":n,"ok":bool,"checks":[{name,status,detail}],
+	 *                 "cleanup":{"deleted":[…],"leaked":[…]}}
+	 *
+	 *  SAFETY
+	 *    Every record it creates is prefixed VERIFYPROBE and its id is pushed
+	 *    onto a cleanup list IMMEDIATELY on creation, so an assertion failure
+	 *    later still deletes it. Anything that could not be deleted is reported
+	 *    in cleanup.leaked rather than silently abandoned - a leaked probe is a
+	 *    failure of the harness and must be visible.
+	 *
+	 *  FAILURE MODES
+	 *    - a guard stops refusing bad input  -> that check reports FAIL
+	 *    - a function errors                 -> FAIL with the raw response
+	 *    - cleanup cannot delete a probe     -> ok:false even if all checks pass
+	 *
+	 *  VERIFICATION  it is the verification. Run before every deploy.
+	 *  VERSION       1.0 (2026-08-15)
+	 */
+	checks = List();
+	cleanup_deals = List();
+	cleanup_contacts = List();
+	cleanup_accounts = List();
+	pass = 0;
+	fail = 0;
+
+	/* ---- 1. coreValidate: every rule type must reject bad input ---- */
+	vr = List();
+	a1 = Map();
+	a1.put("field","idf");
+	a1.put("type","id");
+	vr.add(a1);
+	a2 = Map();
+	a2.put("field","en");
+	a2.put("type","enum");
+	a2.put("values",{"A","B"});
+	vr.add(a2);
+	a3 = Map();
+	a3.put("field","dt");
+	a3.put("type","date_future");
+	vr.add(a3);
+	a4 = Map();
+	a4.put("field","rq");
+	a4.put("type","required");
+	vr.add(a4);
+	vv = Map();
+	vv.put("idf","abc");
+	vv.put("en","Z");
+	vv.put("dt","2020-01-01");
+	vv.put("rq","  ");
+	res = standalone.coreValidate(vr.toString(),vv.toString()).toMap();
+	c = Map();
+	c.put("name","coreValidate rejects all four bad inputs");
+	if(res.get("ok") == false && res.get("errors").size() == 4)
+	{
+		c.put("status","PASS");
+		pass = pass + 1;
+	}
+	else
+	{
+		c.put("status","FAIL");
+		c.put("detail",res.toString());
+		fail = fail + 1;
+	}
+	checks.add(c);
+
+	/* ---- 2. coreValidate: an unknown rule must NOT silently pass ---- */
+	ur = List();
+	u1 = Map();
+	u1.put("field","x");
+	u1.put("type","definitely_not_a_rule");
+	ur.add(u1);
+	uv = Map();
+	uv.put("x","1");
+	res2 = standalone.coreValidate(ur.toString(),uv.toString()).toMap();
+	c2 = Map();
+	c2.put("name","coreValidate fails loudly on unknown rule type");
+	if(res2.get("ok") == false)
+	{
+		c2.put("status","PASS");
+		pass = pass + 1;
+	}
+	else
+	{
+		c2.put("status","FAIL");
+		c2.put("detail",res2.toString());
+		fail = fail + 1;
+	}
+	checks.add(c2);
+
+	/* ---- 3. resolveStudent: creates, then matches the SAME person ---- */
+	em = "verifyprobe." + zoho.currenttime.toString("HHmmss") + "@example.com";
+	r1 = standalone.resolveStudent("VERIFYPROBE Student",em,"").toMap();
+	sid = "";
+	if(r1.get("ok") == true)
+	{
+		sid = r1.get("student_id");
+		cleanup_contacts.add(sid);
+	}
+	r2 = standalone.resolveStudent("VERIFYPROBE Student Again",em,"").toMap();
+	c3 = Map();
+	c3.put("name","resolveStudent creates then matches on email");
+	if(sid != "" && r2.get("ok") == true && r2.get("student_id") == sid && r2.get("created") == false)
+	{
+		c3.put("status","PASS");
+		pass = pass + 1;
+	}
+	else
+	{
+		c3.put("status","FAIL");
+		c3.put("detail",r1.toString() + " | " + r2.toString());
+		fail = fail + 1;
+	}
+	checks.add(c3);
+
+	/* ---- 4. createStudentCase binds identity ---- */
+	/*  Passes an EMPTY name deliberately: this asserts the guard, so the first
+	 *  argument must be blank. An earlier version of this check passed a real
+	 *  name and therefore asserted nothing while quietly creating an orphan
+	 *  case - caught on the harness's first run.
+	 *
+	 *  Any id that comes back is harvested for cleanup REGARDLESS of pass or
+	 *  fail. A check that unexpectedly succeeds still creates records, and
+	 *  those must not leak just because the assertion went the other way.
+	 */
+	cs = standalone.createStudentCase("","","","","","","").toMap();
+	if(cs.get("case_id") != null)
+	{
+		cleanup_deals.add(cs.get("case_id"));
+	}
+	if(cs.get("student_id") != null)
+	{
+		cleanup_contacts.add(cs.get("student_id"));
+	}
+	c4 = Map();
+	c4.put("name","createStudentCase refuses a blank student name");
+	if(cs.get("ok") == false)
+	{
+		c4.put("status","PASS");
+		pass = pass + 1;
+	}
+	else
+	{
+		c4.put("status","FAIL");
+		c4.put("detail",cs.toString());
+		fail = fail + 1;
+	}
+	checks.add(c4);
+	cs2 = standalone.createStudentCase("VERIFYPROBE Case",em,"","","","","").toMap();
+	if(cs2.get("case_id") != null)
+	{
+		cleanup_deals.add(cs2.get("case_id"));
+	}
+	if(cs2.get("student_id") != null && cs2.get("student_id") != sid)
+	{
+		cleanup_contacts.add(cs2.get("student_id"));
+	}
+	case_id = "";
+	c5 = Map();
+	c5.put("name","createStudentCase binds to the existing student");
+	if(cs2.get("ok") == true && cs2.get("student_id") == sid)
+	{
+		case_id = cs2.get("case_id");
+		c5.put("status","PASS");
+		pass = pass + 1;
+	}
+	else
+	{
+		c5.put("status","FAIL");
+		c5.put("detail",cs2.toString());
+		fail = fail + 1;
+	}
+	checks.add(c5);
+
+	/* ---- 5. stage guards ---- */
+	if(case_id != "")
+	{
+		bad = standalone.updateStudentCaseStage(case_id,"Closed Lost","").toMap();
+		c6 = Map();
+		c6.put("name","updateStudentCaseStage refuses Closed Lost with no reason");
+		if(bad.get("ok") == false)
+		{
+			c6.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c6.put("status","FAIL");
+			c6.put("detail",bad.toString());
+			fail = fail + 1;
+		}
+		checks.add(c6);
+
+		good = standalone.updateStudentCaseStage(case_id,"Agreement Sent","").toMap();
+		c7 = Map();
+		c7.put("name","updateStudentCaseStage advances and raises its task");
+		if(good.get("ok") == true && good.get("to") == "Agreement Sent")
+		{
+			c7.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c7.put("status","FAIL");
+			c7.put("detail",good.toString());
+			fail = fail + 1;
+		}
+		checks.add(c7);
+
+		/* ---- 6. journey must refuse Arrived before the case is won ---- */
+		jr = standalone.advanceStudentJourney(case_id,"Arrived","").toMap();
+		c8 = Map();
+		c8.put("name","advanceStudentJourney refuses Arrived before win");
+		if(jr.get("ok") == false)
+		{
+			c8.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c8.put("status","FAIL");
+			c8.put("detail",jr.toString());
+			fail = fail + 1;
+		}
+		checks.add(c8);
+
+		/* ---- 7. audit trail actually exists on the case ---- */
+		notes = zoho.crm.getRelatedRecords("Notes","Deals",case_id.toLong());
+		found_audit = false;
+		if(notes != null)
+		{
+			for each n in notes
+			{
+				t = n.get("Note_Title");
+				if(t != null && t.contains("[audit]"))
+				{
+					found_audit = true;
+				}
+			}
+		}
+		c9 = Map();
+		c9.put("name","audit trail written to the case");
+		if(found_audit)
+		{
+			c9.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c9.put("status","FAIL");
+			c9.put("detail","no [audit] note found on " + case_id);
+			fail = fail + 1;
+		}
+		checks.add(c9);
+	}
+
+	/* ---- 8. partnership guards ---- */
+	acct = Map();
+	acct.put("Account_Name","VERIFYPROBE University");
+	acct.put("Partnership_Stage","Identified");
+	ares = zoho.crm.createRecord("Accounts",acct);
+	aid = "";
+	if(ares.get("id") != null)
+	{
+		aid = ares.get("id");
+		cleanup_accounts.add(aid);
+		lp = standalone.logPartnershipContact(aid,"telepathy","outbound","x","").toMap();
+		c10 = Map();
+		c10.put("name","logPartnershipContact refuses an invalid channel");
+		if(lp.get("ok") == false)
+		{
+			c10.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c10.put("status","FAIL");
+			c10.put("detail",lp.toString());
+			fail = fail + 1;
+		}
+		checks.add(c10);
+
+		lp2 = standalone.logPartnershipContact(aid,"email","outbound","verify probe","").toMap();
+		c11 = Map();
+		c11.put("name","logPartnershipContact advances Identified to Contacted");
+		if(lp2.get("ok") == true && lp2.get("stage") == "Contacted")
+		{
+			c11.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c11.put("status","FAIL");
+			c11.put("detail",lp2.toString());
+			fail = fail + 1;
+		}
+		checks.add(c11);
+
+		rp = standalone.renewPartnership(aid,"2020-01-01","").toMap();
+		c12 = Map();
+		c12.put("name","renewPartnership refuses an expiry in the past");
+		if(rp.get("ok") == false)
+		{
+			c12.put("status","PASS");
+			pass = pass + 1;
+		}
+		else
+		{
+			c12.put("status","FAIL");
+			c12.put("detail",rp.toString());
+			fail = fail + 1;
+		}
+		checks.add(c12);
+	}
+
+	/* ---- 9. KPI function returns a usable shape ---- */
+	kpi = standalone.partnershipKPIs().toMap();
+	c13 = Map();
+	c13.put("name","partnershipKPIs returns totals");
+	if(kpi.get("total") != null && kpi.get("by_stage") != null)
+	{
+		c13.put("status","PASS");
+		pass = pass + 1;
+	}
+	else
+	{
+		c13.put("status","FAIL");
+		c13.put("detail",kpi.toString());
+		fail = fail + 1;
+	}
+	checks.add(c13);
+
+	/*  Cleanup runs regardless of what failed above.
+	 *
+	 *  Deletion goes through invokeConnector because `delete` is a RESERVED
+	 *  DELUGE KEYWORD: `zoho.crm.delete(...)` fails to parse ("Variable 'zoho'
+	 *  is not defined") and assigning it fails too ("delete function cant be
+	 *  assigned"). zoho.crm.deleteRecord does not exist. Verified 2026-08-15.
+	 *
+	 *  Deletion is then confirmed by RE-READING the record - stronger than
+	 *  trusting a return code. A probe counts as deleted only if it can no
+	 *  longer be fetched; anything still fetchable is reported as leaked.
+	 */
+	deleted = List();
+	leaked = List();
+	for each d in cleanup_deals
+	{
+		dm_d = Map();
+		dm_d.put("module","Deals");
+		dm_d.put("id",d);
+		zoho.crm.invokeConnector("crm.delete",dm_d);
+		back = zoho.crm.getRecordById("Deals",d.toLong());
+		if(back == null || back.get("id") == null)
+		{
+			deleted.add("Deals/" + d);
+		}
+		else
+		{
+			leaked.add("Deals/" + d);
+		}
+	}
+	for each a in cleanup_accounts
+	{
+		dm_a = Map();
+		dm_a.put("module","Accounts");
+		dm_a.put("id",a);
+		zoho.crm.invokeConnector("crm.delete",dm_a);
+		backa = zoho.crm.getRecordById("Accounts",a.toLong());
+		if(backa == null || backa.get("id") == null)
+		{
+			deleted.add("Accounts/" + a);
+		}
+		else
+		{
+			leaked.add("Accounts/" + a);
+		}
+	}
+	for each ct in cleanup_contacts
+	{
+		dm_ct = Map();
+		dm_ct.put("module","Contacts");
+		dm_ct.put("id",ct);
+		zoho.crm.invokeConnector("crm.delete",dm_ct);
+		backc = zoho.crm.getRecordById("Contacts",ct.toLong());
+		if(backc == null || backc.get("id") == null)
+		{
+			deleted.add("Contacts/" + ct);
+		}
+		else
+		{
+			leaked.add("Contacts/" + ct);
+		}
+	}
+	cl = Map();
+	cl.put("deleted",deleted);
+	cl.put("leaked",leaked);
+	out = Map();
+	out.put("pass",pass);
+	out.put("fail",fail);
+	out.put("ok",fail == 0 && leaked.size() == 0);
+	out.put("checks",checks);
+	out.put("cleanup",cl);
+	out.put("run_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

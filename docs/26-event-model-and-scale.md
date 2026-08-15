@@ -100,6 +100,33 @@ none of the following exists yet, and each must exist **before** the first consu
 is the read-model decision deferred in ADR-009. Recording the design now prevents each future
 consumer inventing its own envelope.
 
+### S-3 · Reliability — how each silent failure is prevented
+
+The design goal is that **no failure mode is silent**. Each row names the failure, how it is
+detected, and where that detection lives.
+
+| Failure | Detection | Status |
+|---|---|---|
+| **Watch subscription expires** — events stop, nothing errors | `platform-health.sh` prints every channel with its `channel_expiry` and flags that a lapsed channel stops events silently | **detection live**; auto-renewal needs a schedule (File 22 §D-3) |
+| **No subscriptions at all** | health report prints `none subscribed` explicitly rather than an empty section | **live** |
+| **Function regression** | `verifyPlatform` — 13 assertions, run before every deploy | **live** |
+| **Probe records leaked by the harness** | harness re-reads each probe after deletion; anything still fetchable is reported in `cleanup.leaked` and forces `ok:false` | **live** |
+| **Orphan probe functions left deployed** | health report lists every deployed function; a `zz*` name is visibly wrong | **live — caught `zzDelProbe` on first run** |
+| **API quota exhaustion** | health report shows used/allowed with OK / WARN / CRITICAL against the ADR-009 50% trigger | **live** |
+| **Schedules silently absent** | health report prints `defined: 0 / capacity 20` | **live** |
+| **Duplicate event delivery** | consumer keys on `event.id` | **design only — no consumer exists** |
+| **Consumer failure / dead-letter** | retry then park for inspection | **design only** |
+
+**Retry and idempotency are deliberately unbuilt.** They belong to the event *consumer*, and there
+is no consumer — building a dead-letter queue with nothing producing into it would be speculative
+architecture, which the brief forbids. The contract is specified above so the first consumer
+inherits it rather than inventing one.
+
+**The honest gap:** subscription auto-renewal. Detection exists (the health report shows expiry);
+automatic renewal does not, because it needs the schedules API whose create schema is still
+unsolved (File 22 §D-3). Until then **renewal is an operator action driven by the health report**,
+and that is written down rather than assumed.
+
 ---
 
 ## G-8 · Scale review
@@ -157,7 +184,8 @@ engineering work, not architectural reversals.
 
 ## Open, in priority order
 
-1. **`verifyPlatform()`** — regression harness (F-1). No dependencies. Highest value.
+1. ~~**`verifyPlatform()`**~~ — **built and passing 13/13** (F-1 closed). Run via
+   `./scripts/platform-health.sh`.
 2. **Application module** (File 25 G-5) — verified, awaiting agreed field list.
 3. **Event consumer + read model** — one decision, unblocks F-2 and ADR-009 together.
 4. **Knowledge ingest** (File 25 G-6) — independent, low risk.
