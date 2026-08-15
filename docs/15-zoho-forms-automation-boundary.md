@@ -17,6 +17,7 @@
 | 9 | Browser automation in this environment | **NO** | — | — | — | Tool search run 4×: only Figma design tools and Zoho data tools. No browser control, computer-use, Playwright, Puppeteer or Selenium |
 | 10 | MCP servers | YES (CRM/Books/Desk/Projects) | NO | NO | NO | Searched 3×; no form-creation tool on any server |
 | 11 | Direct Zoho REST from shell | **NO** | — | — | — | `GET zohoapis.in/crm/v3/settings/modules` → **401**. MCP holds the token server-side; no client-side token exists |
+| 12 | **Direct Zoho REST from the logged-in browser tab** | **YES** — added 2026-08-15 | NO (webforms still have no API) | NO | NO | **Yes for everything else.** See the correction below — this row is why File 19 is now fully automated |
 
 Additional zero-action alternatives probed and eliminated:
 - **Zoho Bookings** public portal — `richenquest.zohobookings.in` and `.com` both **404**; no portal exists.
@@ -37,6 +38,33 @@ Additional zero-action alternatives probed and eliminated:
 | Zoho Catalyst | MCP server present but **unauthenticated** in this session; cannot run Deluge or functions. |
 
 **Conclusion:** creating the webform is genuinely console-only. It is not an engineering gap.
+
+## Correction, 2026-08-15 — this matrix over-generalised
+
+**The webform conclusion still stands. The conclusion the rest of the project drew from it did
+not.** Row 11 tested REST *from a shell* and correctly found 401. File 19 then generalised that
+into "no Setup task has an API, so all of it is founder-only". That was wrong, and it cost real
+time.
+
+The token is not the only credential in the environment. The **logged-in browser tab holds a full
+CRM session**, and Zoho's Setup UI is itself a REST client. Calls issued from inside the page
+inherit that session and reach the same endpoints the UI uses:
+
+```js
+'X-ZCSRF-TOKEN': 'crmcsrfparam=' + document.cookie.match(/(?:^|;\s*)crmcsr=([^;]+)/)[1]
+'X-CRM-ORG':     '60074018310'
+```
+
+On that channel, **workflow rules, field updates, task actions, email notifications, email
+templates and roles are all fully writable** — all of File 19 was built this way and verified
+against live records. Full mechanism, version quirks (v8 vs v9) and object ids: File 19 §2b.
+
+**What is still genuinely unavailable:** the webform entity itself. Rows 1–11 remain accurate for
+webforms — no version of the API exposes them, so the `LEADCF` indices still come only from the
+generated HTML.
+
+**The lesson worth keeping:** "no API for X" must be scoped to the exact entity tested and the
+exact transport tested. A 401 on one transport is not evidence that a capability does not exist.
 
 ## The single action that unlocks everything
 

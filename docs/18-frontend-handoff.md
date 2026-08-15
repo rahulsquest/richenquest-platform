@@ -51,17 +51,23 @@ plus the `LEADCF` map. Do not hand-edit them.
 | `Email` | email(100) | Not enforced by Zoho. **Enforce client-side** or the lead is uncontactable |
 | `Phone` | phone(30) | Same |
 | `Lead_Type` | picklist | Allowlist `Student`/`Parent` only — see §6 |
-| `WhatsApp_Number` | phone | exists in CRM, **not on the webform yet** |
-| `Interested_Country` | multiselect | ditto |
+| `WhatsApp_Number` | phone | **live** — send as `LEADCF9` |
+| `Lead_Source_Detail` | picklist | **live** — send as `LEADCF3`, but the only valid web value is `Website Form` |
+| `UTM_Source` · `UTM_Medium` · `UTM_Campaign` | text | **live** — `LEADCF10` / `LEADCF11` / `LEADCF12` |
+| `Consent_Policy_Version` | text | **live** — `LEADCF13` |
+| `Consent_Given` · `Consent_Timestamp` | boolean/datetime | on the webform canvas, **`LEADCF` index still unresolved** — cannot be sent yet |
+| `Interested_Country` | multiselect | exists in CRM, **not on the webform** |
 | `Interested_Level` · `Intended_Intake` · `Budget_Range` · `Preferred_Language` | picklist | ditto |
-| `Lead_Source_Detail` | picklist | ditto — this is what gives per-page attribution |
-| `UTM_Source` · `UTM_Medium` · `UTM_Campaign` | text | ditto |
-| `Consent_Given` · `Consent_Timestamp` · `Consent_Policy_Version` | boolean/datetime/text | created 2026-08-13, **not on the webform yet** |
-| `Lead_Status` | picklist | arrives `null` — no workflow sets it yet |
+| `Lead_Status` | picklist | **set automatically to `Attempted to Contact` on create** by workflow rule `Instant lead response` (since 2026-08-15). Do not send it from the frontend |
 
 ## 4. What the webform accepts TODAY — and the trap
 
-**Accepted:** `Last Name` · `Company` · `Email` · `Phone` · `LEADCF1` (→ `Lead_Type`).
+**Accepted (as of 2026-08-15):** `Last Name` · `Company` · `Email` · `Phone` · `Description` ·
+`LEADCF1` (→ `Lead_Type`) · `LEADCF3` (→ `Lead_Source_Detail`) · `LEADCF9` (→ `WhatsApp_Number`) ·
+`LEADCF10/11/12` (→ `UTM_Source/Medium/Campaign`) · `LEADCF13` (→ `Consent_Policy_Version`).
+
+The authoritative list is `website/src/data/webform-fields.json`; read it rather than this
+paragraph, because the mapping changes whenever the webform is edited.
 
 **Everything else is silently discarded.** Zoho enforces the webform's field list server-side and
 returns **HTTP 200 anyway**. Proven: a POST carrying `Email`, `Phone`, `Description` and
@@ -76,15 +82,19 @@ carry — a message box that stores nothing is worse than no message box.
 India's DPDP Act 2023 and the EU GDPR both require consent to be **demonstrable**: that it was
 given, *when*, and *to what*. Three CRM fields now exist for exactly this.
 
-**They are not on the webform yet, so consent cannot currently be recorded.** Until they are:
+**Partially closed as of 2026-08-15.** `Consent_Policy_Version` is live and every submission
+carries it (`LEADCF13`), so *which policy* was agreed to is now recorded in CRM, and `Created_Time`
+records *when*. `Consent_Given` and `Consent_Timestamp` are on the webform canvas but their
+`LEADCF` indices could not be resolved by probing (boolean and datetime fields reject probe
+values), so they cannot be sent yet.
+
+Until they are:
 
 - Keep the consent checkbox a **hard client-side gate** — no submit without an affirmative tick.
+  Because it is a hard gate, a lead reaching CRM from this form necessarily consented.
 - Link it to `/legal/privacy/`.
-- Understand you have **no server-side proof of consent**. The privacy policy commits to
-  consent-gated contact, so closing this is compliance work, not polish.
-
-When the fields are added, send `Consent_Given=true`, `Consent_Timestamp` (ISO 8601) and
-`Consent_Policy_Version` (the policy's "last updated" date).
+- Understand the affirmative boolean is still **inferred, not transmitted**. Resolving the last two
+  indices needs the generated embed HTML (File 19 §1).
 
 ## 6. Lead Type — use an allowlist, never a copy
 

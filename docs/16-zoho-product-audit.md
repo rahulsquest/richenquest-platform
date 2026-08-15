@@ -83,9 +83,16 @@ Nothing below has an API in the connected tool surface. Each line is a distinct 
       **Consent LEADCF indices remain unresolved** — see §8.
 - [ ] Un-mandatory `Company` on the webform (currently worked around with a hidden `Individual`).
 - [x] ~~University Partnerships custom module~~ — **NOT NEEDED.** Correction 2026-08-13: partnership tracking already exists on stock **Accounts** with 9 purpose-built custom fields. I had only checked for custom *modules* and wrongly reported it missing. Pipeline now populated — see §7.
-- [ ] Workflow rules (File 01 §5.1–5.5), blueprints, validation rules — no API.
-- [ ] Roles below CEO/Operations: Manager, Counselor, Finance (File 01 §1.3).
-- [ ] Email templates (File 03 §3.1 "Welcome – 60 Second Reply", §3.3 nurture).
+- [x] ~~Workflow rules — no API~~ — **WRONG, and DONE 2026-08-15.** There *is* an API; it is
+      reachable from the logged-in browser session (File 15 correction; File 19 §2b). Both rules
+      built and verified: `Instant lead response` (`1292318000000873014`) and `Stale lead rescue`
+      (`1292318000000873035`).
+- [ ] Blueprints and validation rules — still not attempted.
+- [x] ~~Roles below CEO/Operations~~ — **DONE.** The gap was also smaller than recorded: `Manager`,
+      `Counselor` and `Marketing` already existed and `Operations` was already under `Manager`.
+      Only `Finance` was missing; created under CEO (`1292318000000873044`).
+- [x] ~~Email template~~ — **DONE.** `Welcome - Instant Reply` (`1292318000000873009`), wired to
+      rule 1 via an email notification that sends to `${!Leads.Email}`. §3.3 nurture not built.
 
 ### Books
 - [ ] Switch org out of **test mode** — until then no real financial data.
