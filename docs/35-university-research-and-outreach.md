@@ -151,7 +151,13 @@ rate, any placement count beyond the 15 verified, or any ranking/accreditation c
 a virtue of being small rather than pretending to be large. It contains no unverifiable claim, so
 nothing in it can be contradicted later.
 
-### Email 2 — Day 4 · one useful thing
+### Email 2 — Day 4 · one useful thing, and the commercial question
+
+**Added 2026-08-15 (File 37 §2):** ask about process and commission here. Partnership desks expect
+both questions, and asking late costs a full cycle. Until commission rates are known, every revenue
+projection is fee-only — i.e. the pessimistic case.
+
+### Email 2 — Day 4 · draft
 
 > **Subject:** Re: partnership — a note on the India/Nepal market for {University}
 >
@@ -162,6 +168,13 @@ nothing in it can be contradicted later.
 > If it is helpful, I can send a one-page profile of the student segments we would realistically
 > recruit for you — level, field, intake and budget band. Would that be useful, and are you the right
 > person for this, or should I write to a colleague?
+>
+> Two practical questions so I do not waste your time later:
+>
+> 1. Is there an agent application process you would like us to complete first, and what does it
+>    require?
+> 2. If a partnership is possible, could you share the commission structure and payment terms you
+>    offer recruitment partners for the India/Nepal market?
 
 ### Email 3 — Day 9 · make it easy to say yes
 
