@@ -1,0 +1,156 @@
+string standalone.generateCounsellingBrief(string budget_inr, string country_pref, string level, string english_status, string loan_possible)
+{
+	/*  PURPOSE
+	 *    Prepares a counselor for a student conversation. DETERMINISTIC ONLY.
+	 *
+	 *    It never estimates a probability of admission, visa, scholarship or
+	 *    ROI. Every line it outputs is either a VERIFIED RULE or a flagged gap
+	 *    for the counselor to fill. The counselor decides; this assembles.
+	 *
+	 *  INPUTS   budget_inr     total funds the family can access, in INR
+	 *           country_pref   "Germany" | "Italy" | "" (open)
+	 *           level          "Bachelors" | "Masters" | ""
+	 *           english_status "taken" | "booked" | "not_started" | ""
+	 *           loan_possible  "yes" | "no" | "unknown"
+	 *
+	 *  OUTPUT   {"ok":true,"destinations":[…],"documents":[…],
+	 *            "must_confirm":[…],"missing_info":[…],"counselor_review":[…]}
+	 *
+	 *  RULES USED, all verified and sourced in the Solutions knowledge base:
+	 *    - Germany requires a blocked account of ~EUR 11,904 DEPOSITED as cash
+	 *    - Italy accepts bank statements, sponsorship, scholarships or an
+	 *      APPROVED EDUCATION LOAN as proof of funds
+	 *    - Italian public tuition is EUR 900-4,000/yr, income-scaled
+	 *    - DSU full package sits below ISEE ~EUR 13,560-14,000 and can exceed
+	 *      EUR 14,000-16,000/yr in value
+	 *    - The Italian visa figure is DISPUTED across sources - never quoted
+	 *
+	 *  FX: uses 95 INR/EUR as a STATED ASSUMPTION, not a live rate. Every
+	 *  converted figure is labelled approximate so nobody quotes it as exact.
+	 *
+	 *  VERSION 1.0 (2026-08-16)
+	 */
+	FX = 95;
+	out = Map();
+	destinations = List();
+	documents = List();
+	must_confirm = List();
+	missing_info = List();
+	review = List();
+	budget = 0;
+	if(budget_inr != null && budget_inr.trim() != "")
+	{
+		budget = budget_inr.trim().toLong();
+	}
+	else
+	{
+		missing_info.add("Total budget not given - this decides which destinations are open at all");
+	}
+	if(level == null || level.trim() == "")
+	{
+		missing_info.add("Degree level not given (Bachelors/Masters)");
+	}
+	if(english_status == null || english_status.trim() == "")
+	{
+		missing_info.add("English test status not given");
+	}
+	else if(english_status == "not_started")
+	{
+		review.add("English test not started - confirm the intake is far enough away to sit it and still apply");
+	}
+	blocked_inr = 11904 * FX;
+
+	/* ---------- GERMANY ---------- */
+	if(country_pref == "" || country_pref == null || country_pref == "Germany")
+	{
+		g = Map();
+		g.put("country","Germany");
+		g.put("tuition","Private universities approx EUR 10,000-15,000/yr. Public universities charge no tuition, only a semester fee.");
+		g.put("funds_rule","Blocked account of approx EUR 11,904 - MUST be DEPOSITED CASH. A loan sanction letter alone does not satisfy this.");
+		g.put("funds_inr_approx","approx INR " + blocked_inr + " (at an assumed 95 INR/EUR - confirm the live rate)");
+		if(budget > 0 && budget < blocked_inr)
+		{
+			g.put("assessment","LIKELY BLOCKED - stated budget is below the blocked-account requirement. Germany needs the cash deposited, so a loan does not remove this barrier.");
+			review.add("Germany: budget appears short of the blocked account. Confirm whether the family can deposit the full amount, and discuss Italy as the accessible alternative.");
+		}
+		else if(budget >= blocked_inr)
+		{
+			g.put("assessment","Funds requirement appears satisfiable - confirm the money can actually be BLOCKED, not merely held.");
+		}
+		else
+		{
+			g.put("assessment","Cannot assess - budget not provided.");
+		}
+		g.put("scholarship","No DSU equivalent. Scholarships exist but are institution-specific and must be checked per university.");
+		destinations.add(g);
+	}
+
+	/* ---------- ITALY ---------- */
+	if(country_pref == "" || country_pref == null || country_pref == "Italy")
+	{
+		i = Map();
+		i.put("country","Italy");
+		i.put("tuition","Public universities approx EUR 900-4,000/yr, itself income-scaled. DSU can waive it entirely.");
+		i.put("funds_rule","Accepts bank statements, sponsorship, scholarships OR an approved education loan. No blocked cash deposit required.");
+		i.put("funds_amount","DISPUTED across published sources - DO NOT QUOTE A FIGURE. Confirm with the specific Italian consulate for this intake.");
+		if(loan_possible == "yes")
+		{
+			i.put("assessment","Strong fit - Italy accepts an approved education loan as proof of funds, which Germany does not.");
+		}
+		else if(budget > 0 && budget < blocked_inr)
+		{
+			i.put("assessment","Likely the better destination - Italy's proof-of-funds rules are satisfiable without depositing the sum Germany requires. Explore the loan route.");
+			review.add("Italy: ask whether an education loan is possible - it changes the whole plan.");
+		}
+		else
+		{
+			i.put("assessment","Viable - confirm proof-of-funds route with the consulate.");
+		}
+		i.put("scholarship","DSU regional grant: full tuition waiver, EUR 2,500-7,900/yr stipend, accommodation and meals. Full package below ISEE approx EUR 13,560-14,000. NON-EU STUDENTS ARE ELIGIBLE. Total value can exceed EUR 14,000-16,000/yr.");
+		i.put("scholarship_blocker","DSU requires an ISEE Parificato issued by an Italian CAF. RichenQuest has NO CAF partner yet - do not promise this service.");
+		review.add("Italy: if the family income is low, DSU is the single biggest lever available. Gather income details for an ISEE assessment.");
+		destinations.add(i);
+	}
+
+	/* ---------- DOCUMENTS: common core, verified ---------- */
+	documents.add("Passport - valid well beyond the intended stay");
+	documents.add("Academic transcripts and degree certificates");
+	documents.add("English proficiency evidence (IELTS/TOEFL or MOI where accepted)");
+	documents.add("CV");
+	documents.add("Statement of purpose / motivation letter");
+	documents.add("Proof of funds - form depends on destination, see above");
+	documents.add("Passport photographs to the destination's specification");
+	documents.add("Health insurance");
+	if(country_pref == "Italy" || country_pref == "" || country_pref == null)
+	{
+		documents.add("ITALY: Universitaly pre-enrolment - MANDATORY, the visa route depends on it");
+		documents.add("ITALY (for DSU): ISEE Parificato from an Italian CAF");
+		documents.add("ITALY: Declaration of Value / academic recognition as required by the university");
+	}
+	if(country_pref == "Germany" || country_pref == "" || country_pref == null)
+	{
+		documents.add("GERMANY: Blocked account confirmation (Sperrkonto)");
+		documents.add("GERMANY: APS certificate where applicable for Indian applicants");
+	}
+
+	/* ---------- THINGS THE COUNSELOR MUST CONFIRM, NOT GUESS ---------- */
+	must_confirm.add("Visa proof-of-funds amount - confirm with the specific consulate for this intake. Published sources conflict.");
+	must_confirm.add("Part-time work hour limits - NOT VERIFIED by RichenQuest. Do not advise until confirmed.");
+	must_confirm.add("Current DSU income thresholds and deadlines - these change annually AND by region. Read the regional call.");
+	must_confirm.add("University-specific entry requirements and deadlines - verify on the university's own page.");
+	must_confirm.add("Live INR/EUR rate - all conversions here assume 95 and are approximate.");
+
+	missing_info.add("Family income - required to assess DSU eligibility, which is the largest single lever for Italy");
+	missing_info.add("Intended intake - determines whether the timeline is feasible at all");
+	missing_info.add("Who is paying - the payer must be in the conversation before any close");
+
+	out.put("ok",true);
+	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("destinations",destinations);
+	out.put("documents",documents);
+	out.put("must_confirm",must_confirm);
+	out.put("missing_info",missing_info);
+	out.put("counselor_review",review);
+	out.put("disclaimer","Deterministic output from verified rules only. No probability, ROI or admission likelihood is estimated anywhere in this brief. The counselor decides.");
+	return out.toString();
+}
