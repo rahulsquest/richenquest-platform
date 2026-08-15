@@ -24,6 +24,8 @@ they are logged here. Reference material lives in `docs/`; send-ready work lives
 | **F10** | **Books out of test mode + GST** | All invoicing and revenue reporting | admin |
 | **I2** | **Engage an Italian CAF for ISEE Parificato** | **The Italy moat.** Without it students cannot access DSU (worth €14–16k/yr to them). Needs a commercial arrangement | negotiation |
 | **I3** | **Confirm whether the +39 presence = on-ground Italian capability** | A differentiator no Indian competitor has. Changes the whole Italy pitch | decision |
+| **I5** | **Approve research pass: 5–8 Italian public universities ranked by DSU generosity, not prestige** | Unblocks the flagship package. Everything else in Italy is buildable without you | approval |
+| **I6** | **Set Italy package structure + prices** (bands in File 43 §3) | The scholarship package is the flagship — needs a price | decision |
 
 **F0, F1, F3, F4 are the critical path.** F0 is new and now ranks first: it is the only item that
 converts "no university will sign us without references" from a blocker into a sequence.
@@ -60,6 +62,7 @@ converts "no university will sign us without references" from a blocker into a s
 | Ancillary revenue thesis | Loan, forex, insurance, accommodation — student spends ₹30–40L, RichenQuest monetises one event | File 41 §3 |
 | **Aggregator comparison — 3 platforms, requirements verified** | **ApplyBoard: business registration + ID only, NO references, 48hr review — RichenQuest qualifies today. MSM Unify: requires TWO institutional references (same wall as CBS). Adventus: requirements not published.** Join order and pre-flight checklist written | `outreach/READY-TO-SEND.md` Part 0 |
 | Education loan referral verified | GyanDhan: **₹3,000/referral + ₹10,000 bonus per 5**, self-serve, no agency agreement | `outreach/` Part C3 |
+| **Italy playbook — journey, packages, knowledge base** | 18-stage journey mapped with friction points. Value concentrates in 4 stages: Universitaly, ISEE Parificato, DSU deadlines, residence permit — **none served by a commission-funded agency**. 5 service packages, citation-backed knowledge base | File 43 |
 | **Italy strategy + revenue stack** | **DSU pays non-EU students €14–16k/yr package incl. tuition waiver, stipend, housing, meals.** Italy reaches RichenQuest's low-income demographic that Germany's €11,904 blocked account excludes. Revenue/student: Germany ≈₹2.59L, Italy ≈₹1.23L — two different businesses | File 42 |
 
 ---
@@ -76,7 +79,10 @@ Executed automatically as capacity allows. Nothing here needs a founder decision
 | N4 | Verify Coracle / Flywire / Wise agent programmes **before** drafting anything | Revenue | pending — *not assumed to exist* |
 | N7 | ~~Verify Adventus / MSM Unify recruiter terms~~ | Partnerships | **done** — MSM needs 2 references (blocked until placements exist); Adventus not published. Edvoy / Abcodo / UniApply still unverified |
 | N8 | ~~Italy question~~ | Partnerships | **ANSWERED — Italy is a core market.** Researched: File 42. DSU makes Italy structurally better suited to RichenQuest's demographic than Germany |
-| N9 | Research 5–8 Italian public universities ranked by DSU generosity + English-taught programmes | Partnerships | pending founder approval (I4) |
+| N9 | Research 5–8 Italian public universities ranked by DSU generosity + English-taught programmes | Partnerships | pending founder approval (**I5**) |
+| N11 | Learn the Universitaly pre-enrolment portal end to end | Student acquisition | **unblocked — highest-priority operational gap.** Errors here invalidate the visa route |
+| N12 | Build the regional DSU deadline calendar (Lazio, Toscana, Lombardia, Emilia-Romagna…) | Student success | unblocked — build once, reuse annually |
+| N13 | **Verify part-time work hour limits** from an official source | Compliance | unblocked — **must not counsel on this until done** |
 | N10 | Research private Italian institutions (design/fashion/business) — these **do** pay agent commission unlike public universities | Revenue | pending |
 | N5 | Counselor training pack (condense Files 39 + 23 into a day-one manual) | Satisfaction, Referral | **do when hiring starts, not before** |
 | N6 | Visa & scholarship document checklists | Satisfaction | **do when first student signs** |
@@ -124,5 +130,6 @@ a forecast instead of a guess.
 | 2026-08-16 | Wave 1 (6) and Wave 2 (5) outreach written and send-ready. Ledger established. |
 | 2026-08-16 | **ApplyBoard verified — 1,500+ institutions incl. Germany/Ireland, no stated reference requirement. Promoted to F0, ahead of everything.** Aggregator commission is lower than direct, but it creates the university references that unlock the direct agreements. |
 | 2026-08-16 | GyanDhan education-loan referral verified: ₹3,000 per successful referral plus ₹10,000 every 5, self-serve, paid on disbursal. |
+| 2026-08-16 | **Italy playbook built.** Two findings change the pitch: (a) Italy accepts scholarships and APPROVED EDUCATION LOANS as proof of funds where Germany demands deposited cash in a blocked account — the form matters more than the amount, and it is why Italy reaches families Germany excludes; (b) the **Cutro Decree exempts Italian-university graduates from the Decreto Flussi quota** when converting a student permit to a work permit, at any time of year. That second point is the most under-communicated fact in Italian student mobility and most consultancies never explain it, because they are not paid to think past enrolment. Also recorded: the Italian visa proof-of-funds figure is DISPUTED across sources (€6,947 / €10,180 / €5,520–6,072) and must never be quoted as a single number. |
 | 2026-08-16 | **Italy researched properly after founder correction.** I had inferred Germany-first from the CRM contents; that was inference, not strategy. DSU changes the picture: non-EU students are eligible, the full package (tuition waiver + €2,500–7,900 stipend + housing + meals) can exceed €14–16k/yr, and eligibility is means-tested at ISEE ≈€13,560 — which much of Bihar/Jharkhand/Nepal would fall under. Germany's €11,904 blocked account excludes exactly those families. Recommendation: lead with Italy for volume and referrals, Germany for margin. ISEE Parificato via an Italian CAF identified as the service moat. |
 | 2026-08-16 | **Aggregator requirements verified across 3 platforms.** MSM Unify requires two institutional references — the same blocker as CBS — so it is deferred, not rejected. ApplyBoard confirmed from its own help centre: business registration certificate + photo-ID liveness check, 48-hour review, no references. Join order set: ApplyBoard → MSM (after placements) → Adventus (needs research). Do not apply to all three — splitting volume weakens every commission tier. |
