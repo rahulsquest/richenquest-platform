@@ -27,6 +27,25 @@ shortest path from a stranger to a conversation.
 | **richenquest.com** | Hand `student-inquiry.html` to the web developer. Self-contained, no dependencies |
 | **Zoho Forms / Google Forms** | Field list below maps 1:1 |
 
+## 🔴 A bug this build caught, and it would have broken silently
+
+**The form's dropdown options did not match the CRM picklist values.** Nine mismatches:
+
+| Form said | CRM expects |
+|---|---|
+| "I have a valid passport" | `Valid` |
+| "₹10–15 lakh" | **no such band** — CRM has `<10L`, `10-20L`, `20-35L`, `35L+` |
+| **"Feb / Mar 2027"** | **`Feb 2027` and `Mar 2027` are SEPARATE values** |
+| "IELTS 5.5" | `5.5` |
+| "Czech Republic" | **not in the CRM list at all** → `Other Schengen` |
+| "Education loan planned" | `Education loan` |
+
+**Every one would have failed silently** — the record saves, the field stays empty, and `leadToPlan`
+plans against a blank budget. **Fixed: every option now shows a human label and emits the CRM value.**
+
+**The rule going forward: the form is the CRM's mirror.** If a picklist changes, the form changes the
+same day, or leads arrive half-empty and nobody notices until a shortlist is wrong.
+
 ## Field → CRM mapping
 
 **Every field lands in an existing Leads field. No transformation, no new CRM work.**

@@ -1,0 +1,221 @@
+string standalone.parseInquiry(string raw)
+{
+	/*  PURPOSE
+	 *    Turns a pasted WhatsApp inquiry into a fully-processed Lead.
+	 *
+	 *    Before this, a form submission arrived as text in a chat and somebody
+	 *    had to retype ~20 fields into the CRM. At 100 enquiries that is eight
+	 *    hours of typing, and NOTHING downstream runs until it is done -
+	 *    qualifyLead, leadToPlan, assignCounselor, the 48-hour call task, the
+	 *    whole automation layer sits behind a human transcribing a chat.
+	 *
+	 *    This is the single highest-leverage automation in the company, and it
+	 *    only works because the form emits CRM-EXACT values. A friendly label
+	 *    is shown to the student; the CRM value is what travels.
+	 *
+	 *  INPUT
+	 *    raw   the WhatsApp message body, pasted verbatim. Lines of "Key: value".
+	 *
+	 *  OUTPUT
+	 *    {"ok":true,"lead_id":"…","name":"…","qualify":{…},"assignment":"…",
+	 *     "tasks":"…","unmapped":[…]}
+	 *    {"ok":false,"error":"…"}
+	 *
+	 *  DESIGN NOTES
+	 *    - Unknown keys are RETURNED, never silently dropped. If the form gains
+	 *      a field and this function is not updated, the operator sees it in
+	 *      `unmapped` rather than losing the answer.
+	 *    - Only Name and WhatsApp are mandatory. A half-filled enquiry is still
+	 *      a lead; refusing it would lose a real student to a validation rule.
+	 *    - Multi-value fields (funding, countries) arrive comma-separated and
+	 *      are split back into lists for the multiselect fields.
+	 *    - Everything unmapped is appended to Description, so no answer a family
+	 *      took the trouble to give is ever thrown away.
+	 *
+	 *  DEPENDENCIES  qualifyLead, assignCounselor, createFollowUpTasks
+	 *  VERSION       1.0 (2026-08-17)
+	 */
+	out = Map();
+	if(raw == null || raw.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","empty message");
+		return out.toString();
+	}
+	kv = Map();
+	unmapped = List();
+	lines = raw.toList("\n");
+	for each ln in lines
+	{
+		line = ln.trim();
+		if(line == "" || line.indexOf(":") < 1)
+		{
+			continue;
+		}
+		k = line.subString(0,line.indexOf(":")).trim();
+		v = line.subString(line.indexOf(":") + 1).trim();
+		if(v != "" && v != "-")
+		{
+			kv.put(k,v);
+		}
+	}
+	name = kv.get("Name");
+	wa = kv.get("WhatsApp");
+	if(name == null || name == "")
+	{
+		out.put("ok",false);
+		out.put("error","no Name line found - is this a RichenQuest inquiry message?");
+		return out.toString();
+	}
+	rec = Map();
+	rec.put("Last_Name",name);
+	rec.put("Lead_Source","Web Form");
+	notes = List();
+	for each k in kv.keys()
+	{
+		v = kv.get(k);
+		if(k == "Name")
+		{
+			continue;
+		}
+		else if(k == "WhatsApp")
+		{
+			rec.put("Phone",v);
+			rec.put("WhatsApp_Number",v);
+		}
+		else if(k == "Email")
+		{
+			rec.put("Email",v);
+		}
+		else if(k == "City")
+		{
+			rec.put("City",v);
+		}
+		else if(k == "Studying")
+		{
+			rec.put("Current_Education",v);
+		}
+		else if(k == "Percentage/CGPA")
+		{
+			rec.put("Academic_Percentage",v);
+		}
+		else if(k == "Backlogs")
+		{
+			rec.put("Backlogs",v);
+		}
+		else if(k == "Study gap (yrs)")
+		{
+			rec.put("Study_Gap_Years",v);
+		}
+		else if(k == "Work experience (yrs)")
+		{
+			rec.put("Work_Experience_Years",v);
+		}
+		else if(k == "English")
+		{
+			rec.put("English_Status",v);
+		}
+		else if(k == "Passport")
+		{
+			rec.put("Passport_Status",v);
+		}
+		else if(k == "Total budget")
+		{
+			rec.put("Budget_Range",v);
+		}
+		else if(k == "Family income")
+		{
+			rec.put("Parents_Annual_Income",v);
+		}
+		else if(k == "Funding")
+		{
+			rec.put("Funding_Source",v.toList(","));
+		}
+		else if(k == "Level")
+		{
+			rec.put("Interested_Level",v);
+		}
+		else if(k == "Intake")
+		{
+			rec.put("Intended_Intake",v);
+		}
+		else if(k == "Course")
+		{
+			rec.put("Career_Goal",v);
+		}
+		else if(k == "Countries")
+		{
+			rec.put("Interested_Country",v.toList(","));
+		}
+		else if(k == "Accommodation")
+		{
+			rec.put("Accommodation_Preference",v);
+		}
+		else if(k == "Referred by")
+		{
+			/*  The trust node's name. The single field the whole growth model
+			 *  depends on - it is how a node is scored and how we know who to
+			 *  thank when their student succeeds.
+			 */
+			rec.put("Lead_Source_Detail",v);
+		}
+		else if(k == "Notes")
+		{
+			notes.add(v);
+		}
+		else
+		{
+			/*  Never drop an answer a family took the trouble to give. */
+			unmapped.add(k + ": " + v);
+			notes.add(k + ": " + v);
+		}
+	}
+	if(notes.size() > 0)
+	{
+		rec.put("Description",notes.toString("\n"));
+	}
+	res = zoho.crm.createRecord("Leads",rec);
+	lead_id = res.get("id");
+	if(lead_id == null)
+	{
+		out.put("ok",false);
+		out.put("error","create failed: " + res.toString());
+		out.put("parsed",rec);
+		return out.toString();
+	}
+	/*  Everything downstream, immediately. The point of this function is that a
+	 *  human never touches the lead before the machine has done its part.
+	 */
+	qualify = standalone.qualifyLead(lead_id);
+	assignment = standalone.assignCounselor(lead_id);
+	spec = List();
+	t = Map();
+	t.put("days",0);
+	t.put("subject","CALL WITHIN 48H - " + name + " - " + kv.get("City"));
+	t.put("priority","Highest");
+	spec.add(t);
+	/*  The passport question decides whether a near intake is reachable at all,
+	 *  so it becomes its own task rather than a line in a checklist.
+	 */
+	pp = kv.get("Passport");
+	if(pp == null || pp != "Valid")
+	{
+		t2 = Map();
+		t2.put("days",1);
+		t2.put("subject","NO PASSPORT CONFIRMED - tell them to apply this week - " + name);
+		t2.put("priority","High");
+		spec.add(t2);
+	}
+	tasks = standalone.createFollowUpTasks("Leads",lead_id,spec.toString());
+	out.put("ok",true);
+	out.put("lead_id",lead_id);
+	out.put("name",name);
+	out.put("city",kv.get("City"));
+	out.put("referred_by",kv.get("Referred by"));
+	out.put("qualify",qualify);
+	out.put("assignment",assignment);
+	out.put("tasks",tasks);
+	out.put("unmapped",unmapped);
+	out.put("fields_captured",rec.size());
+	return out.toString();
+}

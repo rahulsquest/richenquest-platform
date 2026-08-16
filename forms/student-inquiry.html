@@ -104,20 +104,20 @@
       <div><label for="eng">English test <span class="req">*</span></label>
         <select id="eng" required>
           <option value="">Choose one</option>
-          <option>No test yet</option>
-          <option>My college taught in English (no certificate)</option>
-          <option>IELTS 5.5</option><option>IELTS 6.0</option><option>IELTS 6.5</option>
-          <option>IELTS 7.0 or above</option><option>TOEFL / PTE / other</option>
+          <option value="None">No test yet</option>
+          <option value="MOI">My college taught in English (no certificate)</option>
+          <option value="5.5">IELTS 5.5</option><option value="6.0">IELTS 6.0</option><option value="6.5">IELTS 6.5</option>
+          <option value="7.0">IELTS 7.0 or above</option><option value="None">TOEFL / PTE / other &mdash; we will ask</option>
         </select>
         <div class="note">No certificate is not a dead end. Some universities accept an interview instead — we'll tell you which.</div>
       </div>
       <div><label for="pass">Passport <span class="req">*</span></label>
         <select id="pass" required>
           <option value="">Choose one</option>
-          <option>I have a valid passport</option>
-          <option>Applied, waiting</option>
-          <option>Not applied yet</option>
-          <option>Expired</option>
+          <option value="Valid">I have a valid passport</option>
+          <option value="Applied">Applied, waiting</option>
+          <option value="Not applied">Not applied yet</option>
+          <option value="Expired">Expired</option>
         </select>
         <div class="note">If you don't have one, apply this week. Nothing else can proceed without it.</div>
       </div>
@@ -131,25 +131,25 @@
     <div><label for="budget">Total budget for the whole course <span class="req">*</span><span class="hint">Not per year. Everything the family can arrange, including a loan.</span></label>
       <select id="budget" required>
         <option value="">Choose one</option>
-        <option>Under ₹10 lakh</option><option>₹10–15 lakh</option><option>₹15–25 lakh</option>
-        <option>₹25–35 lakh</option><option>Above ₹35 lakh</option><option>Not sure yet</option>
+        <option value="&lt;10L">Under ₹10 lakh</option><option value="10-20L">₹10–20 lakh</option>
+        <option value="20-35L">₹20–35 lakh</option><option value="35L+">Above ₹35 lakh</option>
       </select>
     </div>
     <div><label for="income">Family annual income <span class="opt">optional but important</span><span class="hint">Italy's scholarship is means-tested on income, not marks. Without this we can't tell you if you qualify.</span></label>
       <select id="income">
-        <option value="">Prefer not to say</option>
-        <option>Under ₹5 lakh</option><option>₹5–10 lakh</option><option>₹10–20 lakh</option>
-        <option>₹20–35 lakh</option><option>Above ₹35 lakh</option>
+        <option value="Not stated">Prefer not to say</option>
+        <option value="Under 5L">Under ₹5 lakh</option><option value="5-10L">₹5–10 lakh</option><option value="10-20L">₹10–20 lakh</option>
+        <option value="20-35L">₹20–35 lakh</option><option value="Above 35L">Above ₹35 lakh</option>
       </select>
     </div>
     <div><label>How will it be funded? <span class="hint">Tick all that apply. This decides the country before anything else does — Germany needs cash deposited, Italy accepts loans.</span></label>
       <div class="checks">
         <label class="check"><input type="checkbox" name="fund" value="Family savings">Family savings</label>
-        <label class="check"><input type="checkbox" name="fund" value="Education loan planned">Education loan — planned</label>
-        <label class="check"><input type="checkbox" name="fund" value="Loan already sanctioned">Education loan — already sanctioned</label>
+        <label class="check"><input type="checkbox" name="fund" value="Education loan">Education loan — planned</label>
+        <label class="check"><input type="checkbox" name="fund" value="Loan sanctioned">Education loan — already sanctioned</label>
         <label class="check"><input type="checkbox" name="fund" value="Property sale">Property sale</label>
-        <label class="check"><input type="checkbox" name="fund" value="Sponsor or relative">Sponsor or relative</label>
-        <label class="check"><input type="checkbox" name="fund" value="NEEDS SCHOLARSHIP">I can only go if I get a scholarship</label>
+        <label class="check"><input type="checkbox" name="fund" value="Sponsor">Sponsor or relative</label>
+        <label class="check"><input type="checkbox" name="fund" value="Needs scholarship">I can only go if I get a scholarship</label>
       </div>
     </div>
   </div>
@@ -160,9 +160,9 @@
   <div class="grid">
     <div class="row">
       <div><label for="level">Level <span class="req">*</span></label>
-        <select id="level" required><option value="">Choose one</option><option>Bachelor's</option><option>Master's</option><option>Not sure</option></select></div>
+        <select id="level" required><option value="">Choose one</option><option value="Bachelor's">Bachelor's</option><option value="Master's">Master's</option><option value="Other">Not sure</option></select></div>
       <div><label for="intake">When do you want to start? <span class="req">*</span></label>
-        <select id="intake" required><option value="">Choose one</option><option>Feb / Mar 2027</option><option>Sep 2027</option><option>2028</option><option>Not sure</option></select></div>
+        <select id="intake" required><option value="">Choose one</option><option value="Feb 2027">February 2027</option><option value="Mar 2027">March 2027</option><option value="Sep 2027">September 2027</option><option value="2028+">2028</option><option value="Undecided">Not sure</option></select></div>
     </div>
     <div><label for="course">Subject or course</label><input id="course" placeholder="e.g. Management, Computer Science, Nursing"></div>
     <div><label>Countries you're considering <span class="hint">Tick any. "No preference" is a perfectly good answer and often a better one.</span></label>
@@ -171,12 +171,12 @@
         <label class="check"><input type="checkbox" name="ctry" value="Germany">Germany</label>
         <label class="check"><input type="checkbox" name="ctry" value="Hungary">Hungary</label>
         <label class="check"><input type="checkbox" name="ctry" value="Poland">Poland</label>
-        <label class="check"><input type="checkbox" name="ctry" value="Czechia">Czech Republic</label>
+        <label class="check"><input type="checkbox" name="ctry" value="Other Schengen">Czech Republic</label>
         <label class="check"><input type="checkbox" name="ctry" value="No preference">No preference — tell me what fits</label>
       </div>
     </div>
     <div><label for="acc">Accommodation preference<span class="hint">A dormitory place instead of private rent can change the total by several lakh.</span></label>
-      <select id="acc"><option value="">No preference</option><option>University dormitory</option><option>Shared private</option><option>Private flat</option></select></div>
+      <select id="acc"><option value="No preference">No preference</option><option value="Dormitory">University dormitory</option><option value="Shared private">Shared private</option><option value="Private flat">Private flat</option></select></div>
   </div>
 </fieldset>
 
