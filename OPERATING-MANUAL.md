@@ -207,3 +207,38 @@ first reviews this company has ever had.**
 
 **Then the same machine, pointed at a nine-month runway and a portfolio that includes Italy, produces
 the other ninety.**
+
+
+---
+
+# 11. The highest-leverage edge in the whole company
+
+**Quantified, not asserted.** Two loops compound; every other edge is linear and returns once.
+
+| Loop | Effect on 4-cycle output |
+|---|---|
+| Referral rate 0% → 50% | **2.0×** |
+| **Node warming 1× → 3×** | **3.4×** |
+
+**Node warming dominates, and it sits earlier in the chain — so it multiplies everything downstream,
+including the referral loop itself.**
+
+> ## The edge is: telling a trust node that their student succeeded.
+>
+> **A node who forwarded a report is guessing. A node who hears "the girl you sent us got her visa" is
+> now telling a story about their own school.** That is the 3×, and it costs one message.
+
+**Operational rule — this is the whole finding:**
+
+| Trigger | Action | Owner |
+|---|---|---|
+| **Offer received** | Message the node who introduced the student | Counsellor |
+| **Visa approved** | Message the node. **This is the one that converts them to WARM** | Counsellor |
+| **Student arrives** | Message the node with one line the student wrote | Counsellor |
+
+**Three messages per student, to one person, at three moments.** Nothing else in this manual returns
+3× on a minute of work.
+
+**Build note: `advanceStudentJourney` fires tasks at Enrolled+14 but nothing to the node.** Add the
+node-notify task **when the first student reaches Offer Received** — not before, because there is no
+node to notify.
