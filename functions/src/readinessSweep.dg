@@ -1,0 +1,261 @@
+string standalone.readinessSweep()
+{
+	/*  PURPOSE
+	 *    The University Readiness Scoreboard, COMPUTED - never asserted.
+	 *
+	 *    A readiness flag that a human can simply tick is a vanity flag. It
+	 *    goes green the week someone is optimistic and stays green after the
+	 *    data rots. So this derives readiness entirely from which fields are
+	 *    actually populated, and rewrites the status on every run. The only way
+	 *    to turn a university green is to find the missing evidence.
+	 *
+	 *  FIVE DIMENSIONS
+	 *    RESEARCH      the facts exist at all
+	 *    COUNSELLING   a counsellor could answer a family's questions today
+	 *    MARKETING     we could advertise it without risking a correction
+	 *    PARTNERSHIP   we know the commercial relationship
+	 *    APPLICATION   we could actually submit an application
+	 *
+	 *  STATUS
+	 *    READY                     all five green
+	 *    PARTNER RESPONSE PENDING  everything green except partnership, and the
+	 *                              gap is genuinely the partner's to close
+	 *    NEEDS VERIFICATION        anything else that has been researched
+	 *    NOT IN PORTFOLIO          never researched - Confidence Unverified
+	 *
+	 *  THE DELIBERATE STRICTNESS
+	 *    Marketing readiness requires counselling readiness. We will not
+	 *    advertise a university a counsellor cannot yet discuss. That single
+	 *    dependency is what stops the content engine from writing cheques the
+	 *    counselling team cannot cash.
+	 *
+	 *  OUTPUT  {"ok":true,"scoreboard":[…],"ready":n,"pending":n,"needs":n}
+	 *
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	out = Map();
+	board = List();
+	n_ready = 0;
+	n_pending = 0;
+	n_needs = 0;
+	n_out = 0;
+	today = zoho.currentdate;
+	pages = {1,2,3};
+	for each pg in pages
+	{
+		accs = zoho.crm.getRecords("Accounts",pg,200);
+		if(accs.size() == 0)
+		{
+			break;
+		}
+		for each a in accs
+		{
+			an = a.get("Account_Name");
+			aid = a.get("id");
+			conf = a.get("Confidence");
+			gaps = List();
+			/*  RESEARCH - do the core facts exist? */
+			core = 0;
+			total = 8;
+			if(a.get("Intakes") != null && a.get("Intakes").size() > 0)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: intakes not recorded");
+			}
+			if(a.get("Levels_Offered") != null && a.get("Levels_Offered").size() > 0)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: levels offered not recorded");
+			}
+			if(a.get("Tuition_Min_EUR_Year") != null)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: TUITION NOT VERIFIED - the single most damaging gap. Never quote an unverified price.");
+			}
+			if(a.get("IELTS_Min_UG") != null || a.get("IELTS_Min_PG") != null)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: English requirement not recorded");
+			}
+			if(a.get("Scholarships_Available") != null && a.get("Scholarships_Available") != "Unknown")
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: scholarship position unknown");
+			}
+			if(a.get("Next_App_Deadline") != null)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: application deadline not recorded");
+			}
+			if(a.get("Living_Cost_EUR_Year") != null)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: living cost not verified - budget advice is tuition-only until it is");
+			}
+			if(a.get("University_Country") != null)
+			{
+				core = core + 1;
+			}
+			else
+			{
+				gaps.add("RESEARCH: country not set - breaks matching and visa timeline");
+			}
+			pct = (core * 100) / total;
+			/*  COUNSELLING - could a counsellor answer a family today? */
+			counselling = true;
+			if(a.get("Tuition_Min_EUR_Year") == null)
+			{
+				counselling = false;
+			}
+			if(a.get("Intakes") == null || a.get("Intakes").size() == 0)
+			{
+				counselling = false;
+			}
+			if(a.get("IELTS_Min_UG") == null && a.get("IELTS_Min_PG") == null)
+			{
+				counselling = false;
+			}
+			if(a.get("Intelligence_Profile") == null || a.get("Intelligence_Profile") == "")
+			{
+				counselling = false;
+				gaps.add("COUNSELLING: no intelligence profile - nothing for a counsellor to read");
+			}
+			if(!counselling)
+			{
+				gaps.add("COUNSELLING: NOT READY - a counsellor cannot answer a family's basic questions from this record");
+			}
+			/*  MARKETING - deliberately gated on counselling. */
+			marketing = counselling;
+			if(conf != "High" && conf != "Medium")
+			{
+				marketing = false;
+				gaps.add("MARKETING: confidence is '" + conf + "' - only High or Medium may be advertised");
+			}
+			rv = a.get("Review_Date");
+			if(rv != null && rv != "")
+			{
+				if(rv.toString().subString(0,10).toDate() < today)
+				{
+					marketing = false;
+					gaps.add("MARKETING: record is STALE - review was due " + rv);
+				}
+			}
+			else
+			{
+				marketing = false;
+				gaps.add("MARKETING: no review date - nothing forces a re-check");
+			}
+			if(marketing && !counselling)
+			{
+				marketing = false;
+			}
+			/*  PARTNERSHIP */
+			partnership = true;
+			cs = a.get("Commission_Status");
+			ap = a.get("Agent_Programme");
+			if(cs == null || cs == "Unknown")
+			{
+				partnership = false;
+				gaps.add("PARTNERSHIP: commission status unknown - only the partner can close this");
+			}
+			if(ap == null || ap == "Unknown")
+			{
+				partnership = false;
+				gaps.add("PARTNERSHIP: agent programme unknown - only the partner can close this");
+			}
+			/*  APPLICATION */
+			application = true;
+			if(a.get("Next_App_Deadline") == null)
+			{
+				application = false;
+				gaps.add("APPLICATION: no deadline - cannot build a backward plan");
+			}
+			if(a.get("Application_Fee_EUR") == null)
+			{
+				application = false;
+				gaps.add("APPLICATION: application fee unknown - a family must be told the non-refundable cost BEFORE they pay");
+			}
+			/*  STATUS */
+			status = "NEEDS VERIFICATION";
+			if(conf == null || conf == "Unverified")
+			{
+				status = "NOT IN PORTFOLIO";
+				n_out = n_out + 1;
+			}
+			else if(counselling && marketing && application && partnership)
+			{
+				status = "READY";
+				n_ready = n_ready + 1;
+			}
+			else if(counselling && marketing && application && !partnership)
+			{
+				status = "PARTNER PENDING";
+				n_pending = n_pending + 1;
+			}
+			else
+			{
+				n_needs = n_needs + 1;
+			}
+			gap_text = "Computed " + today.toString("yyyy-MM-dd") + " by readinessSweep. Do not edit by hand - it is overwritten on every run.\n\nRESEARCH " + pct + "%\nCOUNSELLING " + counselling + "\nMARKETING " + marketing + "\nPARTNERSHIP " + partnership + "\nAPPLICATION " + application + "\n\nMISSING EVIDENCE:\n";
+			if(gaps.size() == 0)
+			{
+				gap_text = gap_text + "  none\n";
+			}
+			for each g in gaps
+			{
+				gap_text = gap_text + "  - " + g + "\n";
+			}
+			upd = Map();
+			upd.put("Readiness_Status",status);
+			upd.put("Research_Complete_Pct",pct);
+			upd.put("Readiness_Gaps",gap_text);
+			zoho.crm.updateRecord("Accounts",aid,upd);
+			row = Map();
+			row.put("university",an);
+			row.put("status",status);
+			row.put("research_pct",pct);
+			row.put("counselling",counselling);
+			row.put("marketing",marketing);
+			row.put("partnership",partnership);
+			row.put("application",application);
+			row.put("gaps",gaps);
+			if(status != "NOT IN PORTFOLIO")
+			{
+				board.add(row);
+			}
+		}
+		if(accs.size() < 200)
+		{
+			break;
+		}
+	}
+	out.put("ok",true);
+	out.put("ready",n_ready);
+	out.put("partner_pending",n_pending);
+	out.put("needs_verification",n_needs);
+	out.put("not_in_portfolio",n_out);
+	out.put("scoreboard",board);
+	out.put("run_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

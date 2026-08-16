@@ -1,0 +1,14 @@
+void scheduler.schedReadinessSweep()
+{
+	/*  PURPOSE
+	 *    Thin scheduler wrapper for readinessSweep.
+	 *
+	 *  CADENCE  weekly, Friday 08:00 - the "Friday review" the brief asks for.
+	 *           Readiness is recomputed from evidence every week, so a
+	 *           university that goes stale falls out of READY by itself rather
+	 *           than waiting for someone to notice.
+	 *
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	standalone.readinessSweep();
+}
