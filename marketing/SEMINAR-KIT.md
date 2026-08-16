@@ -132,9 +132,13 @@ you into Italy in February is either not thinking or not telling you."*
 >
 > **What we do:** verify every university against its own source and show you the date we checked · give you the total cost before you pay anything · plan backwards from the visa deadline · take you through the first month after you land.
 >
-> **What we charge: ₹60,000 — and you pay it in three parts.** ₹15,000 when we start. **₹30,000 only when you have an offer in your hand.** ₹15,000 when the visa is approved.
+> **What we charge — you choose how much of the job you want us to do:**
+> **Admission ₹35,000 · Admission + Visa ₹60,000 · Italy Scholarship package ₹1,20,000**
+> **And you pay in stages. Most of it only when there is an offer in your hand.**
 
-**Say:** *"You pay most of it when there is an offer in your hand. If we don't get you one, you haven't paid for one."*
+**Say:** *"You pay most of it when there is an offer in your hand. If we don't get you one, you haven't paid for one. And if the visa is refused because we got a document wrong, you don't pay that stage at all."*
+
+**The ₹2,500 Clarity Report** — a written report on what your course will actually cost, every figure sourced, with the universities that don't fit and why. **Fully credited if you go ahead with us.** Offer this to anyone who is not ready to commit; it is the honest version of a free consultation.
 
 ### 13 · What we will not do *(36–38)*
 > - We will **not** guarantee admission, scholarships or a visa

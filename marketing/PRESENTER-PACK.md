@@ -113,7 +113,8 @@ would push you toward promises.
 
 ## 9. Stop and get Rahul
 
-- **The price you can now answer yourself: ₹60,000 — ₹15,000 on engagement, ₹30,000 when the offer is in hand, ₹15,000 on visa approval** (File 70). Escalate only **discounts, refunds, or a payment split outside those three stages**
+- **Prices you can answer yourself** (File 71): **Clarity Report ₹2,500, credited if they proceed · Admission ₹35,000 · Admission + Visa ₹60,000 · Italy Scholarship ₹1,20,000 · Complete Launch ₹1,60,000.** All staged — most of it falls due **when the offer is in hand**. Escalate only **discounts, refunds, or a payment split outside the standard stages**
+- **Never say we charge for the scholarship itself.** The Italy package is paid for **submitting the DSU application before the deadline** — not for winning it. Say that sentence out loud; it is the difference between a fee and a promise
 - A university or institute wants a **written agreement**
 - A family mentions a **previous visa refusal** — this needs proper handling, not a seminar answer
 - Anyone asks about **work visas, PR or migration** — **regulated. We do not advise on it**

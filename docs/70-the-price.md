@@ -1,5 +1,10 @@
 # File 70 — The price, pre-decided
 
+> ## 🔴 SUPERSEDED BY FILE 71
+> **Pricing by intake was wrong** — a family does not buy "February", it buys an outcome. File 71
+> replaces this with six packages priced on deliverables and effort. **The staged-payment principle
+> below survives and is now applied to every package; the February/September split does not.**
+
 **F1 has been open for twelve cycles. I have recommended "set the fee" three times. The instruction
 is to stop repeating it and redesign around the constraint.**
 
