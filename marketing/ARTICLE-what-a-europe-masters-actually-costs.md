@@ -3,6 +3,11 @@
 *RichenQuest · verified 16 August 2026 · every figure links to the source that published it*
 
 > **⛔ DRAFT — NOT APPROVED.** Founder review required before publishing anywhere.
+>
+> **📎 NOW HAS A URL:** https://claude.ai/code/artifact/54427f50-1ec6-45c8-ad48-db7e3cea7d9d
+> **Private until Rahul shares it.** Source: `marketing/true-cost-report.html` — edit that file and
+> republish to the same URL. **This removes the last blocker on distribution: the article existed only
+> as a repo file, so there was nothing to send anyone.**
 > This is the Trust Engine's first output: the verified corpus, turned into the one asset most likely
 > to be shared by a parent.
 

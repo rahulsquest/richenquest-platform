@@ -1,0 +1,328 @@
+<title>What Europe Actually Costs</title>
+<style>
+  :root{
+    --paper:#f7f8f9;
+    --card:#ffffff;
+    --ink:#14181f;
+    --ink-soft:#4a5361;
+    --ink-faint:#79828f;
+    --rule:#dfe3e8;
+    --rule-soft:#eceff2;
+    --verified:#1f6b4a;
+    --verified-bg:#e6f2ec;
+    --unknown:#9a4b1e;
+    --unknown-bg:#fbeee5;
+    --disputed:#7a2f3a;
+    --disputed-bg:#f8e9eb;
+    --accent:#1b3a5c;
+    --shadow:0 1px 2px rgba(20,24,31,.05), 0 8px 24px rgba(20,24,31,.04);
+    --serif:Charter,"Bitstream Charter","Sitka Text",Georgia,Cambria,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#101318;
+      --card:#171b22;
+      --ink:#e8ecf1;
+      --ink-soft:#a9b3c0;
+      --ink-faint:#7d8794;
+      --rule:#2a303a;
+      --rule-soft:#212730;
+      --verified:#6cc39a;
+      --verified-bg:#16302a;
+      --unknown:#d99a6c;
+      --unknown-bg:#332318;
+      --disputed:#d98a96;
+      --disputed-bg:#33191e;
+      --accent:#8ab4e0;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101318; --card:#171b22; --ink:#e8ecf1; --ink-soft:#a9b3c0;
+    --ink-faint:#7d8794; --rule:#2a303a; --rule-soft:#212730;
+    --verified:#6cc39a; --verified-bg:#16302a; --unknown:#d99a6c; --unknown-bg:#332318;
+    --disputed:#d98a96; --disputed-bg:#33191e; --accent:#8ab4e0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:17px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:44rem; margin:0 auto; padding:0 1.25rem 5rem}
+
+  /* ── draft banner ─────────────────────────── */
+  .draft{
+    background:var(--disputed-bg); color:var(--disputed);
+    border-bottom:1px solid var(--rule);
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.09em;
+    text-transform:uppercase; text-align:center; padding:.6rem 1rem;
+  }
+
+  /* ── masthead ─────────────────────────────── */
+  header{padding:3.5rem 0 2rem; border-bottom:2px solid var(--ink)}
+  .kicker{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-faint); margin:0 0 1.1rem;
+  }
+  h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(2.1rem,7vw,3.1rem);
+    line-height:1.08; letter-spacing:-.015em; margin:0 0 1rem; text-wrap:balance;
+  }
+  .standfirst{
+    font-family:var(--serif); font-size:1.15rem; line-height:1.55;
+    color:var(--ink-soft); margin:0 0 1.6rem; max-width:34rem;
+  }
+  .byline{
+    display:flex; flex-wrap:wrap; gap:.5rem 1.25rem; align-items:center;
+    font-family:var(--mono); font-size:.74rem; color:var(--ink-faint);
+    letter-spacing:.03em;
+  }
+
+  /* ── status chips ─────────────────────────── */
+  .chip{
+    display:inline-flex; align-items:center; gap:.35rem;
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.08em;
+    text-transform:uppercase; padding:.16rem .5rem; border-radius:2px;
+    white-space:nowrap; font-weight:600;
+  }
+  .chip::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor}
+  .v{color:var(--verified); background:var(--verified-bg)}
+  .u{color:var(--unknown);  background:var(--unknown-bg)}
+  .d{color:var(--disputed); background:var(--disputed-bg)}
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:.6rem; margin:2rem 0 0;
+    padding:1rem 1.1rem; background:var(--card); border:1px solid var(--rule);
+    border-radius:3px; box-shadow:var(--shadow);
+  }
+  .legend p{margin:0; font-size:.86rem; color:var(--ink-soft); flex:1 1 100%}
+
+  /* ── sections ─────────────────────────────── */
+  section{padding:3rem 0; border-bottom:1px solid var(--rule-soft)}
+  h2{
+    font-family:var(--serif); font-weight:600; font-size:1.65rem;
+    line-height:1.2; letter-spacing:-.01em; margin:0 0 1rem; text-wrap:balance;
+  }
+  h3{
+    font-family:var(--sans); font-weight:650; font-size:1.02rem;
+    margin:2rem 0 .5rem; letter-spacing:-.005em;
+  }
+  p{margin:0 0 1.1rem}
+  strong{font-weight:650}
+  .lede{font-family:var(--serif); font-size:1.1rem; color:var(--ink-soft)}
+
+  /* ── ledger table ─────────────────────────── */
+  .ledger{
+    background:var(--card); border:1px solid var(--rule); border-radius:3px;
+    box-shadow:var(--shadow); overflow-x:auto; margin:1.5rem 0;
+  }
+  table{width:100%; border-collapse:collapse; font-size:.94rem}
+  caption{
+    text-align:left; padding:1rem 1.1rem .25rem; font-family:var(--mono);
+    font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint);
+  }
+  th,td{padding:.7rem 1.1rem; text-align:left; border-top:1px solid var(--rule-soft)}
+  thead th{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-faint); font-weight:500; border-top:none;
+  }
+  td.num, th.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+  tr.total td{border-top:2px solid var(--ink); font-weight:650; background:var(--rule-soft)}
+  tr.total td.num{font-size:1.04rem}
+
+  /* ── pull quote ───────────────────────────── */
+  .pull{
+    margin:2rem 0; padding:1.25rem 0 1.25rem 1.4rem;
+    border-left:3px solid var(--accent);
+    font-family:var(--serif); font-size:1.3rem; line-height:1.4; letter-spacing:-.01em;
+  }
+  .pull span{display:block; margin-top:.6rem; font-family:var(--mono); font-size:.72rem;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint)}
+
+  /* ── numbered findings ────────────────────── */
+  ol.findings{list-style:none; margin:0; padding:0; counter-reset:f}
+  ol.findings > li{
+    counter-increment:f; position:relative; padding:1.5rem 0 1.5rem 3rem;
+    border-top:1px solid var(--rule-soft);
+  }
+  ol.findings > li::before{
+    content:counter(f,decimal-leading-zero); position:absolute; left:0; top:1.55rem;
+    font-family:var(--mono); font-size:.78rem; color:var(--ink-faint); letter-spacing:.05em;
+  }
+  ol.findings h3{margin-top:0}
+
+  /* ── source box ───────────────────────────── */
+  .sources{
+    background:var(--card); border:1px solid var(--rule); border-left:3px solid var(--verified);
+    border-radius:3px; padding:1.25rem 1.35rem; margin:1.5rem 0; box-shadow:var(--shadow);
+  }
+  .sources ul{margin:.6rem 0 0; padding-left:1.1rem}
+  .sources li{margin:.3rem 0; font-family:var(--mono); font-size:.85rem; color:var(--ink-soft)}
+
+  .notknown{
+    background:var(--unknown-bg); border:1px solid var(--rule); border-radius:3px;
+    padding:1.25rem 1.35rem; margin:1.5rem 0;
+  }
+  .notknown ul{margin:.6rem 0 0; padding-left:1.1rem}
+  .notknown li{margin:.35rem 0}
+
+  footer{padding:3rem 0 0; font-size:.9rem; color:var(--ink-soft)}
+  footer .org{font-family:var(--serif); font-size:1.1rem; color:var(--ink); margin-bottom:.4rem}
+  .stance{
+    font-family:var(--serif); font-size:1.05rem; color:var(--ink);
+    border-top:1px solid var(--rule); margin-top:1.5rem; padding-top:1.5rem;
+  }
+  @media (max-width:600px){
+    body{font-size:16px}
+    .wrap{padding:0 1rem 4rem}
+    th,td{padding:.6rem .75rem}
+    ol.findings > li{padding-left:2.4rem}
+  }
+  a{color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+</style>
+
+<div class="draft">Draft — not yet approved for publication</div>
+
+<div class="wrap">
+
+<header>
+  <p class="kicker">RichenQuest · Cost Report No. 1</p>
+  <h1>What a Master's in Europe actually costs</h1>
+  <p class="standfirst">Most consultancies will tell you the tuition. We are going to tell you the total — and where we are still unsure.</p>
+  <div class="byline">
+    <span>Verified 16 August 2026</span>
+    <span>Patna, Bihar</span>
+    <span>Every figure sourced</span>
+  </div>
+</header>
+
+<div class="legend">
+  <p>Every claim below carries one of three marks. Nothing is left blank, because a blank reads as zero.</p>
+  <span class="chip v">Verified</span>
+  <span class="chip u">Not verified</span>
+  <span class="chip d">Sources disagree</span>
+</div>
+
+<section>
+  <h2>The gap between the brochure and the bill</h2>
+  <p class="lede">We researched the University of Debrecen in Hungary carefully. It is a good university with a real advantage for Indian students, and we recommend it to the right family.</p>
+  <p>Its tuition for an English-taught Master's is <strong>USD 7,500–8,000 a year</strong> — about <strong>₹13 lakh</strong> across two years. That is the number most families are shown.</p>
+  <p><strong>The University of Debrecen's own cost-of-living page says students in Debrecen spend about USD 800 per month.</strong> Over two years that is roughly ₹16.7 lakh — more than the tuition.</p>
+
+  <div class="ledger">
+    <table>
+      <caption>Two-year Master's · University of Debrecen</caption>
+      <thead>
+        <tr><th>Item</th><th class="num">₹ lakh</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tuition, 2 years</td><td class="num">13.05–13.92</td><td><span class="chip v">Verified</span></td></tr>
+        <tr><td>Living, university's own figure</td><td class="num">16.70</td><td><span class="chip v">Verified</span></td></tr>
+        <tr><td>Application + entrance exam <em>(non-refundable)</em></td><td class="num">0.43</td><td><span class="chip v">Verified</span></td></tr>
+        <tr><td>Residence permit and entry visa</td><td class="num">0.10</td><td><span class="chip v">Verified</span></td></tr>
+        <tr><td>Insurance, flights, translation, buffer</td><td class="num">—</td><td><span class="chip u">Not verified</span></td></tr>
+        <tr class="total"><td>Total</td><td class="num">30.29–31.16</td><td><span class="chip u">A floor</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Because four lines are still unverified, <strong>even this is a floor, not a total.</strong></p>
+
+  <div class="pull">
+    The tuition figure was not wrong. It was just not the answer to the question a family is actually asking.
+  </div>
+</section>
+
+<section>
+  <h2>Four things nobody mentions</h2>
+  <ol class="findings">
+    <li>
+      <h3>The application fee is not the application cost</h3>
+      <p>Debrecen charges <strong>USD 150 to apply</strong>. There is also an entrance examination fee reported at <strong>USD 350</strong>. That is roughly <strong>₹43,000 spent before anyone has looked at your file</strong> — and it is not refundable if the answer is no.</p>
+      <p><span class="chip u">Not verified</span> &nbsp;We have asked the university to confirm the exam fee applies to Master's applicants. Until they reply, treat it as unconfirmed.</p>
+    </li>
+    <li>
+      <h3>Where you live can change the total by ₹5–12 lakh</h3>
+      <p>A university dormitory in Debrecen is reported at <strong>HUF 40,000 a month</strong>. Private rental, on the university's own accommodation page, is <strong>HUF 120,000–140,000</strong>. Over two years that difference is larger than most families' entire savings for the degree.</p>
+      <p>We have asked whether dormitory places are guaranteed for self-funded international students. <strong>The university's own page does not say they are.</strong> Until we know, we plan on the higher number.</p>
+    </li>
+    <li>
+      <h3>Germany's €11,904 “blocked account” is not a cost</h3>
+      <p>It is your own money. It sits in a German account and is <strong>released back to you at about €992 a month</strong> to live on. Germany is a <em>liquidity</em> barrier — you must be able to produce the sum — not a price. <strong>Anyone describing it as a fee has not understood it.</strong></p>
+    </li>
+    <li>
+      <h3>Poland's student work rules changed, and much of the advice online has not caught up</h3>
+      <p>Since <strong>1 December 2025</strong>, a non-EU student in Poland can work without a separate work permit <strong>only if their university is on an approved Ministry of the Interior list</strong> — and most Polish universities are not.</p>
+      <p>If someone tells you your child can simply work part-time in Poland, <strong>ask them which list the university is on.</strong></p>
+    </li>
+  </ol>
+</section>
+
+<section>
+  <h2>The one that is genuinely worth knowing</h2>
+  <p><strong>Italy's regional DSU grant is open to non-EU students, and it is means-tested on family income rather than marks alone.</strong></p>
+  <p>The Emilia-Romagna authority's own rules state that an international student whose family does not live in Italy is awarded at the <strong>“fuori sede”</strong> rate — the highest band — regardless of where the student actually lives. For 2026/27 the national minimum for that band is <strong>€7,171.11 a year</strong>, and DSU winners also have tuition waived and can receive accommodation and meal support.</p>
+  <p>With DSU, an Italian public-university Master's can cost a fraction of the Hungarian total. Without it, Italy is still roughly ₹13–25 lakh.</p>
+
+  <h3>Three warnings, because this is the number families most want to believe</h3>
+  <div class="notknown">
+    <ul>
+      <li><strong>It is not guaranteed.</strong> It is applied for, against income thresholds and available funding.</li>
+      <li><strong>It arrives after enrolment.</strong> You must be able to fund the course and the visa <em>before</em> it.</li>
+      <li><strong>Applications close in early autumn</strong> — typically July to September, before most families have even chosen a university. For a September 2027 start, that means preparing now.</li>
+    </ul>
+  </div>
+  <p><strong>Anyone who tells you they can guarantee you this scholarship is lying to you.</strong></p>
+</section>
+
+<section>
+  <h2>The number nobody can give you</h2>
+  <p>How much must you show for a Hungarian student visa?</p>
+  <p>Hungary's immigration authority requires you to prove you can cover subsistence, accommodation, return travel and healthcare — <strong>and publishes no figure at all.</strong></p>
+  <p>We found secondary sources confidently stating <strong>HUF 200,000 a month</strong> and others stating <strong>HUF 98,000</strong> — a difference of more than double.</p>
+  <div class="pull">
+    They disagree because there is no published number to agree on.
+    <span>If a consultant quotes you a precise amount, ask where it comes from</span>
+  </div>
+</section>
+
+<section>
+  <h2>How to check us</h2>
+  <p>Every figure above is from a primary source and dated. <strong>Check them.</strong></p>
+  <div class="sources">
+    <ul>
+      <li>edu.unideb.hu · unideb.hu — tuition, deadlines, cost of living, accommodation</li>
+      <li>oif.gov.hu — Hungarian residence permit fees and requirements</li>
+      <li>er-go.it · edisu.piemonte.it — DSU rules and amounts</li>
+    </ul>
+  </div>
+  <p><strong>If you find we are wrong, tell us. We will correct it publicly and credit you.</strong> We have already corrected our own Debrecen estimate four times as we moved closer to primary sources — and each time the real number went up.</p>
+  <p>That is the whole reason this report exists.</p>
+</section>
+
+<section>
+  <h2>What we are not telling you</h2>
+  <p>Because we have not verified it:</p>
+  <div class="notknown">
+    <ul>
+      <li><strong>Graduate employment rates or salaries</strong> for any university in our portfolio</li>
+      <li><strong>Visa approval rates</strong> — we have filed none, and anybody quoting one should be asked how they know</li>
+      <li><strong>Living costs</strong> for most of the cities we discuss</li>
+      <li><strong>Whether a dormitory place will be available to you</strong></li>
+    </ul>
+  </div>
+  <p>We would rather give you a short list you can trust than a long one you cannot.</p>
+</section>
+
+<footer>
+  <p class="org">RichenQuest Private Limited</p>
+  <p>Patna, Bihar · official@richenquest.com</p>
+  <p class="stance">We are paid by families, not by universities. That is why we can tell you a university is too expensive for you.</p>
+</footer>
+
+</div>
