@@ -1,7 +1,7 @@
 # The Canonical Student Data Model
 
 **One source of truth. Every module reads and writes this.**
-**v1.0 · 17 Aug 2026 · Zoho CRM, org 60074018310**
+**v1.1 · 17 Aug 2026 · Zoho CRM, org 60074018310 · 🔒 FROZEN AFTER THIS REVISION**
 
 ---
 
@@ -10,12 +10,25 @@
 ```
 CONTACT  (the person — immutable identity, survives forever)
    │
-   ├── 1:N ── LEAD          (an enquiry. Pre-decision. Dies on conversion)
+   ├── 1:N ── LEAD           (an enquiry. Pre-decision. Dies on conversion)
    │
-   └── 1:N ── STUDENT CASE  (Deals — ONE INTAKE ATTEMPT)
+   └── 1:N ── STUDENT CASE   (Deals — ONE INTAKE ATTEMPT)
                   │
-                  └── N:1 ── ACCOUNT (university)
+                  └── 1:N ── APPLICATION   🆕 (one university, one attempt)
+                                 │
+                                 └── N:1 ── ACCOUNT (university)
 ```
+
+**🆕 APPLICATION is new in v1.1 and it closes the largest gap in the model.**
+
+The Case previously held `Course_University_Final` — a single text field. **That records the
+destination and destroys the funnel.** A student applies to four universities and takes one; with a
+single field we know only the one, so we can never answer *"of 47 applications to Debrecen, how many
+became offers?"* — **which is precisely the question the outcomes registry exists to answer.**
+
+**Each Application carries its own deadline, documents, fee, offer and rejection**, because each
+genuinely has them. Modelling four applications inside one Case means four deadlines in one date
+field, which fails at the second university.
 
 **The decision that makes this model work: a Student Case is one *intake attempt*, not one student.**
 
@@ -91,6 +104,27 @@ records what was true at the time.**
 **`Refusal_Grounds` is verbatim and immutable once written.** A paraphrased refusal ground is worthless
 for the outcome dataset and dangerous in an appeal.
 
+## 4b. 🆕 APPLICATION — one university, one attempt
+
+**Zoho custom module. Identified as a gap in File 25 and never built; now justified.**
+
+| Field | Type | Source | Owner | Notes |
+|---|---|---|---|---|
+| `Student_Case` | lookup → Deals | system | system | parent |
+| `University` | lookup → Accounts | counsellor | counsellor | |
+| `Programme` | text | counsellor | counsellor | |
+| `Application_Deadline` | date | Account | 🤖 copied from `Next_App_Deadline` | |
+| `Submitted_On` | date | counsellor | counsellor | **immutable once set** |
+| `Application_Status` | picklist | counsellor | counsellor | Not started · In progress · **Submitted** · Offer · Rejected · Withdrawn |
+| `Outcome_On` | date | counsellor | counsellor | |
+| `Rejection_Reason` | textarea | university | counsellor | **verbatim** |
+| **`Fee_Paid_INR`** | double | counsellor | counsellor | **Non-refundable money, per application. This is what a family actually loses** |
+| `Scholarship_Applied` · `Scholarship_Outcome` | picklist | counsellor | counsellor | |
+
+**`Fee_Paid_INR` sums to the Case's `Cost_Actual_INR`.** Without it, "what did this actually cost"
+misses every application fee — and application fees are the money spent *before any answer*, which is
+the number families are least prepared for.
+
 ## 5. ACCOUNT — university
 
 **Already canonical.** 30 fields, of which the load-bearing ones are the **five independent confidence
@@ -122,6 +156,10 @@ figure be published with a "Medium" label while its finance dimension was LOW.
 | **M5** | **`Node_Contact` on the Case** | `Lead_Source_Detail` is Lead-only. **The 3× edge needs to know who to notify at Offer and Visa** | **P1** |
 | **M6** | Stage entry dates — `Applied_On`, `Offer_Received_On` | Timelines are inferred from stage history, which is unqueryable. **The outcome dataset needs real medians** | P2 |
 | **M7** | `Permit_Expiry_Date` | Renewal is the recurring revenue line. **No date, no reminder** | P2 |
+| **M8** | **`Acquisition_Source`** *(immutable)* + **`Acquisition_Detail`** on **Contact and Case** | Teacher · student referral · GBP · seminar · website · walk-in · parent. **`Lead_Source_Detail` is Lead-only, so attribution dies at conversion and CAC can never be computed** | **P1** |
+| **M9** | **`Competitor_Chosen`** | IDP · LeapScholar · KC Overseas · AECC · self-applied · unknown. **Only capturable at the moment of loss, and worth more each year** | **P1** |
+| **M10** | **`Outcome_Confidence`** | **Verified by document · verified by university · student-reported · unknown.** This is the field that separates a registry from hearsay | **P1** |
+| — | ~~`Lost_Reason`~~ | **ALREADY EXISTS on Deals.** Values not confirmed — CRM unreachable. **Review the picklist and make it mandatory at Closed Lost, with notes required on "Other"** | audit |
 
 ## 8. 🔴 SHOULD NEVER EXIST
 
@@ -166,5 +204,24 @@ rejected.
 | 7 | Add `Applied_On`, `Offer_Received_On`, `Permit_Expiry_Date` | none | yes |
 | 8 | Audit `Lane` against shortlist queries | none | — |
 
-**Steps 1–5 are launch-blocking. Steps 6–8 wait for the first ten students, because a schema change
-with no records to migrate is free, and one with records is not.**
+| **9** 🆕 | **Create the APPLICATION custom module** + move `Course_University_Final` to it | medium | yes, while empty |
+| **10** | Add `Acquisition_Source`, `Acquisition_Detail`, `Competitor_Chosen`, `Outcome_Confidence` | none | yes |
+| **11** | Audit `Lost_Reason` values; make mandatory at Closed Lost | none | yes |
+
+**Steps 1–5 are launch-blocking. Steps 9–11 must also happen before student #1** — not because they
+block operation, but because **a schema change with no records to migrate is free and one with records
+is not.** Steps 6–8 can wait.
+
+---
+
+## 🔒 SCHEMA FREEZE
+
+**After this migration the model is frozen.** No field is added without a defect report showing an
+existing field cannot carry the information.
+
+**The reason is not tidiness.** Every schema change after student #1 means a migration, a re-test of
+`parseInquiry`, and a window where old and new records disagree. **The model is now sufficient for
+Student 360, the counsellor workspace, the parent timeline, the client portal and the university
+workspace — all five read this model without modification.**
+
+**Next work is consumption, not design.**
