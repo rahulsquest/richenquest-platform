@@ -78,6 +78,30 @@ converts "no university will sign us without references" from a blocker into a s
 > **After that, seminars pitch Vistula March 2027 (25 weeks) and September 2027** — selling a
 > February start in late October is selling an intake the student cannot reach.
 
+
+## ⚰️ THE ASSUMPTION DEATH REGISTER
+
+**Institutional memory. Every entry is an assumption the evidence killed.**
+**An assumption not on this list is either still a guess or has never been tested.**
+
+| Assumption | Reality | Killed by | Status |
+|---|---|---|---|
+| **"Debrecen is affordable for our core segment"** | **₹30.3–31.2 lakh** for a 2-yr Master's — the university's own published living figure | `edu.unideb.hu` | ☠️ **DEAD** |
+| **"A ₹10–15 lakh Bachelor's exists in Europe"** | Living costs alone are ₹10–22 L over three years. **Arithmetically impossible** | country cost modelling | ☠️ DEAD |
+| **"Italy can serve a February intake"** | **DSU deadlines close in early autumn.** A Feb-2027 starter cannot apply | regional bandi calendars | ☠️ DEAD |
+| **"DSU generosity varies by region, so rank universities by it"** | **Nationally floored at €7,171.11.** It barely varies | er-go.it · edisu.piemonte.it | ☠️ DEAD |
+| **"The consulting fee is essentially the whole business"** | The relationship is. **Post-enrolment services add 49% contribution for 19 more hours** | 5-year LTV model | ☠️ DEAD |
+| **"True Cost is uncopyable because competitors' incentives forbid it"** | **True of IDP/AECC. False of LeapScholar and Leverage Edu** — they monetise loans, not enrolments | competitor revenue models | ☠️ **DEAD — the moat is time, not incentive** |
+| **"The HUF 40,000 dorm rate is available to self-funded students"** | The university guarantees no dorm place and quotes only **private rental at HUF 120–140,000** | `edu.unideb.hu` accommodation page | ☠️ DEAD |
+| **"Poland students can work part-time freely"** | **Since 1 Dec 2025 most universities require a work permit** | gov.pl / Grant Thornton | ☠️ DEAD |
+| "Trust nodes will forward a free honest report" | — | **UNTESTED — E1a** | 🔵 **still a guess** |
+| "Parents who read the report will enquire" | — | **UNTESTED — E1b** | 🔵 still a guess |
+| "Seminars convert better than forwards" | — | **UNTESTED — E4** | 🔵 still a guess |
+| "₹60,000 is the right February price" | — | **UNTESTED — needs 10 quotes** | 🔵 still a guess |
+
+**Eight assumptions died to research. Four are waiting on conversations that have not happened.**
+**Every one of the four is worth more than another document.**
+
 ## 🎯 RANKED OPPORTUNITY QUEUE — always work the top row first
 
 Scored 1–5. **Rank = (student impact × probability) ÷ effort**, with strategic importance breaking ties.

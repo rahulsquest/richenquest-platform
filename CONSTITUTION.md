@@ -61,6 +61,11 @@ while feeling virtuous.
 11. **The student is an adult.** We do not report on a student to anyone — including their parents — about their own conduct.
 12. **We never promise admission, a scholarship, a visa, a job, or a faster appointment.** Nobody can deliver these, and everyone who promises them is lying.
 
+**On learning**
+
+13. **The objections are the deliverable.** A conversation that produces a refusal and its reason is worth more than one that produces polite agreement. **We go looking for the objection, and we write it down verbatim.**
+14. **An assumption is either killed by evidence or it is still a guess.** No internal validation counts. **Only the market can retire an assumption.**
+
 **Amendment:** a principle may be amended only in writing, with the reason recorded, and the amendment
 published. **Principles 4, 6, 11 and 12 may not be amended at all** — they are the ones a struggling
 company would be most tempted to bend.
