@@ -1,7 +1,19 @@
 # COMMISSION & VERIFICATION ASK — three emails, one click each
 
-> **These three emails are the entire distance between a 0-READY portfolio and a working February
-> 2027 campaign.** Every other blocker on the board is downstream of them.
+> ## 👉 SEND #1 ONLY. TODAY.
+>
+> **Debrecen. Not all three.**
+>
+> It is the **only university that can produce a February 2027 student** — the other two cannot
+> affect this intake. It is **one field from READY**. And it is an **existing relationship**, so this
+> is a continuation rather than a cold approach.
+>
+> **#2 and #3 wait until Debrecen replies.** Then you will know how these conversations actually go,
+> and the second email will be better for it. See File 56 §3.
+>
+> **If they ask how many students you'll send** — the answer is prepared, in File 56 §3. Short
+> version: *"I'm not going to quote a number I can't stand behind."* That is stronger than a figure,
+> because international offices hear inflated projections constantly and almost never hear that.
 >
 > **Read each one before sending.** They are written to be sent as-is, but they go out under your
 > name and they are the first impression each university will have of RichenQuest.
