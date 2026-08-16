@@ -1,0 +1,169 @@
+string standalone.normalizeInput(string field, string value)
+{
+	/*  PURPOSE
+	 *    The single normalisation layer. Every integration that writes to a
+	 *    picklist goes through here - the WhatsApp parser, the web form, any
+	 *    future import, API or mobile app.
+	 *
+	 *  WHY IT EXISTS
+	 *    Zoho does NOT enforce picklist values. Verified 2026-08-17: a probe
+	 *    wrote "Masters" into Interested_Level, whose only valid value is
+	 *    "Master's". The record saved with no error and no warning.
+	 *
+	 *    That is the most dangerous class of bug in this system, because
+	 *    leadToPlan matches the exact string - so the lead can never be planned
+	 *    and NOTHING IN THE RECORD LOOKS WRONG. A counsellor sees "Masters" and
+	 *    cannot understand why the matcher errors.
+	 *
+	 *    Scattering normalisation across parseInquiry, leadToPlan and every
+	 *    future integration would guarantee they drift. One function, one place
+	 *    to fix when a picklist changes.
+	 *
+	 *  CONTRACT
+	 *    Returns the canonical CRM value, or the trimmed input unchanged when
+	 *    the field is not one it governs. NEVER returns empty for a non-empty
+	 *    input - silently blanking a value is worse than passing it through,
+	 *    because a wrong value is visible and a missing one is not.
+	 *
+	 *  VERSION  1.0 (2026-08-17)
+	 */
+	if(value == null)
+	{
+		return "";
+	}
+	v = value.trim();
+	if(v == "" || v == "-")
+	{
+		return "";
+	}
+	/*  Curly apostrophes survive copy-paste through WhatsApp and phone
+	 *  keyboards, and they are invisible in a CRM field.
+	 */
+	v = v.replaceAll("’","'");
+	v = v.replaceAll("‘","'");
+	lower = v.toLowerCase();
+	if(field == "Interested_Level")
+	{
+		if(lower.startsWith("master") || lower == "pg" || lower == "ms" || lower == "msc")
+		{
+			return "Master's";
+		}
+		if(lower.startsWith("bachelor") || lower == "ug" || lower == "bsc" || lower == "ba")
+		{
+			return "Bachelor's";
+		}
+		if(lower.startsWith("diploma"))
+		{
+			return "Diploma";
+		}
+		if(lower.startsWith("phd") || lower.startsWith("doctor"))
+		{
+			return "PhD";
+		}
+		return "Other";
+	}
+	if(field == "English_Status")
+	{
+		if(lower.contains("no test") || lower.contains("none") || lower.contains("toefl") || lower.contains("pte"))
+		{
+			return "None";
+		}
+		if(lower.contains("moi") || lower.contains("medium of instruction") || lower.contains("taught in english"))
+		{
+			return "MOI";
+		}
+		if(v.contains("5.5"))
+		{
+			return "5.5";
+		}
+		if(v.contains("6.0") || v == "6")
+		{
+			return "6.0";
+		}
+		if(v.contains("6.5"))
+		{
+			return "6.5";
+		}
+		if(v.contains("7"))
+		{
+			return "7.0";
+		}
+		return "None";
+	}
+	if(field == "Passport_Status")
+	{
+		if(lower.contains("valid") || lower.contains("have"))
+		{
+			return "Valid";
+		}
+		if(lower.contains("applied") && !lower.contains("not"))
+		{
+			return "Applied";
+		}
+		if(lower.contains("expired"))
+		{
+			return "Expired";
+		}
+		return "Not applied";
+	}
+	if(field == "Budget_Range")
+	{
+		if(lower.contains("<10") || lower.contains("under 10") || lower.contains("under ₹10"))
+		{
+			return "<10L";
+		}
+		if(v.contains("35") && (lower.contains("+") || lower.contains("above")))
+		{
+			return "35L+";
+		}
+		if(v.contains("20") && v.contains("35"))
+		{
+			return "20-35L";
+		}
+		if(v.contains("10") && v.contains("20"))
+		{
+			return "10-20L";
+		}
+		return v;
+	}
+	if(field == "Intended_Intake")
+	{
+		if(lower.startsWith("feb"))
+		{
+			return "Feb 2027";
+		}
+		if(lower.startsWith("mar"))
+		{
+			return "Mar 2027";
+		}
+		if(lower.startsWith("sep") && v.contains("2026"))
+		{
+			return "Sep 2026";
+		}
+		if(lower.startsWith("sep"))
+		{
+			return "Sep 2027";
+		}
+		if(lower.startsWith("jan"))
+		{
+			return "Jan 2027";
+		}
+		if(lower.startsWith("may"))
+		{
+			return "May 2027";
+		}
+		if(v.contains("2028"))
+		{
+			return "2028+";
+		}
+		if(lower.contains("not sure") || lower.contains("undecided"))
+		{
+			return "Undecided";
+		}
+		return v;
+	}
+	/*  Not a field this function governs. Pass through unchanged rather than
+	 *  guessing - an unknown field is not the same as a bad value.
+	 */
+	return v;
+}

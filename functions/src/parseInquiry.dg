@@ -32,7 +32,7 @@ string standalone.parseInquiry(string raw)
 	 *    - Everything unmapped is appended to Description, so no answer a family
 	 *      took the trouble to give is ever thrown away.
 	 *
-	 *  DEPENDENCIES  qualifyLead, assignCounselor, createFollowUpTasks
+	 *  DEPENDENCIES  normalizeInput, qualifyLead, assignCounselor, createFollowUpTasks
 	 *  VERSION       1.0 (2026-08-17)
 	 */
 	out = Map();
@@ -143,15 +143,15 @@ string standalone.parseInquiry(string raw)
 		}
 		else if(k == "English")
 		{
-			rec.put("English_Status",v);
+			rec.put("English_Status",standalone.normalizeInput("English_Status",v));
 		}
 		else if(k == "Passport")
 		{
-			rec.put("Passport_Status",v);
+			rec.put("Passport_Status",standalone.normalizeInput("Passport_Status",v));
 		}
 		else if(k == "Total budget")
 		{
-			rec.put("Budget_Range",v);
+			rec.put("Budget_Range",standalone.normalizeInput("Budget_Range",v));
 		}
 		else if(k == "Family income")
 		{
@@ -163,27 +163,15 @@ string standalone.parseInquiry(string raw)
 		}
 		else if(k == "Level")
 		{
-			/*  DEFENSIVE NORMALISATION — Zoho does NOT enforce picklist values.
-			 *  A probe wrote "Masters" into a field whose only valid value is
-			 *  "Master's" and the record saved silently. leadToPlan matches on
-			 *  the exact string, so a curly apostrophe surviving a copy-paste
-			 *  through WhatsApp would produce a lead that can never be planned,
-			 *  with nothing in the record looking wrong.
+			/*  All picklist normalisation lives in normalizeInput - one place to
+			 *  fix when a picklist changes, instead of logic drifting across
+			 *  every integration that writes to the CRM.
 			 */
-			lv = v.replaceAll("\u2019","'");
-			if(lv == "Masters" || lv == "Master" || lv.startsWith("Master"))
-			{
-				lv = "Master's";
-			}
-			else if(lv == "Bachelors" || lv == "Bachelor" || lv.startsWith("Bachelor"))
-			{
-				lv = "Bachelor's";
-			}
-			rec.put("Interested_Level",lv);
+			rec.put("Interested_Level",standalone.normalizeInput("Interested_Level",v));
 		}
 		else if(k == "Intake")
 		{
-			rec.put("Intended_Intake",v);
+			rec.put("Intended_Intake",standalone.normalizeInput("Intended_Intake",v));
 		}
 		else if(k == "Course")
 		{

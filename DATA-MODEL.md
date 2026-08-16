@@ -1,7 +1,20 @@
 # The Canonical Student Data Model
 
 **One source of truth. Every module reads and writes this.**
-**v1.1 · 17 Aug 2026 · Zoho CRM, org 60074018310 · 🔒 FROZEN AFTER THIS REVISION**
+**v1.1 · 17 Aug 2026 · Zoho CRM, org 60074018310**
+
+> ## 🔒 SCHEMA FROZEN — migration executed and verified, 17 Aug 2026
+>
+> | | |
+> |---|---|
+> | **Applications module** | ✅ created, **11 fields** — lookups to Deals and Accounts |
+> | **Contacts** | ✅ **8 fields** — consent ×3, parent ×3, attribution ×2 |
+> | **Student Case** | ✅ **6 fields** — passport, node contact, attribution ×2, outcome confidence, competitor |
+> | **`normalizeInput`** | ✅ deployed. **8/8 unit checks pass** |
+> | **Regression** | ✅ **18/18 PASS, 0 leaked probes** · visaOpsSweep ok · readinessSweep ok |
+>
+> **No field is added from here without a defect report showing an existing field cannot carry the
+> information.** Next work is consumption: Student 360, counsellor workspace, parent PDF.
 
 ---
 
