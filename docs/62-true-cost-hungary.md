@@ -1,5 +1,12 @@
 # File 62 — True Cost Report: Hungary
 
+> ## 🔴 SUPERSEDED IN PART — read File 63 §0 first
+> **The Minimum Verified Cost of ₹15.89 L below rests on a HUF 40,000 dormitory rate that I could not
+> sustain under challenge the following day.** Debrecen's own international accommodation page quotes
+> only **private rental at HUF 120,000–140,000/month** and does **not** guarantee dormitory places to
+> self-financed students. **Corrected totals: ₹20.50–22.52 L.** The dormitory figure is now
+> **NEEDS CONFIRMATION**. Everything else in this file stands.
+
 **One country, verified deeply, rather than five researched shallowly.** Hungary was chosen because
 Debrecen is the only path RichenQuest can execute today, and because its living cost was the figure
 that decided whether our February product costs ₹19 L or ₹24.5 L.
