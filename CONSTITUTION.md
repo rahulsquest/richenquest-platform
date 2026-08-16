@@ -232,3 +232,189 @@ on this distinction, because getting it wrong makes the Constitution sound like 
 > **If RichenQuest disappeared tomorrow, a family would lose the only organisation that told them what
 > their child's education would actually cost, admitted what it did not know, and kept saying so after
 > the money had already been paid.**
+
+---
+
+# V. THE FAILURE PREVENTION MANUAL
+
+**Assume RichenQuest failed. Every reason, ranked by likelihood × impact.**
+
+| # | Failure | Likelihood | Impact | Earliest warning sign | Permanent prevention |
+|---|---|:-:|:-:|---|---|
+| **1** | **Died of planning. Never got a first student** | **HIGH — happening now** | fatal | **Strategy documents accumulating while enrolments stay at zero** | **One metric only (§VIII). No document without a student attached to it** |
+| **2** | **Complexity collapse — nobody can find the truth** | **HIGH — happening now** | severe | **106,079 words across 73 documents.** A new CEO cannot read it | **§VII. Four permanent documents. Everything else archived** |
+| **3** | **A counsellor promises something to close a sale** | **HIGH, once revenue exists** | fatal | A counsellor paid per enrolment | **Counsellors are salaried. Never commissioned.** §VI |
+| **4** | Founder dependency — Rahul unavailable | **HIGH** | severe | Any process that needs his laptop or his signature | §IX |
+| **5** | **Stale data quoted with confidence** | MED | severe | A `Review_Date` passes and the record is still recommended | `readinessSweep` drops it from READY automatically |
+| **6** | Scaling counsellors faster than training | MED | severe | Second counsellor hired without shadowing | **Nobody presents alone before day 3.** No exceptions |
+| **7** | **A hidden commission is discovered** | LOW | **fatal** | Any partner offering payment without a disclosure clause | **Unamendable principle 6** |
+| **8** | Corrections quietly stop | MED | **fatal, slowly** | **A month with zero corrections published** | Counted monthly. Zero is a red flag, not a clean sheet |
+| **9** | Regulatory change — Emigration Act, agent licensing | LOW | severe | Any service touching recruitment or migration advice | **Stay out of regulated activity until licensed** |
+| **10** | A student is harmed by our advice | LOW | **fatal** | Advice given without a source | **Never advise beyond what is verified** |
+| 11 | Competitor copies True Cost | **MED-HIGH** | moderate | A funded player publishes verified costs | **The correction history cannot be copied.** §0 |
+| 12 | AI commoditises counselling | HIGH | moderate | Free tools shortlisting universities well | **AI cannot sit in a Questura or verify a rule nobody published.** Move up the stack, not down |
+
+**Failures 1 and 2 are not hypothetical. They are the current state**, and everything below them is
+theoretical until they are fixed.
+
+## Second-order check on our own strategy
+
+**"Publish everything we verify" — five layers deep:**
+
+1. We publish verified costs → families trust us
+2. Competitors copy the numbers → our facts stop being differentiating
+3. **We are left competing on the correction history** → which requires continuing to be publicly wrong
+4. **Being publicly wrong repeatedly could read as incompetence** → §IV.3 risk becomes structural
+5. **Therefore: corrections must always be paired with the primary source that resolved them.** *"We were wrong; here is the university's own page that corrected us"* reads as rigour. *"We were wrong again"* alone reads as amateurism.
+
+**That fifth-order consequence is why principle 5 — never state a number without a source — protects
+principle 4.**
+
+---
+
+# VI. INSTITUTIONAL INCENTIVES
+
+> ### A counsellor paid per enrolment will eventually promise something. Not because they are dishonest — because the incentive is patient and the human is not.
+
+**This is the Mayo property applied internally: the person giving advice must not profit from the
+advice being yes.**
+
+| Never reward | Reward instead |
+|---|---|
+| Enrolments closed | **Families correctly turned away** |
+| Revenue per counsellor | **Accuracy: zero unsourced claims** |
+| Applications submitted | **Applications submitted before the safe date** |
+| Speed | **Documentation quality — the next person can pick up the case** |
+| — | **Corrections filed.** Finding our own error is rewarded, not punished |
+| — | **Referrals from their own students** — the only unfakeable outcome measure |
+| — | **Knowledge contributed** — questions turned into articles |
+
+**Compensation structure:** salary, plus a team bonus on **referral rate**, never an individual bonus
+on enrolments. **A team bonus on a lagging, unfakeable metric cannot be gamed by any single
+counsellor.**
+
+**Promoted:** the person who says *"I don't know"* in front of a family · who files a correction
+against their own work · whose students refer.
+**Removed:** anyone who promises an outcome. **First offence, if it reached a family: removal.** This
+is the one behaviour with no warning, because the family cannot be un-told.
+
+---
+
+# VII. THE INSTITUTIONAL LEARNING SYSTEM
+
+**One rule:**
+
+> **Nothing is learned until it is written where the next person will look — and the next person is
+> never the person who learned it.**
+
+| Trigger | Written, same week, into |
+|---|---|
+| Visa refused | Refusal log: **grounds verbatim** → counsellor playbook |
+| Scholarship missed | The deadline that moved → regional calendar |
+| Permit delayed | Revised lead time → `visaOpsPlan` |
+| Parent complaint | **Verbatim, in their words** → parent FAQ |
+| University changes a rule | CRM record + `Verified_On` → **every asset citing it** |
+| Counsellor error | **The process defect, not the person** → SOP |
+| **A question asked twice** | **Knowledge article that week** |
+
+**Two disciplines that make it real:**
+
+1. **The weekly challenge.** Take one verified fact and try to disprove it. **This caught a ₹9 lakh error in our own cost model within a day of publishing it.**
+2. **Errors are reported, not concealed.** A counsellor who reports their own mistake is thanked in public. **The first time someone is punished for reporting, the learning system dies and nobody will tell you.**
+
+## Trust stress test — where the philosophy breaks
+
+| Scale | Does it hold? |
+|---|---|
+| **100 students** | ✅ Yes. Everything in this document works |
+| **1,000 students** | 🔴 **"We verify everything from primary sources" BREAKS.** Ten people cannot re-verify a growing portfolio annually. **Fix: verification depth follows usage, not inventory. Only what is actively recommended gets re-verified; everything else drops out of READY automatically** |
+| **10,000 students** | 🔴 **"We publish our own corrections" comes under real pressure**, because at scale a public correction is a news story. **Fix: it is an unamendable principle and it is counted monthly. The pressure is predictable, so the defence is structural rather than moral** |
+
+**Only those two fixes are needed. Nothing else in the philosophy breaks with scale**, because it is
+built on refusing rather than doing.
+
+---
+
+# VIII. THE ONE METRIC
+
+> ## Referral rate — referrals received ÷ students enrolled.
+
+**If every dashboard vanished, this is the number to keep.**
+
+**Why it beats the alternatives:**
+
+- **Revenue** rewards closing, not serving. It rises fastest when you promise most.
+- **Enrolments** is the metric that destroys consultancies.
+- **Reviews** can be solicited, incentivised, and gamed.
+- **Corrections published** measures our discipline, not the student's experience.
+- **Referral rate cannot be bought, faked or marketed.** A referral is a family staking their own reputation with someone they will see at a wedding.
+
+**And it captures the entire thesis in one number.** A family only refers if **the cost we quoted was
+right**, the outcome worked, **and we were still there after they landed.** Any one of those failing
+and the number falls.
+
+> **It is lagging by two years — and that is the argument for it, not against it.** A metric you can
+> move this quarter is a metric you can game. **An institution built for twenty years should be
+> measured on something that takes years to move and cannot be faked.**
+
+**Healthy: > 0.33.** One referral for every three students enrolled.
+
+---
+
+# IX. THE FOUNDER INDEPENDENCE PLAN
+
+**Test: Rahul disappears for one year. What survives?**
+
+| | Survives? |
+|---|---|
+| **6 daily schedulers** — visa sweep, ops watch, readiness, digest | ✅ **Run in Zoho's cloud. No laptop needed** |
+| Counselling, seminars, first calls | ✅ Presenter pack + operating manual |
+| **Pricing decisions** | ✅ **Pre-set. A veto, not a decision** |
+| Knowledge base, CRM, SOPs | ✅ |
+| **4 maintenance scripts** | 🔴 **Depend on his logged-in Chrome session.** `platform-health`, `backup-crm`, `deploy-function`, `founder-dashboard` |
+| **Signing a partnership** | 🔴 Only he can |
+| **Verification skill** | 🔴 **Nobody else has been trained to find a primary source and judge it** |
+
+**Three dependencies, three fixes:**
+
+1. **The browser-session channel.** The entire maintenance layer runs through one person's logged-in browser. **Fix: a service OAuth token, or accept that maintenance pauses for a year while daily operations continue. The second is survivable — say so rather than pretending otherwise.**
+2. **Signing authority.** **Fix: a second signatory, named, before the first partnership.** A company with one signature is a company with one point of failure.
+3. **Verification skill — the most important and least documented.** **Fix: one person is trained to primary-source standard before the next hire.** It is the skill the Constitution depends on, and it currently lives in one head.
+
+**Verdict: RichenQuest survives Rahul's absence for a year in operations and dies in relationships.**
+That is the correct place for a founder to be irreplaceable — **and the wrong place is where he
+currently also is, which is the maintenance layer.**
+
+---
+
+# X. THE TEN PRINCIPLES
+
+**If every SOP, CRM, automation, dashboard, employee and founder were lost — these ten rebuild the
+company.**
+
+> **1. Be paid by the family, never in a way that makes "yes" more profitable than "no."**
+>
+> **2. Never state a number without its source and the date it was checked.**
+>
+> **3. Say "I don't know" before guessing — and say precisely where the knowing stops.**
+>
+> **4. Publish your own corrections, naming what you got wrong.**
+>
+> **5. Charge for what you control. Never for what you don't.**
+>
+> **6. Tell a family when it doesn't work for them, before they spend anything.**
+>
+> **7. Never promise admission, a scholarship, a visa, or a job. Anyone who does is lying.**
+>
+> **8. The student is an adult. Never report on them to anyone.**
+>
+> **9. Don't disappear when they land. The problems that recur are the ones nobody is paid to solve.**
+>
+> **10. Solve the bottleneck in front of you. Everything built for a stage you are not in is waste.**
+
+**Principles 1, 4, 7 and 8 may never be amended.** They are the four a struggling company would be
+most tempted to bend, and bending any one of them ends the institution regardless of what the
+accounts say that quarter.
+
+**Everything else in this repository — 73 documents, 34 functions, 60 CRM fields — is implementation.
+These ten are the company.**
