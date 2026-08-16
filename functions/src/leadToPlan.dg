@@ -1,0 +1,200 @@
+string standalone.leadToPlan(string lead_id)
+{
+	/*  PURPOSE
+	 *    Priority 4 - counsellor speed. Enquiry to counselling-ready in one
+	 *    call instead of a human re-typing the lead into the matcher.
+	 *
+	 *    Before this, a counsellor had to open the lead, read eight fields off
+	 *    it, and hand-type them into studentActionPlan. That is three minutes
+	 *    of transcription per enquiry, and transcription is where the typos
+	 *    that produce a wrong shortlist come from.
+	 *
+	 *  THREE TRANSLATIONS THAT HAD TO EXIST SOMEWHERE
+	 *    They were previously happening inside a counsellor's head, silently
+	 *    and inconsistently. Putting them here makes them reviewable.
+	 *
+	 *    1. LEVEL. Leads say "Bachelor's" / "Master's" (with an apostrophe).
+	 *       University records say "Bachelors" / "Masters". They would never
+	 *       have matched.
+	 *
+	 *    2. BUDGET. Leads carry a BAND, the matcher needs a number. We take the
+	 *       LOWER BOUND of the band, deliberately, so a shortlist never
+	 *       contains something the family cannot afford. Optimistic rounding
+	 *       here would produce a shortlist that collapses in the first call
+	 *       about money - which is the worst moment to lose trust.
+	 *
+	 *    3. INTAKE. Leads say "Feb 2027", the matcher needs "2027-02".
+	 *
+	 *  WHAT IT DOES NOT DO
+	 *    It does not create a Student Case, and it does not message anyone. It
+	 *    prepares. A human still decides whether this lead becomes a case, and
+	 *    a human still sends every word that reaches the family.
+	 *
+	 *  OUTPUT  the full studentActionPlan result, plus "lead" (what was read),
+	 *          "assumptions" (every translation made) and "ask_first"
+	 *          (the fields that were empty and must be asked for).
+	 *
+	 *  DEPENDENCIES  studentActionPlan
+	 *  VERSION       1.0 (2026-08-16)
+	 */
+	out = Map();
+	if(lead_id == null || lead_id.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","lead_id is required");
+		return out.toString();
+	}
+	lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
+	if(lead.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","lead not found: " + lead_id);
+		return out.toString();
+	}
+	assumptions = List();
+	ask_first = List();
+	/*  LEVEL */
+	raw_level = lead.get("Interested_Level");
+	level = "";
+	if(raw_level == "Bachelor's")
+	{
+		level = "Bachelors";
+	}
+	else if(raw_level == "Master's")
+	{
+		level = "Masters";
+	}
+	else if(raw_level == "PhD")
+	{
+		level = "PhD";
+	}
+	else if(raw_level == "Diploma")
+	{
+		level = "Foundation / Prep";
+		assumptions.add("Lead says 'Diploma'; matched against 'Foundation / Prep' programmes. Confirm what the student actually means - these are not the same thing.");
+	}
+	if(level == "")
+	{
+		out.put("ok",false);
+		out.put("error","Interested_Level is '" + raw_level + "' - cannot be matched. Ask the student whether they want a Bachelor's or a Master's before running a plan.");
+		return out.toString();
+	}
+	/*  BUDGET - lower bound of the band, deliberately. */
+	band = lead.get("Budget_Range");
+	budget = 0;
+	if(band == "<10L")
+	{
+		budget = 1000000;
+		assumptions.add("Budget band '<10L' has no lower bound. Treated as INR 10,00,000 as a CEILING - the true figure is unknown and lower. Confirm the actual number in the first call; this is the band where a shortlist is most likely to be unaffordable.");
+	}
+	else if(band == "10-20L")
+	{
+		budget = 1000000;
+		assumptions.add("Budget band '10-20L' read as its LOWER bound, INR 10,00,000. Conservative on purpose - a shortlist built on the top of the band collapses the moment money is discussed.");
+	}
+	else if(band == "20-35L")
+	{
+		budget = 2000000;
+		assumptions.add("Budget band '20-35L' read as its LOWER bound, INR 20,00,000.");
+	}
+	else if(band == "35L+")
+	{
+		budget = 3500000;
+		assumptions.add("Budget band '35L+' read as INR 35,00,000.");
+	}
+	else
+	{
+		out.put("ok",false);
+		out.put("error","Budget_Range is empty. A plan without a budget would shortlist universities the family may not be able to afford - ask before running one.");
+		return out.toString();
+	}
+	/*  INTAKE */
+	raw_intake = lead.get("Intended_Intake");
+	intake = "";
+	if(raw_intake == "Sep 2026")
+	{
+		intake = "2026-09";
+	}
+	else if(raw_intake == "Jan 2027")
+	{
+		intake = "2027-01";
+	}
+	else if(raw_intake == "Feb 2027")
+	{
+		intake = "2027-02";
+	}
+	else if(raw_intake == "Mar 2027")
+	{
+		intake = "2027-03";
+	}
+	else if(raw_intake == "May 2027")
+	{
+		intake = "2027-05";
+	}
+	else if(raw_intake == "Sep 2027")
+	{
+		intake = "2027-09";
+	}
+	if(intake == "")
+	{
+		intake = "2027-02";
+		assumptions.add("Intended_Intake is '" + raw_intake + "'. Planned against February 2027 as the current campaign intake. CONFIRM - the intake decides the whole timeline, and planning the wrong one wastes the plan.");
+		ask_first.add("Which intake does the student actually want?");
+	}
+	/*  COUNTRY - Leads allow several; the matcher takes one. Passing "" means
+	 *  no country filter, which is the honest reading of "open to Europe".
+	 */
+	countries = lead.get("Interested_Country");
+	country = "";
+	if(countries != null && countries.size() == 1)
+	{
+		country = countries.get(0);
+	}
+	else if(countries != null && countries.size() > 1)
+	{
+		assumptions.add("Lead lists " + countries.size() + " countries of interest. No country filter applied, so all verified universities were considered. Narrow it with the student if the shortlist is unwieldy.");
+	}
+	/*  THE REST */
+	eng = lead.get("English_Status");
+	if(eng == null || eng == "")
+	{
+		eng = "None";
+		assumptions.add("English_Status is empty. Assumed NO TEST, which is the conservative reading - it restricts the shortlist to universities with a published waiver route.");
+		ask_first.add("Does the student hold an English test, or was their prior education in English?");
+	}
+	pct = lead.get("Academic_Percentage");
+	if(pct == null)
+	{
+		pct = "";
+		ask_first.add("Academic percentage - needed to check minimum entry requirements.");
+	}
+	gapv = lead.get("Study_Gap_Years");
+	if(gapv == null)
+	{
+		gapv = "0";
+		assumptions.add("Study_Gap_Years is empty. Assumed 0. If there IS a gap this shortlist may be wrong - several universities cap it.");
+		ask_first.add("Is there a study gap, and how many years?");
+	}
+	goal = lead.get("Career_Goal");
+	if(goal == null)
+	{
+		goal = "not stated";
+		ask_first.add("What is the student actually trying to become? The plan reads better with it.");
+	}
+	plan = standalone.studentActionPlan(budget.toString(),level,intake,country,eng.toString(),pct.toString(),gapv.toString(),goal.toString()).toMap();
+	lm = Map();
+	lm.put("id",lead_id);
+	lm.put("name",lead.get("Last_Name"));
+	lm.put("budget_band",band);
+	lm.put("level",raw_level);
+	lm.put("intake",raw_intake);
+	lm.put("countries",countries);
+	lm.put("english",lead.get("English_Status"));
+	out.put("ok",true);
+	out.put("lead",lm);
+	out.put("assumptions",assumptions);
+	out.put("ask_first",ask_first);
+	out.put("plan",plan);
+	out.put("note","Prepared, not decided. No Student Case was created and nothing was sent. A human decides whether this lead becomes a case, and a human sends every word that reaches the family.");
+	return out.toString();
+}
