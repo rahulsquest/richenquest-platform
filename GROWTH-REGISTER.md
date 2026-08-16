@@ -71,7 +71,51 @@ a different outcome — nothing.** E1's minimum sample of 30 is therefore not ju
 **Every experiment carries all six fields before it starts. An experiment without a stop rule is an
 activity.**
 
-### E1 · Trust nodes, teacher-type — 🟢 ACTIVE
+### ⚠️ CORRECTION — E1 conflated two hypotheses
+
+**I set one sample size for two different questions. That was wrong, and it would have wasted weeks.**
+
+| Question | Sample needed | Why |
+|---|---|---|
+| *"What is the forward **rate**?"* | **30+** | Estimating a rate needs volume — §0 |
+| *"Is there a universal **blocker**?"* | **12** | Unanimity needs only unanimity |
+
+**If the true willingness rate were 20%, the chance of 12 consecutive refusals is 6.9%.** So **12
+refusals citing the same reason** — *"I don't forward third-party material"* — is a **~93%-confidence
+kill on the approach**, and it takes twelve conversations, not thirty.
+
+**And if nodes forward happily but no parent enquires, the network is fine — the asset or the
+call-to-action is wrong.** Killing the network there would be the most expensive mistake available.
+
+**So E1 splits into E1a and E1b.**
+
+### E1a · Will trust nodes forward? — 🟢 ACTIVE
+
+| | |
+|---|---|
+| **Node types — discover, do not assume** | Teachers · **coaching owners** · principals · college faculty · **alumni** · **parents of past students** · career counsellors · NGO leaders. **The first working node type may not be a teacher, and the experiment must be able to find that out** |
+| **Hypothesis** | A trust node will forward a free, honest report because it raises their standing and costs them nothing |
+| **Success metric** | **Forwarded ÷ contacted** |
+| **🛑 KILL EARLY** | **12 consecutive refusals with the same stated objection → stop and redesign the ask.** Do not continue to 30 |
+| **🛑 KILL FULL** | 0 forwards in 30 → the approach is wrong for every node type tried |
+| **🔀 PIVOT** | **If one node type forwards and another does not, drop the failing type — do not average them.** Log the objection verbatim every time |
+| **📈 SCALE** | ≥6 forwards in 30 → 100 nodes |
+| **Time cap** | 21 days |
+
+### E1b · Do recipients become qualified leads? — ⚪ BLOCKED ON E1a
+
+| | |
+|---|---|
+| **Hypothesis** | A parent who reads the report enquires |
+| **Starts when** | **10 forwards have happened.** Not before — there is nothing to measure |
+| **Success metric** | **Qualified leads ÷ estimated parents reached** |
+| **🛑 STOP** | **0 enquiries from 10 forwards → the ASSET or the CTA is wrong, NOT the network.** Fix the report's ending, keep the nodes |
+| **📈 SCALE** | ≥1% enquiry rate → the loop works; pour everything into node count |
+
+**Separating these two is the difference between "nobody will forward it" and "the report has no
+call-to-action" — and the fix for each is the opposite of the fix for the other.**
+
+### E1-old · Teacher-seeded WhatsApp — 🔴 SUPERSEDED by E1a/E1b
 
 | | |
 |---|---|
