@@ -22,15 +22,15 @@ verification gate in File 48 exists to prevent.
 | **Study gap 4 years accepted; India and Nepal not on the 2-year restricted list** | same | Medium |
 | Scholarships: Stipendium (govt-brokered, ~200 seats all-India, via UGC), merit 20% Yr 2+, alumni 10%, sibling 10% | same | Medium |
 | **February 2027: Master's YES, direct Bachelor's NO** | same | Medium |
-| Application deadline **1 Nov 2026** | two independent sources | ⚠️ **VERIFICATION PENDING** |
+| Application deadline **1 November 2026** — *Jan/Feb 2026/2027 intake, **all programmes*** | **`edu.unideb.hu` — the university's own page** | ✅ **VERIFIED 16 Aug 2026** |
 | Company facts, "guided", "1000+" | `claims.json` | approved |
 
 **Not verified, therefore absent from every asset:** living costs, graduate work rights,
 employability, salaries, visa approval rates, offer processing time, commission.
 
-**⚠️ The 1 Nov 2026 deadline appears in six assets below.** If the founder cannot confirm it, replace
-every instance with *"applications close in early November — confirm your exact date with us"* rather
-than deleting the urgency, which is real either way.
+**✅ The 1 November 2026 deadline is now VERIFIED from the university's own page** and may be stated
+plainly in all six assets that use it. The hedge is removed. **Also verified: the September 2027
+deadline is 15 May 2027** — useful for anyone the February window has already closed on.
 
 ---
 
@@ -64,7 +64,7 @@ the preparatory route or waits for September. *"Picking the wrong intake costs y
 5. **English** — B2, i.e. **IELTS 5.5**. Certificate **not mandatory** if proficiency is shown at interview.
 6. **Study gap** — up to **4 years**. India and Nepal are **not** on the 2-year restricted list.
 7. **Scholarships that exist** — merit **20%** from Year 2 · alumni **10%** · sibling **10%**. Stipendium Hungaricum is government-brokered through UGC with roughly **200 seats for all of India** — treat it as a bonus, **never as the plan**.
-8. **Deadline: 1 November 2026** ⚠️ *(pending confirmation)*. **Work backwards from it, not towards it.**
+8. **Deadline: 1 November 2026** — verified from the university's own page. **Work backwards from it, not towards it.**
 
 ## 3. Blog — ☐ approved
 
@@ -195,7 +195,7 @@ Living costs, graduate work rights and employment outcomes are **not yet verifie
 
 ## Approval checklist
 
-- [ ] **Confirm or replace the 1 Nov 2026 deadline** — appears in assets 2, 3, 9, 10, 11, 12
+- [x] ~~Confirm the 1 Nov 2026 deadline~~ — **VERIFIED 16 Aug 2026 from `edu.unideb.hu`**
 - [ ] Confirm Debrecen partnership status — no asset currently claims one
 - [ ] Confirm USD is the correct billing currency to quote
 - [ ] Founder read-through of assets 5, 6 and 12 — the money claims
