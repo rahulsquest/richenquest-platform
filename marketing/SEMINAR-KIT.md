@@ -138,7 +138,9 @@ you into Italy in February is either not thinking or not telling you."*
 
 **Say:** *"You pay most of it when there is an offer in your hand. If we don't get you one, you haven't paid for one. And if the visa is refused because we got a document wrong, you don't pay that stage at all."*
 
-**The ₹2,500 Clarity Report** — a written report on what your course will actually cost, every figure sourced, with the universities that don't fit and why. **Fully credited if you go ahead with us.** Offer this to anyone who is not ready to commit; it is the honest version of a free consultation.
+**The Clarity Report — free.** A written report on what your course will actually cost, every figure sourced, with the universities that don't fit and why. **Offer it to everyone in the room**, whether or not they are ready to commit.
+
+**Say:** *"The honest cost report is free. We only charge when we start working for you. If the report says Europe doesn't work on your budget, you've lost nothing but an afternoon — and you've been told the truth by somebody, which is more than most families get."*
 
 ### 13 · What we will not do *(36–38)*
 > - We will **not** guarantee admission, scholarships or a visa

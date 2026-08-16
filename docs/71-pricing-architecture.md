@@ -1,5 +1,12 @@
 # File 71 — Value-based pricing architecture
 
+> ## ⚠️ TWO AMENDMENTS FROM FILE 73
+> **1. P0 Clarity Report is now FREE, not ₹2,500.** Charging for the truth excludes exactly the
+> families most likely to be lied to elsewhere. The filter is effort — six fields and a 45-minute
+> session — not money.
+> **2. If DSU is not awarded, the ₹40,000 DSU stage converts in full to a credit against next year's
+> re-application.** No family pays us for a scholarship they did not get.
+
 **Supersedes File 70.** Pricing by intake was wrong — a family does not buy "February", it buys an
 outcome. This prices the work.
 

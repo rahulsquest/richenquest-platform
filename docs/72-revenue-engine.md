@@ -91,6 +91,10 @@ do not provide · free consultancies will not build.**
 | Test prep | 🔴 crowded, commoditised |
 | Generic "career services" | 🔴 we have no employer network and no right to claim one |
 
+> ⚠️ **AMENDED BY FILE 73: the parent briefing requires the student's written consent, and the
+> student sees every report before it is sent.** The student is an adult; reporting on them without
+> consent makes us the parents' informant.
+
 **The parent briefing is the one I had not seen.** The parent pays for the degree, carries the
 anxiety, and is never the customer of anything. **A structured quarterly report — attendance, permit
 status, exams passed, money spent versus planned — is a product with a willing buyer and near-zero

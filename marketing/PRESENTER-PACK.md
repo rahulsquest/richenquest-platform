@@ -113,7 +113,8 @@ would push you toward promises.
 
 ## 9. Stop and get Rahul
 
-- **Prices you can answer yourself** (File 71): **Clarity Report ₹2,500, credited if they proceed · Admission ₹35,000 · Admission + Visa ₹60,000 · Italy Scholarship ₹1,20,000 · Complete Launch ₹1,60,000.** All staged — most of it falls due **when the offer is in hand**. Escalate only **discounts, refunds, or a payment split outside the standard stages**
+- **Prices you can answer yourself** (Files 71 + 73): **Clarity Report FREE · Admission ₹35,000 · Admission + Visa ₹60,000 · Italy Scholarship ₹1,20,000 · Complete Launch ₹1,60,000.** All staged — most of it falls due **when the offer is in hand**. Escalate only **discounts, refunds, or a payment split outside the standard stages**
+- **Say the free one out loud, every time:** *"The honest cost report is free. We only charge when we start working for you."* **It is the sentence a commission-funded agency cannot say**, because they cannot afford to talk a family out of going
 - **Never say we charge for the scholarship itself.** The Italy package is paid for **submitting the DSU application before the deadline** — not for winning it. Say that sentence out loud; it is the difference between a fee and a promise
 - A university or institute wants a **written agreement**
 - A family mentions a **previous visa refusal** — this needs proper handling, not a seminar answer
