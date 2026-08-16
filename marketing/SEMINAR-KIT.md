@@ -131,6 +131,10 @@ you into Italy in February is either not thinking or not telling you."*
 > **We are paid by you, not by universities.** That is why we will tell you to wait seven months when waiting is worth €14,000 a year.
 >
 > **What we do:** verify every university against its own source and show you the date we checked · give you the total cost before you pay anything · plan backwards from the visa deadline · take you through the first month after you land.
+>
+> **What we charge: ₹60,000 — and you pay it in three parts.** ₹15,000 when we start. **₹30,000 only when you have an offer in your hand.** ₹15,000 when the visa is approved.
+
+**Say:** *"You pay most of it when there is an offer in your hand. If we don't get you one, you haven't paid for one."*
 
 ### 13 · What we will not do *(36–38)*
 > - We will **not** guarantee admission, scholarships or a visa

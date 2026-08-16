@@ -113,7 +113,7 @@ would push you toward promises.
 
 ## 9. Stop and get Rahul
 
-- Anyone asks about **fees, discounts or refunds** — F1 is not set; **do not improvise a number**
+- **The price you can now answer yourself: ₹60,000 — ₹15,000 on engagement, ₹30,000 when the offer is in hand, ₹15,000 on visa approval** (File 70). Escalate only **discounts, refunds, or a payment split outside those three stages**
 - A university or institute wants a **written agreement**
 - A family mentions a **previous visa refusal** — this needs proper handling, not a seminar answer
 - Anyone asks about **work visas, PR or migration** — **regulated. We do not advise on it**
