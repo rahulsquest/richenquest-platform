@@ -57,9 +57,14 @@ for spec in sys.argv[4:]:
 script = open(src).read()
 # CREATE: `name` is what sets api_name. Sending api_name is ignored on create
 # and rejected as DUPLICATE_DATA on update, so it is never sent at all.
+# CREATE with a STUB script. File 21: posting the real script on create returns
+# 500 INTERNAL_ERROR - the create path does not compile reliably. The real script
+# goes up on the PUT, which is a proper syntax checker.
+sig = script.split("\n")[0]
+stub = sig + "\n{\n\treturn \"stub\";\n}\n"
 json.dump({"functions": [{"name": name, "display_name": name,
                           "language": "deluge", "category": os.environ.get("CAT","standalone"),
-                          "script": script, "params": params}]},
+                          "script": stub, "params": params}]},
           open(os.path.join(tmp, "create.json"), "w"))
 # UPDATE: identity fields omitted deliberately. rest_api is what turns the
 # endpoint on — without it the function deploys and then answers every execute

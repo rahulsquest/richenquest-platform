@@ -1,0 +1,230 @@
+string standalone.student360(string case_id)
+{
+	/*  PURPOSE
+	 *    The operating console. One call assembles everything a counsellor,
+	 *    ops person or the founder needs to answer the only question that
+	 *    matters when they open a student:
+	 *
+	 *        "What is the next thing that must happen for this student?"
+	 *
+	 *    Everything else on the screen is context for that answer.
+	 *
+	 *  WHY A FUNCTION AND NOT A PAGE
+	 *    The payload is surface-independent. The same JSON renders in a Zoho
+	 *    widget, a printed brief, a parent PDF or a terminal. Building the
+	 *    assembly into a UI would mean rebuilding it for the next surface.
+	 *
+	 *  THE NEXT ACTION IS COMPUTED, NEVER CHOSEN
+	 *    Exactly one action is returned, ranked by consequence: legal exposure
+	 *    first, then things that cost the intake, then things that cost time.
+	 *    A counsellor who has to decide what to do next will pick the
+	 *    comfortable task; a counsellor who is told will do the urgent one.
+	 *
+	 *  OUTPUT  {"ok":true,"header":{…},"profile":{…},"risks":[…],
+	 *           "next_action":{…},"applications":[…],"money":{…},
+	 *           "consent":{…},"provenance":{…}}
+	 *
+	 *  DEPENDENCIES  none — read-only by design. This function never writes.
+	 *  VERSION       1.0 (2026-08-17)
+	 */
+	out = Map();
+	if(case_id == null || case_id.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","case_id required");
+		return out.toString();
+	}
+	d = zoho.crm.getRecordById("Deals",case_id.toLong());
+	if(d.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","case not found: " + case_id);
+		return out.toString();
+	}
+	today = zoho.currentdate;
+	name = d.get("Deal_Name");
+	stage = d.get("Stage");
+	risk = d.get("Visa_Ops_Risk");
+	nd = d.get("Next_Deadline");
+	passport = d.get("Passport_Status");
+	docs = d.get("Document_Status");
+	visa_dec = d.get("Visa_Decision");
+	appt = d.get("Visa_Appointment_Status");
+	start = d.get("Course_Start_Date");
+	/*  HEADER — everything answerable at a glance. */
+	/*  Deluge infers a variable's type from its FIRST assignment. Initialising
+	 *  this to "" made it TEXT, and the later comparison against 21 failed to
+	 *  compile. Initialise numerically and carry a separate presence flag.
+	 */
+	days_left = -999;
+	has_deadline = false;
+	if(nd != null && nd != "")
+	{
+		dl = nd.toString().subString(0,10).toDate();
+		days_left = days360(today,dl);
+		has_deadline = true;
+	}
+	header = Map();
+	header.put("student",name);
+	header.put("case_id",case_id);
+	header.put("stage",stage);
+	header.put("journey",d.get("Student_Journey_Stage"));
+	header.put("country",d.get("Destination_Country"));
+	header.put("intake_start",start);
+	header.put("risk",risk);
+	header.put("next_deadline",nd);
+	if(has_deadline)
+	{
+		header.put("days_to_deadline",days_left);
+	}
+	header.put("owner",d.get("Assigned_Counselor"));
+	header.put("package",d.get("Service_Package"));
+	out.put("header",header);
+	/*  RISKS — only actionable ones. A risk nobody can act on is noise. */
+	risks = List();
+	if(passport == null || passport == "" || passport == "Not applied" || passport == "Expired")
+	{
+		risks.add("PASSPORT — not held. Nothing else can proceed. This is the critical path");
+	}
+	if(risk == "Red")
+	{
+		risks.add("VISA TIMING — the last safe filing date has PASSED. The intake may be unreachable");
+	}
+	else if(risk == "Amber")
+	{
+		risks.add("VISA TIMING — inside 30 days of the last safe filing date");
+	}
+	else if(risk == "Not computed" || risk == null)
+	{
+		risks.add("NO COURSE START DATE — nothing can be planned backwards. Ask and set it");
+	}
+	if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
+	{
+		risks.add("APPOINTMENT BOOKED WITH INCOMPLETE DOCUMENTS — a counter rejection costs the slot, not the day");
+	}
+	if(appt == "Awaiting Slot")
+	{
+		risks.add("AWAITING SLOT — needs a manual portal check today. No appointment API exists");
+	}
+	if(has_deadline && days_left < 21 && days_left >= 0 && docs != "Complete")
+	{
+		risks.add("DEADLINE UNDER 21 DAYS with documents at '" + docs + "'");
+	}
+	if(visa_dec == "Refused")
+	{
+		risks.add("VISA REFUSED — record the grounds VERBATIM before anything else. It cannot be reconstructed");
+	}
+	out.put("risks",risks);
+	/*  NEXT ACTION — exactly one, ranked by consequence. */
+	na = Map();
+	if(visa_dec == "Refused" && (d.get("Refusal_Grounds") == null || d.get("Refusal_Grounds") == ""))
+	{
+		na.put("do","Record the refusal grounds, verbatim");
+		na.put("why","The most valuable data this student will ever produce, and it cannot be reconstructed later");
+		na.put("minutes",10);
+	}
+	else if(passport == null || passport == "" || passport == "Not applied" || passport == "Expired")
+	{
+		na.put("do","Call the student about the passport");
+		na.put("why","No passport means no intake, whatever else is true. Tell them to apply this week");
+		na.put("minutes",5);
+	}
+	else if(risk == "Not computed" || risk == null)
+	{
+		na.put("do","Ask which intake they are targeting and set Course Start Date");
+		na.put("why","Without it nothing can be planned backwards and every deadline is invisible");
+		na.put("minutes",5);
+	}
+	else if(risk == "Red")
+	{
+		na.put("do","Call the family and discuss deferring to the next intake");
+		na.put("why","The last safe filing date has passed. Selling an intake they cannot reach is the most damaging thing we can do");
+		na.put("minutes",20);
+	}
+	else if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
+	{
+		na.put("do","Complete the document set before the appointment");
+		na.put("why","An incomplete file at the counter costs the slot, not just the day");
+		na.put("minutes",45);
+	}
+	else if(appt == "Awaiting Slot")
+	{
+		na.put("do","Check the appointment portal");
+		na.put("why","Manual by design. No mission in the portfolio publishes an appointment API");
+		na.put("minutes",10);
+	}
+	else if(docs != "Complete" && docs != "Verified")
+	{
+		na.put("do","Chase the outstanding documents");
+		na.put("why","Document collection is where this pipeline breaks. Predicted, and still true");
+		na.put("minutes",20);
+	}
+	else if(stage == "Offer Received")
+	{
+		na.put("do","Discuss the offer with the student AND the parent");
+		na.put("why","The parent holds the money and has not been in the last three conversations");
+		na.put("minutes",30);
+	}
+	else
+	{
+		na.put("do","Send the weekly update");
+		na.put("why","Nothing is overdue. The Friday message exists precisely for weeks like this — silence is what destroys trust, not bad news");
+		na.put("minutes",5);
+	}
+	out.put("next_action",na);
+	/*  PROFILE */
+	prof = Map();
+	prof.put("passport",passport);
+	prof.put("document_status",docs);
+	prof.put("visa_decision",visa_dec);
+	prof.put("appointment",appt);
+	prof.put("appointment_date",d.get("Appointment_Date"));
+	prof.put("scholarship",d.get("Scholarship_Status"));
+	prof.put("residence_permit",d.get("Residence_Permit_Status"));
+	prof.put("post_arrival",d.get("Post_Arrival_Setup"));
+	out.put("profile",prof);
+	/*  APPLICATIONS — the funnel, not just the destination. */
+	apps = List();
+	resp = zoho.crm.searchRecords("Applications","(Student_Case:equals:" + case_id + ")");
+	if(resp != null)
+	{
+		for each a in resp
+		{
+			row = Map();
+			row.put("university",a.get("University"));
+			row.put("programme",a.get("Programme"));
+			row.put("status",a.get("Application_Status"));
+			row.put("deadline",a.get("Application_Deadline"));
+			row.put("submitted",a.get("Submitted_On"));
+			row.put("fee_paid",a.get("Fee_Paid_INR"));
+			row.put("scholarship",a.get("Scholarship_Outcome"));
+			apps.add(row);
+		}
+	}
+	out.put("applications",apps);
+	out.put("application_count",apps.size());
+	/*  MONEY — quoted versus actual is the True Cost promise, measured. */
+	money = Map();
+	money.put("quoted_inr",d.get("Cost_Quoted_INR"));
+	money.put("actual_inr",d.get("Cost_Actual_INR"));
+	money.put("accommodation_outcome",d.get("Accommodation_Outcome"));
+	out.put("money",money);
+	/*  ATTRIBUTION — who introduced this student, so the node can be told when
+	 *  they succeed. That message is the 3x edge.
+	 */
+	attr = Map();
+	attr.put("source",d.get("Acquisition_Source"));
+	attr.put("detail",d.get("Acquisition_Detail"));
+	attr.put("node_contact",d.get("Node_Contact"));
+	out.put("attribution",attr);
+	/*  PROVENANCE — six months from now somebody will need to know whether the
+	 *  advice rested on current research or research from four months ago.
+	 */
+	prov = Map();
+	prov.put("assembled_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	prov.put("outcome_confidence",d.get("Outcome_Confidence"));
+	prov.put("note","Risk and Next Action are computed at read time from current field values. Visa_Ops_Risk itself is written nightly by visaOpsSweep.");
+	out.put("provenance",prov);
+	out.put("ok",true);
+	return out.toString();
+}

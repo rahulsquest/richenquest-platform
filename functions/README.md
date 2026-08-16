@@ -27,6 +27,9 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
 | `studentActionPlan.dg` | The 60-second onboarding. Shortlist + reasons + timeline + risks + parent points. **Only reads Confidence High/Medium records** |
 | `opsWatch.dg` | Phase 10.7 daily sweep. Six watches, one digest, **silent when clear** |
 | `visaOpsSweep.dg` | Re-plans every open case nightly at 05:30. **Must run before `opsWatch`** — it writes the field the watch reads |
+| **`student360.dg`** | **The operating console.** One call → header, risks, ONE next action, applications, money, attribution. **Read-only** |
+| **`normalizeInput.dg`** | **The single normalisation layer.** Every integration writing a picklist goes through it — Zoho does not validate |
+| `parseInquiry.dg` | WhatsApp inquiry → Lead + qualify + assign + tasks. **Newline-independent by design** |
 | `readinessSweep.dg` | University Readiness Scoreboard. **Computed from field completeness, never set by hand.** Rewrites status every run |
 | `leadToPlan.dg` | Lead id → full action plan. Translates level/budget/intake and reports every assumption it made |
 | `qualityGate.dg` | Department 8. Compliance / claims / source checks on any customer-facing draft. **PASS is not approval** |
@@ -46,7 +49,13 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
    the query string. It grants CRM write access. OAuth only in this repo.
 7. **Verify against live records, then delete the probes.** Compiling is not evidence. Every
    function in the table above was executed and its effect confirmed by COQL.
-8. **Deploy = create-if-absent, then PUT the script.** Creating twice silently produces
+8. **Create with a STUB, then PUT the real script.** Posting the real script on create returns
+   `500 INTERNAL_ERROR` — the create path does not compile reliably. **The PUT is a proper syntax
+   checker and will reject broken Deluge**, which is how a `days_left` typed TEXT by its `""`
+   initialiser was caught before it ever ran. `deploy-function.sh` does this automatically.
+9. **Deluge infers a variable's type from its FIRST assignment.** Initialising a number to `""` makes
+   it TEXT and every later comparison fails to compile.
+10. **Deploy = create-if-absent, then PUT the script.** Creating twice silently produces
    `<name>1`. Use `scripts/deploy-function.sh <Name> <param:type>…`, which encodes two traps:
    **`api_name` is ignored on create and rejected as `DUPLICATE_DATA` on update**, so it is never
    sent; and **a freshly created function answers every execute call with `NOT_ACTIVE`** until
