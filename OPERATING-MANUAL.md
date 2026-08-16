@@ -242,3 +242,38 @@ including the referral loop itself.**
 **Build note: `advanceStudentJourney` fires tasks at Enrolled+14 but nothing to the node.** Add the
 node-notify task **when the first student reaches Offer Received** — not before, because there is no
 node to notify.
+
+
+---
+
+# 12. The Student #1 Data Contract
+
+**The only thing in this manual that cannot be added later.**
+
+Every other asset — a report, a price, an automation — can be built at student 50 and applied
+retrospectively. **Outcome data cannot.** If student #1 gets a visa refusal and nobody records the
+grounds verbatim, **that fact is gone permanently.**
+
+> ### Four things are recorded for every student from the first one, without exception.
+
+| Field | Why it is irreplaceable |
+|---|---|
+| **`Refusal_Grounds`** — verbatim, never paraphrased | **The most valuable sentence in the company.** Published nowhere on earth. An AI cannot retrieve what was never public |
+| **`Cost_Quoted_INR` vs `Cost_Actual_INR`** | **The gap IS the product.** It is the only proof that True Cost is true, and it is how the model corrects itself |
+| **`Accommodation_Outcome`** — dorm obtained / refused | Worth up to **₹12 lakh** per family, and **no university publishes it** |
+| Stage timestamps *(already captured)* | Real median days: application → offer → visa → arrival. **Every published figure is a guess; ours will be measured** |
+
+**Why this survives an AI that is better than us at everything else:**
+
+**AI can retrieve any published fact. It cannot retrieve a fact that was never published.** Hungary's
+subsistence figure does not exist online — only someone who asked the consulate knows it. **The dorm
+allocation rate for self-funded Indians at Debrecen exists nowhere except in the experience of
+students who applied.**
+
+> **After 1,000 students, RichenQuest can say: *"Of 47 students we sent to Debrecen, 44 obtained dorm
+> places, median wait three weeks."* No model can generate that sentence. No competitor can copy it
+> without serving 1,000 students first.**
+
+**Operational rule: a Student Case cannot be closed — won or lost — with any of these four fields
+empty.** The counsellor who leaves `Refusal_Grounds` blank has destroyed the most valuable output of
+that student's entire journey.
