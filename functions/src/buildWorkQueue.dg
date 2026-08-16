@@ -16,13 +16,14 @@ string standalone.buildWorkQueue(string owner_filter)
 	 *  OUTPUT  {"ok":true,"high":[…],"medium":[…],"low":[…],
 	 *           "uncalled_leads":[…],"counts":{…}}
 	 *
-	 *  ORDERING IS COMPUTED
-	 *    priority_score from caseState, which is (6 - worst blocker severity)
-	 *    x urgency. Nothing is hand-ranked, so nobody can quietly promote the
-	 *    comfortable task.
+	 *  BANDING IS NOT DONE HERE
+	 *    caseState returns the band. This function used to threshold the score
+	 *    itself, which meant the banding rule lived in two places and a hard
+	 *    block could be re-scored back down to LOW by a change made over here.
+	 *    A hard block is a state, not a number, and only caseState decides it.
 	 *
 	 *  DEPENDENCIES  caseState
-	 *  VERSION       1.0 (2026-08-17)
+	 *  VERSION       1.1 (2026-08-17)
 	 */
 	out = Map();
 	high = List();
@@ -64,7 +65,11 @@ string standalone.buildWorkQueue(string owner_filter)
 			item.put("student",st.get("student"));
 			item.put("state",st.get("state"));
 			item.put("score",st.get("priority_score"));
+			item.put("band",st.get("band"));
+			item.put("hard_blocks",st.get("hard_blocks"));
 			item.put("why",st.get("priority_basis"));
+			item.put("country",st.get("country"));
+			item.put("owner",st.get("owner"));
 			bl = st.get("blockers");
 			if(bl.size() > 0)
 			{
@@ -80,12 +85,12 @@ string standalone.buildWorkQueue(string owner_filter)
 				item.put("consequence","Silence is what destroys trust in this business, not bad news. The Friday message exists for weeks like this");
 			}
 			item.put("next_irreversible",st.get("next_irreversible"));
-			sc = st.get("priority_score");
-			if(sc >= 15)
+			bnd = st.get("band");
+			if(bnd == "HIGH")
 			{
 				high.add(item);
 			}
-			else if(sc >= 6)
+			else if(bnd == "MEDIUM")
 			{
 				medium.add(item);
 			}

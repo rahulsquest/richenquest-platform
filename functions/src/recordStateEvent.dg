@@ -1,0 +1,177 @@
+string standalone.recordStateEvent(string case_id)
+{
+	/*  PURPOSE
+	 *    The audit timeline. Appends an immutable event whenever a case's
+	 *    computed state, band or blocker set actually CHANGES. Never
+	 *    overwrites, never deletes. Six months from now this is how anyone
+	 *    reconstructs why something happened, including why the system said
+	 *    what it said at the time.
+	 *
+	 *  WHY THIS IS NOT INSIDE caseState
+	 *    caseState is called on every dashboard render, every queue build and
+	 *    every PDF. If it appended on read, opening a student eleven times
+	 *    would write eleven identical rows and the timeline would be useless
+	 *    exactly when it mattered. Writing is a separate job with a separate
+	 *    trigger, and the trigger is CHANGE — not observation.
+	 *
+	 *  HOW CHANGE IS DETECTED
+	 *    Deals.Last_State_Snapshot holds "STATE|BAND|CODE,CODE". This function
+	 *    recomputes it and compares. Identical means nothing happened and
+	 *    nothing is written. That comparison is the whole design: it makes the
+	 *    function safe to call as often as anybody likes.
+	 *
+	 *  WHAT GETS APPENDED
+	 *    One row per distinct transition, not one row per run — a state change
+	 *    plus two cleared blockers is three rows, each independently readable.
+	 *
+	 *  CALLED BY  visaOpsSweep (nightly), and safe to call on demand.
+	 *  DEPENDENCIES  caseState
+	 *  VERSION       1.0 (2026-08-17)
+	 */
+	out = Map();
+	st = standalone.caseState(case_id).toMap();
+	if(st.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("error",st.get("error"));
+		return out.toString();
+	}
+	state = st.get("state");
+	band = st.get("band");
+	codes = List();
+	for each b in st.get("blockers")
+	{
+		codes.add(b.get("code"));
+	}
+	snap = state + "|" + band + "|" + codes.toString(",");
+	d = zoho.crm.getRecordById("Deals",case_id.toLong());
+	prev = d.get("Last_State_Snapshot");
+	if(prev == snap)
+	{
+		out.put("ok",true);
+		out.put("changed",false);
+		out.put("snapshot",snap);
+		return out.toString();
+	}
+	now = zoho.currenttime;
+	events = List();
+	if(prev == null || prev == "")
+	{
+		/*  First time this case has ever been evaluated. Record the whole
+		 *  picture rather than a diff against nothing, so the timeline has a
+		 *  beginning instead of starting mid-sentence.
+		 */
+		e = Map();
+		e.put("Event_Type","FIRST_SNAPSHOT");
+		e.put("To_Value",state + " / " + band);
+		e.put("Detail","First evaluation of this case. Blockers: " + codes.toString(", ") + ". Basis: " + st.get("priority_basis"));
+		events.add(e);
+	}
+	else
+	{
+		parts = prev.toList("|");
+		old_state = parts.get(0);
+		old_band = "";
+		old_codes = List();
+		if(parts.size() > 1)
+		{
+			old_band = parts.get(1);
+		}
+		if(parts.size() > 2 && parts.get(2) != "")
+		{
+			old_codes = parts.get(2).toList(",");
+		}
+		if(old_state != state)
+		{
+			e1 = Map();
+			e1.put("Event_Type","STATE_CHANGE");
+			e1.put("From_Value",old_state);
+			e1.put("To_Value",state);
+			e1.put("Detail","Derived from Stage '" + st.get("stage") + "'. State is computed, never stored, so this reflects a real field change on the case");
+			events.add(e1);
+		}
+		if(old_band != band)
+		{
+			e2 = Map();
+			e2.put("Event_Type","BAND_CHANGE");
+			e2.put("From_Value",old_band);
+			e2.put("To_Value",band);
+			e2.put("Detail",st.get("priority_basis"));
+			events.add(e2);
+		}
+		/*  Raised and cleared are separate event types because they are read
+		 *  for different reasons — raised answers "when did this go wrong",
+		 *  cleared answers "how long did we take to fix it".
+		 */
+		for each b2 in st.get("blockers")
+		{
+			cd = b2.get("code");
+			if(!old_codes.contains(cd))
+			{
+				e3 = Map();
+				e3.put("Event_Type","BLOCKER_RAISED");
+				e3.put("To_Value",cd);
+				because = b2.get("because");
+				e3.put("Detail","Blocking: " + b2.get("blocking") + "\nBecause: " + because.toString("; ") + "\nIf we do nothing: " + b2.get("consequence"));
+				events.add(e3);
+			}
+		}
+		for each oc in old_codes
+		{
+			if(!codes.contains(oc))
+			{
+				e4 = Map();
+				e4.put("Event_Type","BLOCKER_CLEARED");
+				e4.put("From_Value",oc);
+				e4.put("Detail","No longer present in the computed blocker set");
+				events.add(e4);
+			}
+		}
+	}
+	written = 0;
+	failures = List();
+	for each ev in events
+	{
+		row = Map();
+		row.put("Name",ev.get("Event_Type") + " " + now.toString("yyyy-MM-dd HH:mm"));
+		row.put("Student_Case",case_id);
+		row.put("Event_Type",ev.get("Event_Type"));
+		if(ev.get("From_Value") != null)
+		{
+			row.put("From_Value",ev.get("From_Value"));
+		}
+		if(ev.get("To_Value") != null)
+		{
+			row.put("To_Value",ev.get("To_Value"));
+		}
+		row.put("Detail",ev.get("Detail"));
+		row.put("Occurred_At",now.toString("yyyy-MM-dd'T'HH:mm:ss+05:30"));
+		row.put("Source","recordStateEvent");
+		res = zoho.crm.createRecord("Case_Events",row);
+		if(res.get("id") != null)
+		{
+			written = written + 1;
+		}
+		else
+		{
+			failures.add(res.toString());
+		}
+	}
+	/*  The snapshot is advanced only after the events are written. If a write
+	 *  fails the snapshot stays stale, the next run detects the same change and
+	 *  tries again — a duplicated event is recoverable, a missing one is not.
+	 */
+	if(failures.size() == 0)
+	{
+		upd = Map();
+		upd.put("Last_State_Snapshot",snap);
+		zoho.crm.updateRecord("Deals",case_id.toLong(),upd);
+	}
+	out.put("ok",failures.size() == 0);
+	out.put("changed",true);
+	out.put("events_written",written);
+	out.put("from",prev);
+	out.put("to",snap);
+	out.put("failures",failures);
+	return out.toString();
+}

@@ -1,9 +1,11 @@
 string standalone.caseState(string case_id)
 {
-	/*  PURPOSE
+	/*  CORE ENGINE v1.0 — FROZEN. See CORE-ENGINE.md.
+	 *
+	 *  PURPOSE
 	 *    The state engine. Every other surface — student360, buildWorkQueue,
-	 *    dashboards, notifications, the parent PDF — derives from this. Nothing
-	 *    else computes state independently, or the logic drifts.
+	 *    dashboards, the parent PDF, the portal — derives from this. Nothing
+	 *    else decides risk, priority, next action, blockers or eligibility.
 	 *
 	 *    It answers five questions and nothing else:
 	 *      1. What state is this case in?
@@ -12,20 +14,36 @@ string standalone.caseState(string case_id)
 	 *      4. What evidence supports that?
 	 *      5. What happens if we do nothing?
 	 *
+	 *  READ-ONLY, AND THAT IS LOAD-BEARING
+	 *    This function is called on every dashboard render, every queue build,
+	 *    every PDF. If it wrote anything, opening a student eleven times would
+	 *    write eleven rows and the audit timeline would be worthless exactly
+	 *    when it mattered. Transitions are appended by recordStateEvent, which
+	 *    compares against the last snapshot and writes only on change.
+	 *
+	 *  HARD BLOCKS ARE STATE, NOT SCORE
+	 *    v1.0 floored severity-1 blockers to a score of 15. That was still
+	 *    arithmetic, so a later tweak to the formula could silently un-float
+	 *    them. Some conditions must ALWAYS dominate however distant the
+	 *    deadline is, because what makes them urgent is how long they take to
+	 *    clear, not when they are due. Those set hard_block, and the band
+	 *    becomes HIGH with no arithmetic involved.
+	 *
 	 *  EVERY VERDICT CARRIES ITS REASONING
-	 *    A blocker is never a string. It is {code, blocking, because[],
-	 *    evidence{}, consequence}. When somebody asks "why did the system tell
-	 *    me to do this?", the answer is already in the payload rather than in
-	 *    the head of whoever wrote the rule.
+	 *    A blocker is never a string. It is {code, hard_block, blocking,
+	 *    because[], evidence{}, consequence}. When somebody asks "why did the
+	 *    system tell me to do this?", the answer is already in the payload
+	 *    rather than in the head of whoever wrote the rule.
 	 *
-	 *  THE IRREVERSIBLE MILESTONE IS THE POINT
-	 *    Most deadlines are recoverable. A few are not: an application
-	 *    deadline, the last safe visa filing date, the residence-permit window.
-	 *    Those are the only ones worth waking somebody up for, and they are the
-	 *    ones this function names.
+	 *  KNOWN GAP
+	 *    "Payment legally required before submission" is a declared hard block
+	 *    with nothing to read — no payment field exists at case level, and
+	 *    inventing one would be worse than the gap. FOUNDER DECISION REQUIRED:
+	 *    which countries or universities require payment before submission,
+	 *    and where that state should live. Recorded in CORE-ENGINE.md.
 	 *
-	 *  DEPENDENCIES  none — read-only. This function never writes.
-	 *  VERSION       1.0 (2026-08-17)
+	 *  DEPENDENCIES  none
+	 *  VERSION       2.0 (2026-08-17)
 	 */
 	out = Map();
 	if(case_id == null || case_id.trim() == "")
@@ -59,6 +77,24 @@ string standalone.caseState(string case_id)
 	{
 		days_left = days360(today,nd.toString().subString(0,10).toDate());
 		has_deadline = true;
+	}
+	/*  Consent lives on the Contact, not the Deal — one person consents once,
+	 *  and that consent has to survive across every case they ever open.
+	 */
+	consent = false;
+	consent_known = false;
+	cn = d.get("Contact_Name");
+	if(cn != null && cn.get("id") != null)
+	{
+		c = zoho.crm.getRecordById("Contacts",cn.get("id").toLong());
+		if(c.get("id") != null)
+		{
+			consent_known = true;
+			if(c.get("Consent_Given") == true)
+			{
+				consent = true;
+			}
+		}
 	}
 	/*  1. STATE — one canonical value, derived. Never stored, so it can never
 	 *  disagree with the fields it is derived from.
@@ -113,91 +149,148 @@ string standalone.caseState(string case_id)
 		state = "QUALIFYING";
 	}
 	out.put("state",state);
-	/*  2. BLOCKERS — each with its own reasoning and consequence. */
+	/*  2. BLOCKERS. List order IS the ranking: hard blocks first, worst first.
+	 *  buildWorkQueue and student360 both take element 0 as the thing to do.
+	 */
 	blockers = List();
 	if(visa_dec == "Refused" && (refusal == null || refusal == ""))
 	{
 		b = Map();
 		b.put("code","REFUSAL_NOT_RECORDED");
+		b.put("hard_block",true);
 		b.put("blocking","Everything. The appeal decision cannot be made without the grounds");
 		b.put("because",{"Visa_Decision is Refused","Refusal_Grounds is empty"});
-		ev = Map();
-		ev.put("Visa_Decision",visa_dec);
-		b.put("evidence",ev);
-		b.put("consequence","The grounds are lost permanently. We cannot advise on appeal, cannot classify it as curable or substantive, and cannot add it to the refusal log");
-		b.put("severity",1);
+		e = Map();
+		e.put("Visa_Decision",visa_dec);
+		b.put("evidence",e);
+		b.put("consequence","The grounds are lost permanently. We cannot advise on appeal, cannot classify it as curable or substantive, and cannot add it to the refusal log that every future student benefits from");
 		blockers.add(b);
+	}
+	if(consent_known && !consent)
+	{
+		b2 = Map();
+		b2.put("code","CONSENT_MISSING");
+		b2.put("hard_block",true);
+		b2.put("blocking","Any submission of this student's data to a university or a mission");
+		b2.put("because",{"Contact.Consent_Given is not true","DPDP requires demonstrable consent before personal data is processed or shared"});
+		e2 = Map();
+		e2.put("Consent_Given",false);
+		b2.put("evidence",e2);
+		b2.put("consequence","Sending documents onward without recorded consent is a legal exposure no commercial outcome justifies, and it cannot be cured retrospectively — consent obtained afterwards does not cover what was already sent");
+		blockers.add(b2);
 	}
 	if(passport == null || passport == "" || passport == "Not applied" || passport == "Expired")
 	{
-		b2 = Map();
-		b2.put("code","NO_PASSPORT");
-		b2.put("blocking","Application submission, visa appointment, everything downstream");
-		b2.put("because",{"Passport_Status is '" + passport + "'","A visa cannot be issued into a passport that does not exist"});
-		ev2 = Map();
-		ev2.put("Passport_Status",passport);
-		b2.put("evidence",ev2);
-		b2.put("consequence","A new Indian passport takes weeks. Every day of delay comes straight off the intake, and no other work compensates for it");
-		b2.put("severity",1);
-		blockers.add(b2);
+		b3 = Map();
+		b3.put("code","NO_PASSPORT");
+		b3.put("hard_block",true);
+		b3.put("blocking","Application submission, visa appointment, everything downstream");
+		b3.put("because",{"Passport_Status is '" + passport + "'","A visa cannot be issued into a passport that does not exist"});
+		e3 = Map();
+		e3.put("Passport_Status",passport);
+		b3.put("evidence",e3);
+		b3.put("consequence","A new Indian passport takes weeks. Every day of delay comes straight off the intake, and no other work compensates for it");
+		blockers.add(b3);
 	}
 	if(risk == "Red")
 	{
-		br = Map();
-		br.put("code","TIMING_LOST");
-		br.put("blocking","The intake itself");
-		br.put("because",{"Visa_Ops_Risk is Red","The last safe visa filing date computed by visaOpsPlan is behind us"});
-		evr = Map();
-		evr.put("Visa_Ops_Risk",risk);
-		evr.put("Course_Start_Date",start);
-		br.put("evidence",evr);
-		br.put("consequence","Continuing to work this intake sells a family a start date they cannot reach. That is the single most damaging thing this business can do, and it gets worse the longer nobody says it out loud");
-		br.put("severity",1);
-		blockers.add(br);
-	}
-	if(risk == "Not computed" || risk == null)
-	{
-		b3 = Map();
-		b3.put("code","NO_START_DATE");
-		b3.put("blocking","All backward planning");
-		b3.put("because",{"Course_Start_Date is empty","visaOpsPlan cannot compute a last safe filing date without an anchor"});
-		b3.put("consequence","Every deadline on this case is invisible. The nightly sweep will keep reporting it as unplannable and no alert will ever fire");
-		b3.put("severity",2);
-		blockers.add(b3);
+		b4 = Map();
+		b4.put("code","TIMING_LOST");
+		b4.put("hard_block",true);
+		b4.put("blocking","The intake itself");
+		b4.put("because",{"Visa_Ops_Risk is Red","The last safe visa filing date computed by visaOpsPlan is behind us"});
+		e4 = Map();
+		e4.put("Visa_Ops_Risk",risk);
+		e4.put("Course_Start_Date",start);
+		b4.put("evidence",e4);
+		b4.put("consequence","Continuing to work this intake sells a family a start date they cannot reach. That is the single most damaging thing this business can do, and it gets worse the longer nobody says it out loud");
+		blockers.add(b4);
 	}
 	if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
 	{
-		b4 = Map();
-		b4.put("code","APPOINTMENT_WITHOUT_DOCUMENTS");
-		b4.put("blocking","A successful submission");
-		b4.put("because",{"Appointment is booked","Document_Status is '" + docs + "'","SOP-1's checklist gate was skipped"});
-		b4.put("consequence","A counter rejection costs the SLOT, not the day. The next available appointment may be past the last safe filing date");
-		b4.put("severity",1);
-		blockers.add(b4);
-	}
-	if(docs != "Complete" && docs != "Verified" && state != "QUALIFYING")
-	{
 		b5 = Map();
-		b5.put("code","DOCUMENTS_INCOMPLETE");
-		b5.put("blocking","Application submission");
-		b5.put("because",{"Document_Status is '" + docs + "'"});
-		b5.put("consequence","Document collection is the predicted failure point of this pipeline. Families that say yes in September and cannot produce papers by October miss the intake");
-		b5.put("severity",3);
+		b5.put("code","APPOINTMENT_WITHOUT_DOCUMENTS");
+		b5.put("hard_block",true);
+		b5.put("blocking","A successful submission");
+		b5.put("because",{"Appointment is booked","Document_Status is '" + docs + "'","SOP-1's checklist gate was skipped"});
+		e5 = Map();
+		e5.put("Document_Status",docs);
+		e5.put("Visa_Appointment_Status",appt);
+		b5.put("evidence",e5);
+		b5.put("consequence","A counter rejection costs the SLOT, not the day. The next available appointment may be past the last safe filing date");
 		blockers.add(b5);
+	}
+	/*  A passed application deadline is read from Applications, not the Deal.
+	 *  Submitted_On is the test rather than a status picklist, because an empty
+	 *  submission date stays unambiguous however the statuses get renamed.
+	 */
+	apps = zoho.crm.searchRecords("Applications","(Student_Case:equals:" + case_id + ")");
+	missed = List();
+	if(apps != null)
+	{
+		for each a in apps
+		{
+			ad = a.get("Application_Deadline");
+			so = a.get("Submitted_On");
+			if(ad != null && ad != "" && (so == null || so == ""))
+			{
+				if(days360(today,ad.toString().subString(0,10).toDate()) < 0)
+				{
+					missed.add(a.get("University") + " — deadline " + ad + ", never submitted");
+				}
+			}
+		}
+	}
+	if(missed.size() > 0)
+	{
+		b6 = Map();
+		b6.put("code","DEADLINE_PASSED");
+		b6.put("hard_block",true);
+		b6.put("blocking","Those applications, permanently");
+		b6.put("because",missed);
+		e6 = Map();
+		e6.put("missed_count",missed.size());
+		b6.put("evidence",e6);
+		b6.put("consequence","These cannot be recovered by working harder. Either alternatives are found for this intake, or the family is told the truth about the timeline today while there is still a next intake to plan for");
+		blockers.add(b6);
+	}
+	/*  Soft blockers — real, but scored rather than dominant. */
+	if(risk == "Not computed" || risk == null)
+	{
+		s1 = Map();
+		s1.put("code","NO_START_DATE");
+		s1.put("hard_block",false);
+		s1.put("blocking","All backward planning");
+		s1.put("because",{"Course_Start_Date is empty","visaOpsPlan cannot compute a last safe filing date without an anchor"});
+		s1.put("consequence","Every deadline on this case is invisible. The nightly sweep will keep reporting it as unplannable and no alert will ever fire");
+		s1.put("severity",2);
+		blockers.add(s1);
 	}
 	if(appt == "Awaiting Slot")
 	{
-		b6 = Map();
-		b6.put("code","AWAITING_SLOT");
-		b6.put("blocking","Visa filing");
-		b6.put("because",{"No mission in the portfolio publishes an appointment API","This requires a human to check a portal"});
-		b6.put("consequence","Slots are not monitored by anything. If nobody checks, nobody knows one opened");
-		b6.put("severity",2);
-		blockers.add(b6);
+		s2 = Map();
+		s2.put("code","AWAITING_SLOT");
+		s2.put("hard_block",false);
+		s2.put("blocking","Visa filing");
+		s2.put("because",{"No mission in the portfolio publishes an appointment API","This requires a human to check a portal"});
+		s2.put("consequence","Slots are not monitored by anything. If nobody checks, nobody knows one opened");
+		s2.put("severity",2);
+		blockers.add(s2);
+	}
+	if(docs != "Complete" && docs != "Verified" && state != "QUALIFYING")
+	{
+		s3 = Map();
+		s3.put("code","DOCUMENTS_INCOMPLETE");
+		s3.put("hard_block",false);
+		s3.put("blocking","Application submission");
+		s3.put("because",{"Document_Status is '" + docs + "'"});
+		s3.put("consequence","Document collection is the predicted failure point of this pipeline. Families that say yes in September and cannot produce papers by October miss the intake");
+		s3.put("severity",3);
+		blockers.add(s3);
 	}
 	out.put("blockers",blockers);
 	out.put("blocked",blockers.size() > 0);
-	/*  3. NEXT IRREVERSIBLE MILESTONE — the ones that cannot be recovered. */
+	/*  3. NEXT IRREVERSIBLE MILESTONE. */
 	mile = Map();
 	if(state == "SETTLING" && permit != "Card Issued")
 	{
@@ -229,28 +322,37 @@ string standalone.caseState(string case_id)
 	}
 	out.put("next_irreversible",mile);
 	/*  4. EVIDENCE — the exact fields every verdict above was derived from, so
-	 *  a disagreement can be settled by looking rather than arguing.
+	 *  a disagreement can be settled by looking rather than by arguing.
 	 */
-	ev_all = Map();
-	ev_all.put("Stage",stage);
-	ev_all.put("Student_Journey_Stage",journey);
-	ev_all.put("Visa_Ops_Risk",risk);
-	ev_all.put("Document_Status",docs);
-	ev_all.put("Passport_Status",passport);
-	ev_all.put("Visa_Appointment_Status",appt);
-	ev_all.put("Visa_Decision",visa_dec);
-	ev_all.put("Course_Start_Date",start);
-	ev_all.put("Next_Deadline",nd);
-	out.put("evidence",ev_all);
-	/*  5. PRIORITY — for the work queue. Severity of the worst blocker,
-	 *  amplified by how little time is left. Computed, never hand-set.
+	ev = Map();
+	ev.put("Stage",stage);
+	ev.put("Student_Journey_Stage",journey);
+	ev.put("Visa_Ops_Risk",risk);
+	ev.put("Document_Status",docs);
+	ev.put("Passport_Status",passport);
+	ev.put("Visa_Appointment_Status",appt);
+	ev.put("Visa_Decision",visa_dec);
+	ev.put("Course_Start_Date",start);
+	ev.put("Next_Deadline",nd);
+	ev.put("Consent_Given",consent);
+	out.put("evidence",ev);
+	/*  5. BAND FIRST, THEN SCORE.
+	 *
+	 *  The band is a decision, not a number. Any hard block puts the case in
+	 *  HIGH regardless of arithmetic. The formula runs only when nothing is
+	 *  hard-blocked, and then it only orders cases WITHIN a band.
 	 */
+	hard = List();
 	sev = 5;
-	for each b in blockers
+	for each bb in blockers
 	{
-		if(b.get("severity") < sev)
+		if(bb.get("hard_block") == true)
 		{
-			sev = b.get("severity");
+			hard.add(bb.get("code"));
+		}
+		else if(bb.get("severity") != null && bb.get("severity") < sev)
+		{
+			sev = bb.get("severity");
 		}
 	}
 	urgency = 1;
@@ -271,29 +373,28 @@ string standalone.caseState(string case_id)
 		urgency = 2;
 	}
 	score = (6 - sev) * urgency;
-	basis = "(6 - worst blocker severity " + sev + ") x urgency " + urgency;
-	/*  FLOOR FOR SEVERITY-1 BLOCKERS.
-	 *
-	 *  Caught by the first queue run: NO_PASSPORT — which blocks everything —
-	 *  scored 5 and landed in LOW, because its deadline was five months away.
-	 *  A counsellor scanning the queue would deprioritise it, and by the time
-	 *  urgency rose the passport could no longer be obtained in time.
-	 *
-	 *  Severity 1 means "blocks everything downstream". Those must be worked
-	 *  EARLY precisely because they take weeks to clear. Urgency measures how
-	 *  soon the deadline is; it does not measure how long the fix takes, and
-	 *  multiplying by it alone gets this exactly backwards.
-	 */
-	if(sev == 1 && score < 15)
+	band = "LOW";
+	basis = "No hard block. (6 - worst severity " + sev + ") x urgency " + urgency + " = " + score;
+	if(hard.size() > 0)
 	{
-		score = 15;
-		basis = basis + " — FLOORED to 15: a severity-1 blocker takes weeks to clear, so it cannot wait for urgency to rise";
+		band = "HIGH";
+		score = 100 + hard.size() * 10 + urgency;
+		basis = "HARD BLOCK — " + hard.toString(", ") + ". Banded HIGH as a state, not a score: these take longer to clear than any deadline gives you, so they cannot wait for urgency to rise";
 	}
+	else if(score >= 12)
+	{
+		band = "MEDIUM";
+	}
+	out.put("band",band);
+	out.put("hard_blocks",hard);
 	out.put("priority_score",score);
 	out.put("priority_basis",basis);
 	out.put("case_id",case_id);
 	out.put("student",d.get("Deal_Name"));
 	out.put("owner",d.get("Assigned_Counselor"));
+	out.put("country",d.get("Destination_Country"));
+	out.put("stage",stage);
+	out.put("modified",d.get("Modified_Time"));
 	out.put("computed_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
 	out.put("ok",true);
 	return out.toString();
