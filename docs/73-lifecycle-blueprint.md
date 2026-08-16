@@ -78,6 +78,12 @@ work. **DSU can be re-applied for the following year.**
 **Part 2 proposes seven. Seven memberships for a company with zero students would be a catalogue, not
 a product.** Three, each answering *why would they renew?*
 
+> ⚠️ **AMENDED BY THE CONSTITUTION §IV.2 — the Family Line is rebuilt.** Consent does not hold: a
+> 21-year-old whose parents are paying ₹30 lakh cannot freely refuse a request to consent to a
+> parental report. **RichenQuest now reports to parents on RICHENQUEST'S OWN WORK** — permit status,
+> deadlines met, applications submitted, money taken and what it bought — **and never on the
+> student's attendance, marks or spending.** We report on ourselves, not on the student.
+
 | | **Permit & Compliance Care** | **Scholarship Care** *(Italy)* | **Family Line** |
 |---|---|---|---|
 | **Solves** | Annual permit renewal, insurance renewal, document deadlines | DSU renewal, credit-threshold monitoring, regional deadline changes | The parent's continuous anxiety |
