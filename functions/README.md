@@ -24,6 +24,8 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
 | `createUniversityFollowup.dg` | Partnership day 4/9/16 cadence, on demand |
 | `archiveExpiredPartnership.dg` | Scheduled sweep: lapsed agreements → Dormant |
 | `visaOpsPlan.dg` | Phase 9 backward planner. Course start − country lead time → risk flag + next deadline. Task **only on a risk transition** |
+| `studentActionPlan.dg` | The 60-second onboarding. Shortlist + reasons + timeline + risks + parent points. **Only reads Confidence High/Medium records** |
+| `opsWatch.dg` | Phase 10.7 daily sweep. Six watches, one digest, **silent when clear** |
 
 ## Rules for adding one
 

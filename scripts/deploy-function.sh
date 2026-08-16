@@ -58,7 +58,7 @@ script = open(src).read()
 # CREATE: `name` is what sets api_name. Sending api_name is ignored on create
 # and rejected as DUPLICATE_DATA on update, so it is never sent at all.
 json.dump({"functions": [{"name": name, "display_name": name,
-                          "language": "deluge", "category": "standalone",
+                          "language": "deluge", "category": os.environ.get("CAT","standalone"),
                           "script": script, "params": params}]},
           open(os.path.join(tmp, "create.json"), "w"))
 # UPDATE: identity fields omitted deliberately. rest_api is what turns the
@@ -71,7 +71,7 @@ PY
 
 if [ -z "$FID" ]; then
   echo "▸ CREATE $NAME"
-  RES=$(zjs POST "/crm/v2/settings/functions?category=standalone" "$TMP/create.json")
+  RES=$(zjs POST "/crm/v2/settings/functions?category=${CAT:-standalone}" "$TMP/create.json")
   print -r -- "$RES" | cut -c1-300
   FID=$(zjs GET "/crm/v2/settings/functions?type=org&start=1&limit=200" - | python3 -c "
 import sys,json
@@ -86,4 +86,4 @@ fi
 # Always PUT. On a fresh create this is what turns the REST endpoint on; on an
 # existing function it is the actual deploy.
 echo "▸ PUT $NAME (id $FID)"
-zjs PUT "/crm/v2/settings/functions/$FID?category=standalone" "$TMP/update.json" | cut -c1-400
+zjs PUT "/crm/v2/settings/functions/$FID?category=${CAT:-standalone}" "$TMP/update.json" | cut -c1-400

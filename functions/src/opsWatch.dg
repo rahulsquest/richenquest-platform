@@ -1,0 +1,200 @@
+string standalone.opsWatch()
+{
+	/*  PURPOSE
+	 *    Phase 10.7. One sweep across everything that has a clock on it, and
+	 *    ONE digest to the responsible humans - but only when something
+	 *    genuinely needs attention.
+	 *
+	 *    Watches:
+	 *      - Student Cases at visa risk Amber or Red
+	 *      - Student Cases whose Next_Deadline has passed
+	 *      - Student Cases with an appointment booked but documents incomplete
+	 *      - Student Cases sitting in "Awaiting Slot" (the one state that needs
+	 *        a human to check a portal by hand - File 45 §1)
+	 *      - University intelligence records past their Review_Date (stale)
+	 *      - University records with no Verified_On at all
+	 *
+	 *  SILENT WHEN GREEN, DELIBERATELY
+	 *    Consistent with schedNightlyVerify and schedFounderDigest. A daily
+	 *    email that usually says "nothing wrong" trains people to ignore the
+	 *    one that says something is. If nothing is flagged, this sends nothing
+	 *    and returns quietly.
+	 *
+	 *  WHY IT DOES NOT RE-RUN visaOpsPlan
+	 *    That is a separate concern with its own schedule. This function READS
+	 *    the risk that visaOpsPlan wrote. A watcher that also recomputes would
+	 *    hide a failure of the thing it is supposed to be watching.
+	 *
+	 *  OUTPUT  {"ok":true,"flags":n,"sections":{…},"alerted":bool}
+	 *
+	 *  DEPENDENCIES  sendPlatformAlert
+	 *  VERSION       1.0 (2026-08-16)
+	 */
+	out = Map();
+	today = zoho.currentdate;
+	at_risk = List();
+	overdue = List();
+	doc_gap = List();
+	awaiting = List();
+	stale_uni = List();
+	never_verified = List();
+	closed = {"Visa Approved — Won","Closed Lost"};
+	pages = {1,2,3,4,5};
+	for each pg in pages
+	{
+		deals = zoho.crm.getRecords("Deals",pg,200);
+		if(deals.size() == 0)
+		{
+			break;
+		}
+		for each d in deals
+		{
+			stage = d.get("Stage");
+			if(closed.contains(stage))
+			{
+				continue;
+			}
+			nm = d.get("Deal_Name");
+			risk = d.get("Visa_Ops_Risk");
+			nd = d.get("Next_Deadline");
+			appt = d.get("Visa_Appointment_Status");
+			docs = d.get("Document_Status");
+			if(risk == "Red" || risk == "Amber")
+			{
+				at_risk.add(risk + " - " + nm + " (" + stage + ")");
+			}
+			if(nd != null && nd != "")
+			{
+				if(nd.toString().subString(0,10).toDate() < today)
+				{
+					overdue.add(nm + " - deadline " + nd + " has passed");
+				}
+			}
+			/*  An appointment with an incomplete file is the specific failure
+			 *  SOP-1's checklist gate exists to prevent. If it appears here the
+			 *  gate was skipped, and the slot is at risk, not just the day.
+			 */
+			if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
+			{
+				doc_gap.add(nm + " - appointment booked but documents are '" + docs + "'");
+			}
+			if(appt == "Awaiting Slot")
+			{
+				awaiting.add(nm + " - needs a manual portal check today");
+			}
+		}
+		if(deals.size() < 200)
+		{
+			break;
+		}
+	}
+	for each pg2 in pages
+	{
+		accs = zoho.crm.getRecords("Accounts",pg2,200);
+		if(accs.size() == 0)
+		{
+			break;
+		}
+		for each a in accs
+		{
+			conf = a.get("Confidence");
+			an = a.get("Account_Name");
+			rv = a.get("Review_Date");
+			vo = a.get("Verified_On");
+			if(conf == "High" || conf == "Medium")
+			{
+				if(rv != null && rv != "")
+				{
+					if(rv.toString().subString(0,10).toDate() < today)
+					{
+						stale_uni.add(an + " - review was due " + rv + "; it is now advising students on unrechecked data");
+					}
+				}
+				if(vo == null || vo == "")
+				{
+					never_verified.add(an + " - marked " + conf + " confidence but has NO verification date");
+				}
+			}
+		}
+		if(accs.size() < 200)
+		{
+			break;
+		}
+	}
+	sections = Map();
+	sections.put("visa_risk",at_risk);
+	sections.put("overdue_deadlines",overdue);
+	sections.put("appointment_without_documents",doc_gap);
+	sections.put("awaiting_slot_manual_check",awaiting);
+	sections.put("stale_university_records",stale_uni);
+	sections.put("confidence_without_verification",never_verified);
+	flags = at_risk.size() + overdue.size() + doc_gap.size() + awaiting.size() + stale_uni.size() + never_verified.size();
+	alerted = false;
+	if(flags > 0)
+	{
+		body = "RichenQuest operations watch - " + today.toString("yyyy-MM-dd") + "\n";
+		body = body + "This email is only sent when something needs a decision or an action.\n\n";
+		if(at_risk.size() > 0)
+		{
+			body = body + "VISA RISK (" + at_risk.size() + ")\nRed means the last safe filing date has passed. Nothing may look wrong on the case.\n";
+			for each x in at_risk
+			{
+				body = body + "  - " + x + "\n";
+			}
+			body = body + "\n";
+		}
+		if(overdue.size() > 0)
+		{
+			body = body + "OVERDUE DEADLINES (" + overdue.size() + ")\n";
+			for each x in overdue
+			{
+				body = body + "  - " + x + "\n";
+			}
+			body = body + "\n";
+		}
+		if(doc_gap.size() > 0)
+		{
+			body = body + "APPOINTMENT BOOKED, DOCUMENTS INCOMPLETE (" + doc_gap.size() + ")\nSOP-1's checklist gate was skipped. A counter rejection costs the slot, not the day.\n";
+			for each x in doc_gap
+			{
+				body = body + "  - " + x + "\n";
+			}
+			body = body + "\n";
+		}
+		if(awaiting.size() > 0)
+		{
+			body = body + "AWAITING SLOT - MANUAL CHECK DUE (" + awaiting.size() + ")\nNo appointment API exists for any country in the portfolio. This is human work by design.\n";
+			for each x in awaiting
+			{
+				body = body + "  - " + x + "\n";
+			}
+			body = body + "\n";
+		}
+		if(stale_uni.size() > 0)
+		{
+			body = body + "STALE UNIVERSITY INTELLIGENCE (" + stale_uni.size() + ")\nThese records are still being offered to students by studentActionPlan.\n";
+			for each x in stale_uni
+			{
+				body = body + "  - " + x + "\n";
+			}
+			body = body + "\n";
+		}
+		if(never_verified.size() > 0)
+		{
+			body = body + "CONFIDENCE WITHOUT VERIFICATION (" + never_verified.size() + ")\nA confidence rating with no verification date is a claim with no evidence.\n";
+			for each x in never_verified
+			{
+				body = body + "  - " + x + "\n";
+			}
+			body = body + "\n";
+		}
+		standalone.sendPlatformAlert("RichenQuest ops watch - " + flags + " item(s) need attention",body);
+		alerted = true;
+	}
+	out.put("ok",true);
+	out.put("flags",flags);
+	out.put("sections",sections);
+	out.put("alerted",alerted);
+	out.put("run_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

@@ -1,0 +1,19 @@
+void scheduler.schedOpsWatch()
+{
+	/*  PURPOSE
+	 *    Thin scheduler wrapper for opsWatch (Phase 10.7).
+	 *
+	 *    Schedules will not accept a `standalone` function - the function must
+	 *    be category `scheduler` (verified 2026-08-16: standalone ids return
+	 *    "The function id given seems to be invalid"). So this exists purely to
+	 *    be schedulable, and delegates immediately so the business logic stays
+	 *    in one place and stays testable by hand.
+	 *
+	 *  OWNER    platform
+	 *  CADENCE  daily 06:30 - before the counselling day starts, so the digest
+	 *           is read as a to-do list rather than a post-mortem.
+	 *  SILENT   opsWatch sends nothing when nothing is flagged.
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	standalone.opsWatch();
+}

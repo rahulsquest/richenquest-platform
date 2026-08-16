@@ -1,0 +1,368 @@
+string standalone.studentActionPlan(string budget_inr, string level, string intake_month, string country_pref, string english_status, string academic_pct, string study_gap_years, string career_goal)
+{
+	/*  PURPOSE
+	 *    The 60-second onboarding. One call, one complete action plan:
+	 *    shortlist, why each university is in or out, scholarships, timeline,
+	 *    documents, risks, alternatives, counselling notes, parent talking
+	 *    points, and an explicit list of what is NOT known.
+	 *
+	 *    This is Phases 10.2, 10.3 and 10.6 in one function rather than three,
+	 *    because a counsellor sitting with a family needs one answer, not three
+	 *    reports to reconcile.
+	 *
+	 *  INPUTS
+	 *    budget_inr        total family budget, INR, e.g. "1500000"
+	 *    level             "Bachelors" | "Masters" | "Foundation / Prep" | "PhD"
+	 *    intake_month      "YYYY-MM", e.g. "2027-02"
+	 *    country_pref      country name, or "" for any
+	 *    english_status    "None" | "MOI" | an IELTS band, e.g. "5.5"
+	 *    academic_pct      percentage, e.g. "62"
+	 *    study_gap_years   e.g. "3"
+	 *    career_goal       free text, echoed into the counselling notes
+	 *
+	 *  THE RULE THAT SHAPES EVERYTHING BELOW
+	 *    Only universities with Confidence High or Medium are ever recommended.
+	 *    An unverified record is visible to a human and invisible to this
+	 *    function. RichenQuest currently has 20 universities and 3 verified;
+	 *    a matcher that quietly ranked the other 17 would be inventing the very
+	 *    data the founder said never to invent.
+	 *
+	 *  NO SCORE, DELIBERATELY
+	 *    Universities are bucketed - Strong fit / Possible with a caveat /
+	 *    Excluded with a reason - not scored. A number implies a precision that
+	 *    does not exist and invites the question "what are my chances?", which
+	 *    this platform must never answer. A counsellor can defend a reason.
+	 *    Nobody can defend a 73.
+	 *
+	 *  FX  1 EUR = 95 INR, stated, consistent with generateCounsellingBrief.
+	 *      Restated in the output so nobody mistakes it for a live rate.
+	 *
+	 *  OUTPUT  {"ok":true, "student":{…}, "shortlist":[…], "excluded":[…],
+	 *           "scholarships":[…], "timeline":{…}, "documents":[…],
+	 *           "risks":[…], "counselling_notes":[…], "parent_points":[…],
+	 *           "data_gaps":[…], "never_say":[…]}
+	 *
+	 *  DEPENDENCIES  coreValidate
+	 *  VERSION       1.0 (2026-08-16)
+	 */
+	FX = 95;
+	out = Map();
+	rules = List();
+	r1 = Map();
+	r1.put("field","budget_inr");
+	r1.put("type","required");
+	rules.add(r1);
+	r2 = Map();
+	r2.put("field","level");
+	r2.put("type","enum");
+	r2.put("values",{"Bachelors","Masters","Foundation / Prep","PhD"});
+	rules.add(r2);
+	r3 = Map();
+	r3.put("field","intake_month");
+	r3.put("type","required");
+	rules.add(r3);
+	vals = Map();
+	vals.put("budget_inr",budget_inr);
+	vals.put("level",level);
+	vals.put("intake_month",intake_month);
+	check = standalone.coreValidate(rules.toString(),vals.toString()).toMap();
+	if(check.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("errors",check.get("errors"));
+		return out.toString();
+	}
+	budget = budget_inr.toLong();
+	gap = 0;
+	if(study_gap_years != null && study_gap_years.trim() != "")
+	{
+		gap = study_gap_years.toLong();
+	}
+	/*  English. "None" and "MOI" both mean no test band, and both are only
+	 *  workable where the university publishes a waiver route.
+	 */
+	has_band = false;
+	band = 0.0;
+	if(english_status != null && english_status != "None" && english_status != "MOI" && english_status.trim() != "")
+	{
+		has_band = true;
+		band = english_status.toDecimal();
+	}
+	/*  Intake month -> the month name the Intakes multiselect uses, and a
+	 *  nominal course start date for the timeline.
+	 */
+	months = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+	mnum = intake_month.subString(5,7).toLong();
+	intake_name = months.get(mnum - 1);
+	course_start = (intake_month + "-01").toDate();
+	shortlist = List();
+	excluded = List();
+	scholarships = List();
+	gaps = List();
+	pages = {1,2,3,4,5};
+	seen = 0;
+	for each pg in pages
+	{
+		batch = zoho.crm.getRecords("Accounts",pg,200);
+		if(batch.size() == 0)
+		{
+			break;
+		}
+		for each a in batch
+		{
+			conf = a.get("Confidence");
+			uname = a.get("Account_Name");
+			/*  The verification gate. Everything else is downstream of it. */
+			if(conf != "High" && conf != "Medium")
+			{
+				continue;
+			}
+			seen = seen + 1;
+			reasons = List();
+			blockers = List();
+			caveats = List();
+			levels = a.get("Levels_Offered");
+			intakes = a.get("Intakes");
+			country = a.get("University_Country");
+			tmin = a.get("Tuition_Min_EUR_Year");
+			tmax = a.get("Tuition_Max_EUR_Year");
+			live = a.get("Living_Cost_EUR_Year");
+			appfee = a.get("Application_Fee_EUR");
+			waiver = a.get("English_Waiver_Route");
+			maxgap = a.get("Max_Study_Gap_Years");
+			schol = a.get("Scholarships_Available");
+			ireq = a.get("IELTS_Min_UG");
+			if(level == "Masters")
+			{
+				ireq = a.get("IELTS_Min_PG");
+			}
+			/*  HARD FILTERS - these exclude, they do not merely warn. */
+			if(levels != null && levels.size() > 0 && !levels.contains(level))
+			{
+				blockers.add("does not offer " + level);
+			}
+			if(intakes != null && intakes.size() > 0 && !intakes.contains(intake_name))
+			{
+				blockers.add("no " + intake_name + " intake");
+			}
+			if(country_pref != null && country_pref.trim() != "" && country != null && country != country_pref)
+			{
+				blockers.add("student asked for " + country_pref + "; this is " + country);
+			}
+			if(maxgap != null && gap > maxgap.toLong())
+			{
+				blockers.add("study gap " + gap + " years exceeds the accepted " + maxgap);
+			}
+			/*  Budget. Tuition is per year; the family budget is usually total,
+			 *  so compare year one and say so rather than pretending to know
+			 *  the course length.
+			 */
+			yr1 = 0;
+			if(tmin != null)
+			{
+				yr1 = (tmin.toLong() * FX);
+				if(live != null)
+				{
+					yr1 = yr1 + (live.toLong() * FX);
+				}
+				else
+				{
+					caveats.add("living cost NOT VERIFIED for this university - the budget comparison below is TUITION ONLY and understates the real cost");
+				}
+				if(yr1 > budget)
+				{
+					blockers.add("year one alone is approx INR " + yr1 + " against a total budget of INR " + budget);
+				}
+				else
+				{
+					reasons.add("year one approx INR " + yr1 + " fits inside the stated budget");
+				}
+			}
+			else
+			{
+				caveats.add("tuition NOT VERIFIED - cannot be compared against the budget at all");
+			}
+			/*  English. A missing band is only survivable via a waiver route. */
+			if(has_band)
+			{
+				if(ireq != null && band < ireq.toDecimal())
+				{
+					blockers.add("IELTS " + band + " is below the required " + ireq);
+				}
+				else if(ireq != null)
+				{
+					reasons.add("IELTS " + band + " meets the required " + ireq);
+				}
+			}
+			else
+			{
+				if(waiver == "Interview" || waiver == "MOI" || waiver == "Other")
+				{
+					reasons.add("accepts a waiver route (" + waiver + ") - workable with NO test certificate");
+				}
+				else
+				{
+					blockers.add("student has no English test and no waiver route is published here");
+				}
+			}
+			/*  Scholarship signal - never a promise, only availability. */
+			if(schol != null && schol != "None" && schol != "Unknown")
+			{
+				reasons.add("scholarship routes exist (" + schol + ") - availability, NOT an award");
+				s = Map();
+				s.put("university",uname);
+				s.put("routes",schol);
+				s.put("caution","Availability only. Never present a scholarship as expected, budgeted, or likely.");
+				scholarships.add(s);
+			}
+			if(appfee != null)
+			{
+				caveats.add("non-refundable up-front fees approx EUR " + appfee + " - say this before the family pays, not after");
+			}
+			if(conf == "Medium")
+			{
+				caveats.add("record confidence MEDIUM - re-confirm the key figures with the university before the family commits");
+			}
+			row = Map();
+			row.put("university",uname);
+			row.put("country",country);
+			row.put("verified_on",a.get("Verified_On"));
+			row.put("confidence",conf);
+			row.put("source",a.get("Source_URL"));
+			row.put("deadline",a.get("Next_App_Deadline"));
+			row.put("deadline_note",a.get("Deadline_Note"));
+			row.put("caveats",caveats);
+			if(blockers.size() > 0)
+			{
+				row.put("why_not",blockers);
+				excluded.add(row);
+			}
+			else
+			{
+				row.put("why",reasons);
+				verdict = "Strong fit";
+				if(caveats.size() > 1)
+				{
+					verdict = "Possible - read the caveats first";
+				}
+				row.put("verdict",verdict);
+				shortlist.add(row);
+			}
+		}
+		if(batch.size() < 200)
+		{
+			break;
+		}
+	}
+	/*  Timeline. Country lead times are the same verified table visaOpsPlan
+	 *  uses; see File 45 §2 for the source of each figure.
+	 */
+	lead = 120;
+	lead_src = "conservative default - country lead time NOT researched";
+	tl_country = country_pref;
+	if(shortlist.size() > 0)
+	{
+		tl_country = shortlist.get(0).get("country");
+	}
+	/*  Spain sits in the portfolio (EU Business School, Barcelona) but its
+	 *  student visa route was never researched. It therefore gets the
+	 *  conservative default and says so, rather than borrowing a neighbour's
+	 *  lead time - File 45 §2.
+	 */
+	if(tl_country == "Italy")
+	{
+		lead = 100;
+		lead_src = "official: D-visa processing up to 90 days from receipt";
+	}
+	else if(tl_country == "Germany")
+	{
+		lead = 105;
+		lead_src = "APS 4-8 weeks must PRECEDE the application";
+	}
+	else if(tl_country == "Ireland")
+	{
+		lead = 100;
+		lead_src = "approx 40 working days first instance";
+	}
+	else if(tl_country == "Poland")
+	{
+		lead = 75;
+		lead_src = "15 working days, extendable to 30-60";
+	}
+	else if(tl_country == "Hungary")
+	{
+		lead = 75;
+		lead_src = "approx 2 weeks reported; slots scarce at peak";
+	}
+	else if(tl_country == "Malta")
+	{
+		lead = 70;
+		lead_src = "15 days, longer outside Delhi";
+	}
+	timeline = Map();
+	timeline.put("intake",intake_name + " " + intake_month.subString(0,4));
+	timeline.put("nominal_course_start",course_start.toString("yyyy-MM-dd"));
+	timeline.put("documents_complete_by",course_start.subDay(lead + 20).toString("yyyy-MM-dd"));
+	timeline.put("last_safe_visa_filing_date",course_start.subDay(lead).toString("yyyy-MM-dd"));
+	timeline.put("lead_time_basis",lead_src);
+	timeline.put("note","Indicative. Once a Student Case exists, visaOpsPlan computes this from the real course start date and keeps it current.");
+	if(course_start.subDay(lead) < zoho.currentdate)
+	{
+		timeline.put("WARNING","The last safe filing date for this intake has ALREADY PASSED. Say so in the first conversation. Selling an intake that cannot be reached is the most damaging thing a counsellor can do.");
+	}
+	documents = {"Passport - validity, blank pages, all previous passports","Academic transcripts and certificates","English evidence, or the waiver route this university accepts","Proof of funds IN THE FORM THIS CONSULATE ACCEPTS - the form matters more than the amount","Statement of purpose","Photographs to the mission specification","Country pre-step: Universitaly (IT) / APS (DE) / AVATS (IE) / e-Konsulat (PL)"};
+	risks = List();
+	if(shortlist.size() == 0)
+	{
+		risks.add("NO VERIFIED UNIVERSITY MATCHES THIS STUDENT. Do not improvise one. Either research a university properly first, or tell the family honestly that we do not yet have a verified option for their profile.");
+	}
+	if(gap > 2)
+	{
+		risks.add("Study gap of " + gap + " years - confirm the gap policy per university and prepare a documented explanation.");
+	}
+	if(!has_band)
+	{
+		risks.add("No English test certificate. Only universities with a published waiver route are viable, and the waiver is decided by the university, not by us.");
+	}
+	if(academic_pct != null && academic_pct.trim() != "" && academic_pct.toDecimal() < 60)
+	{
+		risks.add("Academic percentage below 60 - confirm the minimum entry requirement per university before raising expectations.");
+	}
+	risks.add("Non-refundable fees are charged before any decision is made. The family must understand this before paying.");
+	notes = List();
+	notes.add("Career goal as stated: " + career_goal);
+	notes.add("Budget stated as INR " + budget + " total. Converted at 1 EUR = 95 INR - a STATED ASSUMPTION, not a live rate. Re-check before quoting.");
+	notes.add("Verified universities considered: " + seen + ". Shortlisted: " + shortlist.size() + ". Excluded with a reason: " + excluded.size() + ".");
+	notes.add("Every exclusion carries its reason. Read them out if the family asks why a university they heard of is missing - that conversation builds more trust than the shortlist does.");
+	parent = List();
+	parent.add("We only recommend universities whose fees, deadlines and entry requirements we have checked against the university's own source, and we show you the date we checked.");
+	parent.add("We will tell you the total money required before you pay anything, including the fees that are not refundable.");
+	parent.add("We do not promise admission, scholarships, or a visa. Nobody can. We make sure the application is complete, correct and in time.");
+	parent.add("The deadline that matters most is not the university's - it is the last safe date to file the visa. For this plan that is " + timeline.get("last_safe_visa_filing_date") + ".");
+	gaps.add("Living costs are not verified for most universities - budget comparisons here are tuition-only unless stated otherwise.");
+	gaps.add("Commission is unconfirmed for every university in the portfolio. It changes nothing for the student and everything for the ranking.");
+	gaps.add("Graduate work rights and employability are NOT verified for any university - do not discuss outcomes or salaries.");
+	never = {"admission probability or chances","scholarship likelihood or an assumed award","visa approval odds","expected salary or job outcomes","any figure not carried in a verified record"};
+	out.put("ok",true);
+	student = Map();
+	student.put("budget_inr",budget);
+	student.put("level",level);
+	student.put("intake",intake_name);
+	student.put("country_pref",country_pref);
+	student.put("english",english_status);
+	student.put("academic_pct",academic_pct);
+	student.put("study_gap_years",gap);
+	out.put("student",student);
+	out.put("shortlist",shortlist);
+	out.put("excluded",excluded);
+	out.put("scholarships",scholarships);
+	out.put("timeline",timeline);
+	out.put("documents",documents);
+	out.put("risks",risks);
+	out.put("counselling_notes",notes);
+	out.put("parent_points",parent);
+	out.put("data_gaps",gaps);
+	out.put("never_say",never);
+	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}
