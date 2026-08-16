@@ -35,15 +35,47 @@ intervals **still overlap at N = 60**.
 
 ---
 
+## 0b. Trust nodes, not channels — and the ignition threshold
+
+**A channel is a place. A trust node is a person who already holds the customer's trust.** The
+register measures **people**, not platforms.
+
+**Modelling the loop produced one non-obvious number.**
+
+*Assumptions, stated: 250 parents reached per node forward · 1.5% enquire cold · **4.5% once that node
+has produced one successful student from its own school** · 30% qualify · 25% enrol. One cycle ≈ one
+intake ≈ 6 months.*
+
+| Starting nodes | Cycle 1 | Cycle 2 | Cycle 3 | Cycle 4 | |
+|---:|---:|---:|---:|---:|---|
+| **1** | 0.3 | 0.8 | 1.8 | 3.5 | 🔴 **never ignites** |
+| **5** | 1.4 | 4.0 | 8.8 | 17.6 | ✅ compounds |
+| **13** | — | **10** | — | — | ✅ **10 students within a year** |
+| 20 | 5.6 | 16.0 | 35.1 | 70.4 | ✅ |
+
+> ### The trust network has a minimum ignition size: 4 nodes to produce one student, 13 to reach ten within a year.
+>
+> **Below that it does not compound slowly — it fizzles.** One node produces 0.3 students in cycle 1,
+> which in reality is zero, and a loop that never produces its first student never warms a single node.
+
+**The compounding mechanism is not student → friend.** It is: **a node that produced a student stops
+forwarding a report and starts telling a story.** That is the 3× — and it is why the first student
+matters far more than the first hundred leads.
+
+**Operational consequence: contacting one teacher is not a smaller version of contacting twenty. It is
+a different outcome — nothing.** E1's minimum sample of 30 is therefore not just statistical rigour;
+**it is below the ignition threshold at anything less.**
+
 ## 1. The register
 
 **Every experiment carries all six fields before it starts. An experiment without a stop rule is an
 activity.**
 
-### E1 · Teacher-seeded WhatsApp — 🟢 ACTIVE
+### E1 · Trust nodes, teacher-type — 🟢 ACTIVE
 
 | | |
 |---|---|
+| **Node types in scope** | Teachers · coaching owners · principals · college faculty · career counsellors. **Ranked by parent-group access, not by seniority** |
 | **Hypothesis** | A teacher will forward a free, honest cost report into their parent groups because it raises their standing and costs them nothing |
 | **Unit** | One teacher contacted individually |
 | **Minimum sample** | **30 teachers before any decision** |
@@ -52,6 +84,7 @@ activity.**
 | **📈 SCALE RULE** | **≥6 forwards in 30 → go to 100 teachers.** ≥3 qualified leads → this is the engine; stop testing others |
 | **Cost cap** | ₹0 |
 | **Time cap** | **21 days.** If 30 contacts are not made in 21 days, the constraint is capacity, not the channel |
+| **⚠️ Ignition floor** | **Below 13 nodes the loop cannot reach 10 students in a year.** 30 contacts at a ~40% forward rate gives ~12 active nodes — **the sample size and the ignition threshold are the same number by coincidence, and both say 30** |
 
 ### E2 · Google Business Profile — 🟡 BACKGROUND
 
@@ -121,6 +154,36 @@ half-measured experiments instead of one decided.
 
 ---
 
+## 3b. Trust Multiplier Score — measure people, not platforms
+
+**One row per node. This is the register's real output.**
+
+```
+NODE                      Priya Sharma, Physics, DAV Patna
+Contacted                 2026-08-18
+Forwarded                 YES          <- the only free signal
+Parents reached (est.)    ~200
+Enquiries produced        3
+Qualified                 2
+Students enrolled         1
+Referrals since           4
+Seminar invited           YES
+STATUS                    WARM  (has a success story of their own)
+```
+
+| Status | Meaning | What we do |
+|---|---|---|
+| **COLD** | Contacted, no forward | One follow-up at day 10, then stop |
+| **ACTIVE** | Forwarded at least once | Send the next report first |
+| **WARM** | **Produced a successful student** | **3× conversion. Invest here before any new channel** |
+| DORMANT | Was active, two cycles silent | Re-approach with a new report, never a reminder |
+
+**The comparison that matters is between people, not channels.** One WARM teacher outperforms every
+social platform in this register combined — and unlike a platform, **they get better each cycle.**
+
+**Instrumentation already exists:** `Lead_Source_Detail` = the node's name. **No new CRM field is
+required to compute any row above.**
+
 ## 4. The metric that measures learning, not activity
 
 > ### Experiments **decided** per month.
@@ -134,6 +197,7 @@ minimum sample and its stop or scale rule fires.**
 | Experiments abandoned before minimum sample | **0** |
 | Experiments running without a stop rule | **0** |
 | **Median days from start to decision** | **falling** |
+| **WARM nodes** | **rising.** The only number that compounds |
 
 **A company that decides two experiments a month learns 24 things a year. A company that runs eight
 channels simultaneously learns nothing and calls it momentum.**
