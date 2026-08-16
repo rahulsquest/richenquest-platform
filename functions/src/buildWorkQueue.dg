@@ -1,0 +1,151 @@
+string standalone.buildWorkQueue(string owner_filter)
+{
+	/*  PURPOSE
+	 *    One ordered list of everything actionable, across every module.
+	 *    A counsellor should not have to know which module owns a task.
+	 *
+	 *  IT DERIVES FROM caseState, IT DOES NOT RE-DECIDE
+	 *    Every case's priority and blockers come from standalone.caseState.
+	 *    If this function computed its own view of urgency, the dashboard and
+	 *    the student screen would eventually disagree — and the counsellor
+	 *    would trust neither.
+	 *
+	 *  INPUT
+	 *    owner_filter   a counsellor name, or "" for everything
+	 *
+	 *  OUTPUT  {"ok":true,"high":[…],"medium":[…],"low":[…],
+	 *           "uncalled_leads":[…],"counts":{…}}
+	 *
+	 *  ORDERING IS COMPUTED
+	 *    priority_score from caseState, which is (6 - worst blocker severity)
+	 *    x urgency. Nothing is hand-ranked, so nobody can quietly promote the
+	 *    comfortable task.
+	 *
+	 *  DEPENDENCIES  caseState
+	 *  VERSION       1.0 (2026-08-17)
+	 */
+	out = Map();
+	high = List();
+	medium = List();
+	low = List();
+	uncalled = List();
+	closed = {"Visa Approved — Won","Closed Lost"};
+	pages = {1,2,3};
+	scanned = 0;
+	for each pg in pages
+	{
+		deals = zoho.crm.getRecords("Deals",pg,200);
+		if(deals.size() == 0)
+		{
+			break;
+		}
+		for each d in deals
+		{
+			if(closed.contains(d.get("Stage")))
+			{
+				continue;
+			}
+			if(owner_filter != null && owner_filter.trim() != "")
+			{
+				oc = d.get("Assigned_Counselor");
+				if(oc == null || !oc.toString().containsIgnoreCase(owner_filter))
+				{
+					continue;
+				}
+			}
+			scanned = scanned + 1;
+			st = standalone.caseState(d.get("id")).toMap();
+			if(st.get("ok") != true)
+			{
+				continue;
+			}
+			item = Map();
+			item.put("case_id",d.get("id"));
+			item.put("student",st.get("student"));
+			item.put("state",st.get("state"));
+			item.put("score",st.get("priority_score"));
+			item.put("why",st.get("priority_basis"));
+			bl = st.get("blockers");
+			if(bl.size() > 0)
+			{
+				top = bl.get(0);
+				item.put("task",top.get("code"));
+				item.put("because",top.get("because"));
+				item.put("consequence",top.get("consequence"));
+			}
+			else
+			{
+				item.put("task","WEEKLY_UPDATE");
+				item.put("because",{"Nothing is blocked"});
+				item.put("consequence","Silence is what destroys trust in this business, not bad news. The Friday message exists for weeks like this");
+			}
+			item.put("next_irreversible",st.get("next_irreversible"));
+			sc = st.get("priority_score");
+			if(sc >= 15)
+			{
+				high.add(item);
+			}
+			else if(sc >= 6)
+			{
+				medium.add(item);
+			}
+			else
+			{
+				low.add(item);
+			}
+		}
+		if(deals.size() < 200)
+		{
+			break;
+		}
+	}
+	/*  Leads are a separate module but the same job. A counsellor does not care
+	 *  which module a task lives in — an uncalled enquiry outranks almost
+	 *  everything, because a lead going cold is the cheapest loss to prevent.
+	 */
+	for each pg2 in pages
+	{
+		lds = zoho.crm.getRecords("Leads",pg2,200);
+		if(lds.size() == 0)
+		{
+			break;
+		}
+		for each l in lds
+		{
+			ls = l.get("Lead_Status");
+			if(ls == "Contacted" || ls == "Junk Lead" || ls == "Not Interested")
+			{
+				continue;
+			}
+			li = Map();
+			li.put("lead_id",l.get("id"));
+			li.put("name",l.get("Last_Name"));
+			li.put("city",l.get("City"));
+			li.put("passport",l.get("Passport_Status"));
+			li.put("intake",l.get("Intended_Intake"));
+			li.put("referred_by",l.get("Lead_Source_Detail"));
+			li.put("task","CALL_WITHIN_48H");
+			li.put("consequence","A five-day-old enquiry is a cold enquiry. This is the cheapest loss in the business to prevent and the easiest to let happen");
+			uncalled.add(li);
+		}
+		if(lds.size() < 200)
+		{
+			break;
+		}
+	}
+	counts = Map();
+	counts.put("cases_scanned",scanned);
+	counts.put("high",high.size());
+	counts.put("medium",medium.size());
+	counts.put("low",low.size());
+	counts.put("uncalled_leads",uncalled.size());
+	out.put("ok",true);
+	out.put("owner_filter",owner_filter);
+	out.put("uncalled_leads",uncalled);
+	out.put("high",high);
+	out.put("medium",medium);
+	out.put("low",low);
+	out.put("counts",counts);
+	out.put("built_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

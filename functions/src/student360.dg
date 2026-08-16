@@ -24,8 +24,16 @@ string standalone.student360(string case_id)
 	 *           "next_action":{…},"applications":[…],"money":{…},
 	 *           "consent":{…},"provenance":{…}}
 	 *
-	 *  DEPENDENCIES  none — read-only by design. This function never writes.
-	 *  VERSION       1.0 (2026-08-17)
+	 *  IT NO LONGER DECIDES ANYTHING ITSELF
+	 *    v1.0 computed risks and the next action from raw fields. So did
+	 *    caseState, once that was built — two copies of the same rules, which
+	 *    would have drifted the first time one was edited and the other was
+	 *    not. This version asks caseState and renders the answer. The rules
+	 *    live in exactly one file, the way picklist values live in exactly
+	 *    normalizeInput.
+	 *
+	 *  DEPENDENCIES  caseState — read-only by design. This function never writes.
+	 *  VERSION       2.0 (2026-08-17)
 	 */
 	out = Map();
 	if(case_id == null || case_id.trim() == "")
@@ -79,84 +87,73 @@ string standalone.student360(string case_id)
 	}
 	header.put("owner",d.get("Assigned_Counselor"));
 	header.put("package",d.get("Service_Package"));
+	/*  STATE, RISKS AND NEXT ACTION — all from caseState. */
+	st = standalone.caseState(case_id).toMap();
+	blockers = st.get("blockers");
+	header.put("state",st.get("state"));
+	header.put("priority_score",st.get("priority_score"));
 	out.put("header",header);
-	/*  RISKS — only actionable ones. A risk nobody can act on is noise. */
+	/*  RISKS — rendered from the blockers, each carrying the reasoning that
+	 *  produced it. A counsellor who is told "why" argues with the system when
+	 *  it is wrong, which is how the rules get fixed. A counsellor who is only
+	 *  told "what" either obeys a bad rule or ignores a good one.
+	 */
 	risks = List();
-	if(passport == null || passport == "" || passport == "Not applied" || passport == "Expired")
+	for each b in blockers
 	{
-		risks.add("PASSPORT — not held. Nothing else can proceed. This is the critical path");
-	}
-	if(risk == "Red")
-	{
-		risks.add("VISA TIMING — the last safe filing date has PASSED. The intake may be unreachable");
-	}
-	else if(risk == "Amber")
-	{
-		risks.add("VISA TIMING — inside 30 days of the last safe filing date");
-	}
-	else if(risk == "Not computed" || risk == null)
-	{
-		risks.add("NO COURSE START DATE — nothing can be planned backwards. Ask and set it");
-	}
-	if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
-	{
-		risks.add("APPOINTMENT BOOKED WITH INCOMPLETE DOCUMENTS — a counter rejection costs the slot, not the day");
-	}
-	if(appt == "Awaiting Slot")
-	{
-		risks.add("AWAITING SLOT — needs a manual portal check today. No appointment API exists");
-	}
-	if(has_deadline && days_left < 21 && days_left >= 0 && docs != "Complete")
-	{
-		risks.add("DEADLINE UNDER 21 DAYS with documents at '" + docs + "'");
-	}
-	if(visa_dec == "Refused")
-	{
-		risks.add("VISA REFUSED — record the grounds VERBATIM before anything else. It cannot be reconstructed");
+		r = Map();
+		r.put("code",b.get("code"));
+		r.put("blocking",b.get("blocking"));
+		r.put("because",b.get("because"));
+		r.put("if_we_do_nothing",b.get("consequence"));
+		risks.add(r);
 	}
 	out.put("risks",risks);
-	/*  NEXT ACTION — exactly one, ranked by consequence. */
+	out.put("next_irreversible",st.get("next_irreversible"));
+	/*  NEXT ACTION — exactly one, taken from the highest-severity blocker.
+	 *  caseState decides WHICH problem matters most; this maps that problem to
+	 *  the human instruction and the time it takes.
+	 */
 	na = Map();
-	if(visa_dec == "Refused" && (d.get("Refusal_Grounds") == null || d.get("Refusal_Grounds") == ""))
+	code = "NONE";
+	if(blockers.size() > 0)
+	{
+		code = blockers.get(0).get("code");
+		na.put("why",blockers.get(0).get("consequence"));
+	}
+	if(code == "REFUSAL_NOT_RECORDED")
 	{
 		na.put("do","Record the refusal grounds, verbatim");
-		na.put("why","The most valuable data this student will ever produce, and it cannot be reconstructed later");
 		na.put("minutes",10);
 	}
-	else if(passport == null || passport == "" || passport == "Not applied" || passport == "Expired")
+	else if(code == "NO_PASSPORT")
 	{
-		na.put("do","Call the student about the passport");
-		na.put("why","No passport means no intake, whatever else is true. Tell them to apply this week");
+		na.put("do","Call the student about the passport. Tell them to apply this week");
 		na.put("minutes",5);
 	}
-	else if(risk == "Not computed" || risk == null)
-	{
-		na.put("do","Ask which intake they are targeting and set Course Start Date");
-		na.put("why","Without it nothing can be planned backwards and every deadline is invisible");
-		na.put("minutes",5);
-	}
-	else if(risk == "Red")
+	else if(code == "TIMING_LOST")
 	{
 		na.put("do","Call the family and discuss deferring to the next intake");
-		na.put("why","The last safe filing date has passed. Selling an intake they cannot reach is the most damaging thing we can do");
 		na.put("minutes",20);
 	}
-	else if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
+	else if(code == "NO_START_DATE")
+	{
+		na.put("do","Ask which intake they are targeting and set Course Start Date");
+		na.put("minutes",5);
+	}
+	else if(code == "APPOINTMENT_WITHOUT_DOCUMENTS")
 	{
 		na.put("do","Complete the document set before the appointment");
-		na.put("why","An incomplete file at the counter costs the slot, not just the day");
 		na.put("minutes",45);
 	}
-	else if(appt == "Awaiting Slot")
+	else if(code == "AWAITING_SLOT")
 	{
 		na.put("do","Check the appointment portal");
-		na.put("why","Manual by design. No mission in the portfolio publishes an appointment API");
 		na.put("minutes",10);
 	}
-	else if(docs != "Complete" && docs != "Verified")
+	else if(code == "DOCUMENTS_INCOMPLETE")
 	{
 		na.put("do","Chase the outstanding documents");
-		na.put("why","Document collection is where this pipeline breaks. Predicted, and still true");
 		na.put("minutes",20);
 	}
 	else if(stage == "Offer Received")
@@ -171,6 +168,7 @@ string standalone.student360(string case_id)
 		na.put("why","Nothing is overdue. The Friday message exists precisely for weeks like this — silence is what destroys trust, not bad news");
 		na.put("minutes",5);
 	}
+	na.put("derived_from",code);
 	out.put("next_action",na);
 	/*  PROFILE */
 	prof = Map();
@@ -223,7 +221,7 @@ string standalone.student360(string case_id)
 	prov = Map();
 	prov.put("assembled_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
 	prov.put("outcome_confidence",d.get("Outcome_Confidence"));
-	prov.put("note","Risk and Next Action are computed at read time from current field values. Visa_Ops_Risk itself is written nightly by visaOpsSweep.");
+	prov.put("note","State, risks and next action come from caseState, computed at read time from current field values. Visa_Ops_Risk itself is written nightly by visaOpsSweep.");
 	out.put("provenance",prov);
 	out.put("ok",true);
 	return out.toString();

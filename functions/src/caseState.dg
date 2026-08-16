@@ -1,0 +1,300 @@
+string standalone.caseState(string case_id)
+{
+	/*  PURPOSE
+	 *    The state engine. Every other surface — student360, buildWorkQueue,
+	 *    dashboards, notifications, the parent PDF — derives from this. Nothing
+	 *    else computes state independently, or the logic drifts.
+	 *
+	 *    It answers five questions and nothing else:
+	 *      1. What state is this case in?
+	 *      2. What is blocking it?
+	 *      3. What is the next IRREVERSIBLE milestone?
+	 *      4. What evidence supports that?
+	 *      5. What happens if we do nothing?
+	 *
+	 *  EVERY VERDICT CARRIES ITS REASONING
+	 *    A blocker is never a string. It is {code, blocking, because[],
+	 *    evidence{}, consequence}. When somebody asks "why did the system tell
+	 *    me to do this?", the answer is already in the payload rather than in
+	 *    the head of whoever wrote the rule.
+	 *
+	 *  THE IRREVERSIBLE MILESTONE IS THE POINT
+	 *    Most deadlines are recoverable. A few are not: an application
+	 *    deadline, the last safe visa filing date, the residence-permit window.
+	 *    Those are the only ones worth waking somebody up for, and they are the
+	 *    ones this function names.
+	 *
+	 *  DEPENDENCIES  none — read-only. This function never writes.
+	 *  VERSION       1.0 (2026-08-17)
+	 */
+	out = Map();
+	if(case_id == null || case_id.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","case_id required");
+		return out.toString();
+	}
+	d = zoho.crm.getRecordById("Deals",case_id.toLong());
+	if(d.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","case not found: " + case_id);
+		return out.toString();
+	}
+	today = zoho.currentdate;
+	stage = d.get("Stage");
+	journey = d.get("Student_Journey_Stage");
+	risk = d.get("Visa_Ops_Risk");
+	docs = d.get("Document_Status");
+	passport = d.get("Passport_Status");
+	appt = d.get("Visa_Appointment_Status");
+	visa_dec = d.get("Visa_Decision");
+	permit = d.get("Residence_Permit_Status");
+	nd = d.get("Next_Deadline");
+	start = d.get("Course_Start_Date");
+	refusal = d.get("Refusal_Grounds");
+	days_left = -999;
+	has_deadline = false;
+	if(nd != null && nd != "")
+	{
+		days_left = days360(today,nd.toString().subString(0,10).toDate());
+		has_deadline = true;
+	}
+	/*  1. STATE — one canonical value, derived. Never stored, so it can never
+	 *  disagree with the fields it is derived from.
+	 */
+	state = "COUNSELLING";
+	if(stage == "Closed Lost")
+	{
+		state = "CLOSED_LOST";
+	}
+	else if(journey == "Alumni" || journey == "Success Story")
+	{
+		state = "ALUMNI";
+	}
+	else if(journey == "Enrolled" || journey == "Arrived")
+	{
+		state = "SETTLING";
+	}
+	else if(journey == "Pre-Departure" || journey == "Accommodation Confirmed")
+	{
+		state = "PRE_DEPARTURE";
+	}
+	else if(visa_dec == "Approved")
+	{
+		state = "VISA_APPROVED";
+	}
+	else if(visa_dec == "Refused")
+	{
+		state = "VISA_REFUSED";
+	}
+	else if(appt == "Attended" || stage == "Visa Filed")
+	{
+		state = "AWAITING_VISA_DECISION";
+	}
+	else if(appt == "Slot Booked" || appt == "Awaiting Slot")
+	{
+		state = "VISA_PREP";
+	}
+	else if(stage == "Offer Received")
+	{
+		state = "OFFER_IN_HAND";
+	}
+	else if(stage == "Applications Submitted")
+	{
+		state = "AWAITING_OFFER";
+	}
+	else if(stage == "Documents in Progress")
+	{
+		state = "COLLECTING_DOCUMENTS";
+	}
+	else if(stage == "New Inquiry" || stage == "Counseling Booked")
+	{
+		state = "QUALIFYING";
+	}
+	out.put("state",state);
+	/*  2. BLOCKERS — each with its own reasoning and consequence. */
+	blockers = List();
+	if(visa_dec == "Refused" && (refusal == null || refusal == ""))
+	{
+		b = Map();
+		b.put("code","REFUSAL_NOT_RECORDED");
+		b.put("blocking","Everything. The appeal decision cannot be made without the grounds");
+		b.put("because",{"Visa_Decision is Refused","Refusal_Grounds is empty"});
+		ev = Map();
+		ev.put("Visa_Decision",visa_dec);
+		b.put("evidence",ev);
+		b.put("consequence","The grounds are lost permanently. We cannot advise on appeal, cannot classify it as curable or substantive, and cannot add it to the refusal log");
+		b.put("severity",1);
+		blockers.add(b);
+	}
+	if(passport == null || passport == "" || passport == "Not applied" || passport == "Expired")
+	{
+		b2 = Map();
+		b2.put("code","NO_PASSPORT");
+		b2.put("blocking","Application submission, visa appointment, everything downstream");
+		b2.put("because",{"Passport_Status is '" + passport + "'","A visa cannot be issued into a passport that does not exist"});
+		ev2 = Map();
+		ev2.put("Passport_Status",passport);
+		b2.put("evidence",ev2);
+		b2.put("consequence","A new Indian passport takes weeks. Every day of delay comes straight off the intake, and no other work compensates for it");
+		b2.put("severity",1);
+		blockers.add(b2);
+	}
+	if(risk == "Red")
+	{
+		br = Map();
+		br.put("code","TIMING_LOST");
+		br.put("blocking","The intake itself");
+		br.put("because",{"Visa_Ops_Risk is Red","The last safe visa filing date computed by visaOpsPlan is behind us"});
+		evr = Map();
+		evr.put("Visa_Ops_Risk",risk);
+		evr.put("Course_Start_Date",start);
+		br.put("evidence",evr);
+		br.put("consequence","Continuing to work this intake sells a family a start date they cannot reach. That is the single most damaging thing this business can do, and it gets worse the longer nobody says it out loud");
+		br.put("severity",1);
+		blockers.add(br);
+	}
+	if(risk == "Not computed" || risk == null)
+	{
+		b3 = Map();
+		b3.put("code","NO_START_DATE");
+		b3.put("blocking","All backward planning");
+		b3.put("because",{"Course_Start_Date is empty","visaOpsPlan cannot compute a last safe filing date without an anchor"});
+		b3.put("consequence","Every deadline on this case is invisible. The nightly sweep will keep reporting it as unplannable and no alert will ever fire");
+		b3.put("severity",2);
+		blockers.add(b3);
+	}
+	if(appt == "Slot Booked" && docs != "Complete" && docs != "Verified")
+	{
+		b4 = Map();
+		b4.put("code","APPOINTMENT_WITHOUT_DOCUMENTS");
+		b4.put("blocking","A successful submission");
+		b4.put("because",{"Appointment is booked","Document_Status is '" + docs + "'","SOP-1's checklist gate was skipped"});
+		b4.put("consequence","A counter rejection costs the SLOT, not the day. The next available appointment may be past the last safe filing date");
+		b4.put("severity",1);
+		blockers.add(b4);
+	}
+	if(docs != "Complete" && docs != "Verified" && state != "QUALIFYING")
+	{
+		b5 = Map();
+		b5.put("code","DOCUMENTS_INCOMPLETE");
+		b5.put("blocking","Application submission");
+		b5.put("because",{"Document_Status is '" + docs + "'"});
+		b5.put("consequence","Document collection is the predicted failure point of this pipeline. Families that say yes in September and cannot produce papers by October miss the intake");
+		b5.put("severity",3);
+		blockers.add(b5);
+	}
+	if(appt == "Awaiting Slot")
+	{
+		b6 = Map();
+		b6.put("code","AWAITING_SLOT");
+		b6.put("blocking","Visa filing");
+		b6.put("because",{"No mission in the portfolio publishes an appointment API","This requires a human to check a portal"});
+		b6.put("consequence","Slots are not monitored by anything. If nobody checks, nobody knows one opened");
+		b6.put("severity",2);
+		blockers.add(b6);
+	}
+	out.put("blockers",blockers);
+	out.put("blocked",blockers.size() > 0);
+	/*  3. NEXT IRREVERSIBLE MILESTONE — the ones that cannot be recovered. */
+	mile = Map();
+	if(state == "SETTLING" && permit != "Card Issued")
+	{
+		mile.put("milestone","Residence permit filing window");
+		mile.put("irreversible","Yes — Italy 8 days from arrival, Hungary 30, Malta 3 months. A legal deadline, not an administrative one");
+		mile.put("if_we_do_nothing","The student's legal right to remain lapses. This is not recoverable by apologising to a university");
+	}
+	else if(has_deadline)
+	{
+		mile.put("milestone","Next deadline on the case");
+		mile.put("date",nd);
+		mile.put("days_remaining",days_left);
+		if(risk == "Red")
+		{
+			mile.put("irreversible","ALREADY PASSED — the last safe visa filing date is behind us");
+			mile.put("if_we_do_nothing","The intake is lost. Continuing to work it sells a family a start date they cannot reach");
+		}
+		else
+		{
+			mile.put("irreversible","Yes — an application deadline and a visa filing date cannot be extended by us");
+			mile.put("if_we_do_nothing","The student waits a full intake cycle. For a February applicant that is roughly seven months");
+		}
+	}
+	else
+	{
+		mile.put("milestone","None computable");
+		mile.put("irreversible","Unknown");
+		mile.put("if_we_do_nothing","Nothing will alert anybody, because there is no date to alert against. This is itself the risk");
+	}
+	out.put("next_irreversible",mile);
+	/*  4. EVIDENCE — the exact fields every verdict above was derived from, so
+	 *  a disagreement can be settled by looking rather than arguing.
+	 */
+	ev_all = Map();
+	ev_all.put("Stage",stage);
+	ev_all.put("Student_Journey_Stage",journey);
+	ev_all.put("Visa_Ops_Risk",risk);
+	ev_all.put("Document_Status",docs);
+	ev_all.put("Passport_Status",passport);
+	ev_all.put("Visa_Appointment_Status",appt);
+	ev_all.put("Visa_Decision",visa_dec);
+	ev_all.put("Course_Start_Date",start);
+	ev_all.put("Next_Deadline",nd);
+	out.put("evidence",ev_all);
+	/*  5. PRIORITY — for the work queue. Severity of the worst blocker,
+	 *  amplified by how little time is left. Computed, never hand-set.
+	 */
+	sev = 5;
+	for each b in blockers
+	{
+		if(b.get("severity") < sev)
+		{
+			sev = b.get("severity");
+		}
+	}
+	urgency = 1;
+	if(risk == "Red")
+	{
+		urgency = 5;
+	}
+	else if(risk == "Amber")
+	{
+		urgency = 3;
+	}
+	else if(has_deadline && days_left < 21 && days_left >= 0)
+	{
+		urgency = 4;
+	}
+	else if(has_deadline && days_left < 45 && days_left >= 0)
+	{
+		urgency = 2;
+	}
+	score = (6 - sev) * urgency;
+	basis = "(6 - worst blocker severity " + sev + ") x urgency " + urgency;
+	/*  FLOOR FOR SEVERITY-1 BLOCKERS.
+	 *
+	 *  Caught by the first queue run: NO_PASSPORT — which blocks everything —
+	 *  scored 5 and landed in LOW, because its deadline was five months away.
+	 *  A counsellor scanning the queue would deprioritise it, and by the time
+	 *  urgency rose the passport could no longer be obtained in time.
+	 *
+	 *  Severity 1 means "blocks everything downstream". Those must be worked
+	 *  EARLY precisely because they take weeks to clear. Urgency measures how
+	 *  soon the deadline is; it does not measure how long the fix takes, and
+	 *  multiplying by it alone gets this exactly backwards.
+	 */
+	if(sev == 1 && score < 15)
+	{
+		score = 15;
+		basis = basis + " — FLOORED to 15: a severity-1 blocker takes weeks to clear, so it cannot wait for urgency to rise";
+	}
+	out.put("priority_score",score);
+	out.put("priority_basis",basis);
+	out.put("case_id",case_id);
+	out.put("student",d.get("Deal_Name"));
+	out.put("owner",d.get("Assigned_Counselor"));
+	out.put("computed_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}

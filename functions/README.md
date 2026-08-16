@@ -62,6 +62,17 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
    `rest_api: [{type: oauth, active: true}]` is PUT. Creating is not the same as exposing.
    See File 21 §6.
 
+11. **Compute the rule ONCE, in the lowest layer, and derive every surface from it.**
+   `student360` v1 and `caseState` each decided independently what counted as a risk. Two copies
+   of the same rules drift the first time one is edited and the other is not — the same failure
+   `normalizeInput` exists to prevent for picklists. `student360` v2 asks `caseState` and renders
+   the answer; `buildWorkQueue` does the same. One file to change when a rule changes.
+12. **A priority formula that only multiplies urgency ranks slow-to-fix blockers last.**
+   The first queue run put `NO_PASSPORT` — which blocks everything — in LOW, because its deadline
+   was five months out. Urgency measures how soon the deadline is; it does not measure how long
+   the fix takes. `caseState` floors severity-1 blockers at 15 so they surface while there is
+   still time to clear them.
+
 ## Verifying a change
 
 ```
