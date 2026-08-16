@@ -1,0 +1,241 @@
+<title>Free Profile Check</title>
+<style>
+  :root{
+    --paper:#f7f8f9; --card:#ffffff; --ink:#14181f; --ink-soft:#4a5361; --ink-faint:#79828f;
+    --rule:#dfe3e8; --rule-soft:#eceff2; --accent:#1b3a5c; --verified:#1f6b4a; --verified-bg:#e6f2ec;
+    --unknown:#9a4b1e; --unknown-bg:#fbeee5;
+    --shadow:0 1px 2px rgba(20,24,31,.05), 0 8px 24px rgba(20,24,31,.04);
+    --serif:Charter,"Bitstream Charter","Sitka Text",Georgia,Cambria,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --paper:#101318; --card:#171b22; --ink:#e8ecf1; --ink-soft:#a9b3c0; --ink-faint:#7d8794;
+    --rule:#2a303a; --rule-soft:#212730; --accent:#8ab4e0; --verified:#6cc39a; --verified-bg:#16302a;
+    --unknown:#d99a6c; --unknown-bg:#332318;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);}}
+  :root[data-theme="dark"]{
+    --paper:#101318; --card:#171b22; --ink:#e8ecf1; --ink-soft:#a9b3c0; --ink-faint:#7d8794;
+    --rule:#2a303a; --rule-soft:#212730; --accent:#8ab4e0; --verified:#6cc39a; --verified-bg:#16302a;
+    --unknown:#d99a6c; --unknown-bg:#332318;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:38rem;margin:0 auto;padding:0 1.1rem 5rem}
+  header{padding:3rem 0 1.5rem;border-bottom:2px solid var(--ink)}
+  .kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 .9rem}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,7vw,2.8rem);line-height:1.1;letter-spacing:-.015em;margin:0 0 .9rem;text-wrap:balance}
+  .standfirst{font-family:var(--serif);font-size:1.1rem;color:var(--ink-soft);margin:0}
+  .promise{background:var(--verified-bg);border:1px solid var(--rule);border-left:3px solid var(--verified);border-radius:3px;padding:1rem 1.15rem;margin:1.75rem 0}
+  .promise p{margin:0 0 .5rem;font-size:.95rem}
+  .promise p:last-child{margin:0}
+  .promise b{color:var(--verified)}
+  fieldset{border:none;padding:0;margin:2.25rem 0 0}
+  legend{font-family:var(--mono);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);padding:0 0 .75rem}
+  .grid{display:grid;gap:1.15rem}
+  .row{display:grid;gap:1.15rem;grid-template-columns:1fr 1fr}
+  @media(max-width:560px){.row{grid-template-columns:1fr}}
+  label{display:block;font-size:.9rem;font-weight:600;margin:0 0 .3rem}
+  .hint{display:block;font-weight:400;font-size:.82rem;color:var(--ink-faint);margin:.15rem 0 .35rem}
+  .opt{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);font-weight:500}
+  input,select,textarea{width:100%;font:inherit;font-size:1rem;color:var(--ink);background:var(--card);border:1px solid var(--rule);border-radius:3px;padding:.62rem .7rem}
+  textarea{min-height:5rem;resize:vertical}
+  select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-faint) 50%),linear-gradient(135deg,var(--ink-faint) 50%,transparent 50%);background-position:calc(100% - 18px) 52%,calc(100% - 13px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:2.2rem}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  .checks{display:grid;gap:.45rem;margin-top:.2rem}
+  .check{display:flex;gap:.55rem;align-items:flex-start;font-size:.94rem;font-weight:400}
+  .check input{width:auto;margin-top:.28rem;flex:none}
+  .note{background:var(--unknown-bg);border:1px solid var(--rule);border-radius:3px;padding:.85rem 1rem;font-size:.88rem;margin:.6rem 0 0}
+  button{width:100%;margin-top:2.25rem;font:inherit;font-size:1.05rem;font-weight:650;color:#fff;background:var(--accent);border:none;border-radius:3px;padding:.95rem;cursor:pointer}
+  button:hover{filter:brightness(1.12)}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .after{font-size:.88rem;color:var(--ink-faint);text-align:center;margin:.8rem 0 0}
+  footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--rule);font-size:.88rem;color:var(--ink-soft)}
+  footer .org{font-family:var(--serif);font-size:1.05rem;color:var(--ink)}
+  .req{color:var(--unknown)}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="kicker">RichenQuest · Patna</p>
+  <h1>Free profile check</h1>
+  <p class="standfirst">Tell us where you stand. We'll tell you which requirements you actually meet — and which you don't.</p>
+</header>
+
+<div class="promise">
+  <p><b>This is free.</b> There is nothing to buy on this page.</p>
+  <p><b>We will tell you if Europe doesn't work for your budget.</b> That answer costs us the sale and we give it anyway.</p>
+  <p><b>We don't give percentages or "chances".</b> Anyone who does is guessing.</p>
+</div>
+
+<form id="f">
+
+<fieldset>
+  <legend>Who you are</legend>
+  <div class="grid">
+    <div><label for="name">Full name <span class="req">*</span></label><input id="name" required></div>
+    <div class="row">
+      <div><label for="wa">WhatsApp number <span class="req">*</span></label><input id="wa" type="tel" required inputmode="tel"></div>
+      <div><label for="email">Email <span class="opt">optional</span></label><input id="email" type="email"></div>
+    </div>
+    <div><label for="city">City / district <span class="req">*</span></label><input id="city" required></div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Your studies</legend>
+  <div class="grid">
+    <div><label for="edu">What are you studying now, or what did you finish? <span class="req">*</span></label><input id="edu" required placeholder="e.g. B.Com final year, Magadh University"></div>
+    <div class="row">
+      <div><label for="pct">Percentage or CGPA <span class="req">*</span></label><input id="pct" required inputmode="decimal"></div>
+      <div><label for="back">Backlogs<span class="hint">Active or cleared. Write 0 if none.</span></label><input id="back" inputmode="numeric" value="0"></div>
+    </div>
+    <div class="row">
+      <div><label for="gap">Study gap in years<span class="hint">Since your last exam</span></label><input id="gap" inputmode="decimal" value="0"></div>
+      <div><label for="exp">Work experience in years <span class="opt">optional</span></label><input id="exp" inputmode="decimal" value="0"></div>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>English and passport</legend>
+  <div class="grid">
+    <div class="row">
+      <div><label for="eng">English test <span class="req">*</span></label>
+        <select id="eng" required>
+          <option value="">Choose one</option>
+          <option>No test yet</option>
+          <option>My college taught in English (no certificate)</option>
+          <option>IELTS 5.5</option><option>IELTS 6.0</option><option>IELTS 6.5</option>
+          <option>IELTS 7.0 or above</option><option>TOEFL / PTE / other</option>
+        </select>
+        <div class="note">No certificate is not a dead end. Some universities accept an interview instead — we'll tell you which.</div>
+      </div>
+      <div><label for="pass">Passport <span class="req">*</span></label>
+        <select id="pass" required>
+          <option value="">Choose one</option>
+          <option>I have a valid passport</option>
+          <option>Applied, waiting</option>
+          <option>Not applied yet</option>
+          <option>Expired</option>
+        </select>
+        <div class="note">If you don't have one, apply this week. Nothing else can proceed without it.</div>
+      </div>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Money — the part most consultants skip</legend>
+  <div class="grid">
+    <div><label for="budget">Total budget for the whole course <span class="req">*</span><span class="hint">Not per year. Everything the family can arrange, including a loan.</span></label>
+      <select id="budget" required>
+        <option value="">Choose one</option>
+        <option>Under ₹10 lakh</option><option>₹10–15 lakh</option><option>₹15–25 lakh</option>
+        <option>₹25–35 lakh</option><option>Above ₹35 lakh</option><option>Not sure yet</option>
+      </select>
+    </div>
+    <div><label for="income">Family annual income <span class="opt">optional but important</span><span class="hint">Italy's scholarship is means-tested on income, not marks. Without this we can't tell you if you qualify.</span></label>
+      <select id="income">
+        <option value="">Prefer not to say</option>
+        <option>Under ₹5 lakh</option><option>₹5–10 lakh</option><option>₹10–20 lakh</option>
+        <option>₹20–35 lakh</option><option>Above ₹35 lakh</option>
+      </select>
+    </div>
+    <div><label>How will it be funded? <span class="hint">Tick all that apply. This decides the country before anything else does — Germany needs cash deposited, Italy accepts loans.</span></label>
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="fund" value="Family savings">Family savings</label>
+        <label class="check"><input type="checkbox" name="fund" value="Education loan planned">Education loan — planned</label>
+        <label class="check"><input type="checkbox" name="fund" value="Loan already sanctioned">Education loan — already sanctioned</label>
+        <label class="check"><input type="checkbox" name="fund" value="Property sale">Property sale</label>
+        <label class="check"><input type="checkbox" name="fund" value="Sponsor or relative">Sponsor or relative</label>
+        <label class="check"><input type="checkbox" name="fund" value="NEEDS SCHOLARSHIP">I can only go if I get a scholarship</label>
+      </div>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>What you want</legend>
+  <div class="grid">
+    <div class="row">
+      <div><label for="level">Level <span class="req">*</span></label>
+        <select id="level" required><option value="">Choose one</option><option>Bachelor's</option><option>Master's</option><option>Not sure</option></select></div>
+      <div><label for="intake">When do you want to start? <span class="req">*</span></label>
+        <select id="intake" required><option value="">Choose one</option><option>Feb / Mar 2027</option><option>Sep 2027</option><option>2028</option><option>Not sure</option></select></div>
+    </div>
+    <div><label for="course">Subject or course</label><input id="course" placeholder="e.g. Management, Computer Science, Nursing"></div>
+    <div><label>Countries you're considering <span class="hint">Tick any. "No preference" is a perfectly good answer and often a better one.</span></label>
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="ctry" value="Italy">Italy</label>
+        <label class="check"><input type="checkbox" name="ctry" value="Germany">Germany</label>
+        <label class="check"><input type="checkbox" name="ctry" value="Hungary">Hungary</label>
+        <label class="check"><input type="checkbox" name="ctry" value="Poland">Poland</label>
+        <label class="check"><input type="checkbox" name="ctry" value="Czechia">Czech Republic</label>
+        <label class="check"><input type="checkbox" name="ctry" value="No preference">No preference — tell me what fits</label>
+      </div>
+    </div>
+    <div><label for="acc">Accommodation preference<span class="hint">A dormitory place instead of private rent can change the total by several lakh.</span></label>
+      <select id="acc"><option value="">No preference</option><option>University dormitory</option><option>Shared private</option><option>Private flat</option></select></div>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Last two questions</legend>
+  <div class="grid">
+    <div><label for="ref">Who told you about us?<span class="hint">A teacher, a friend, a forwarded message — please name them if you can. It's how we know who to thank.</span></label><input id="ref"></div>
+    <div><label for="notes">Anything else we should know? <span class="opt">optional</span><span class="hint">A previous visa refusal, a family situation, a deadline. Nothing here counts against you — it helps us give you a real answer.</span></label><textarea id="notes"></textarea></div>
+  </div>
+</fieldset>
+
+<button type="submit">Send on WhatsApp</button>
+<p class="after">Opens WhatsApp with your answers filled in. Check it, then press send.</p>
+</form>
+
+<footer>
+  <p class="org">RichenQuest Private Limited</p>
+  <p>Patna, Bihar · official@richenquest.com</p>
+  <p>We are paid by families, not by universities. That is why we can tell you a university is too expensive for you.</p>
+</footer>
+</div>
+
+<script>
+  // FOUNDER DECISION REQUIRED: replace with RichenQuest's WhatsApp business number,
+  // country code first, digits only. e.g. 919999999999
+  var WA_NUMBER = "910000000000";
+
+  document.getElementById("f").addEventListener("submit", function(e){
+    e.preventDefault();
+    function v(id){ var el=document.getElementById(id); return el && el.value ? el.value.trim() : "-"; }
+    function boxes(n){
+      var out=[], els=document.getElementsByName(n);
+      for(var i=0;i<els.length;i++){ if(els[i].checked) out.push(els[i].value); }
+      return out.length ? out.join(", ") : "-";
+    }
+    var L = [
+      "RICHENQUEST - FREE PROFILE CHECK","",
+      "Name: "+v("name"),
+      "WhatsApp: "+v("wa"),
+      "Email: "+v("email"),
+      "City: "+v("city"),"",
+      "Studying: "+v("edu"),
+      "Percentage/CGPA: "+v("pct"),
+      "Backlogs: "+v("back"),
+      "Study gap (yrs): "+v("gap"),
+      "Work experience (yrs): "+v("exp"),"",
+      "English: "+v("eng"),
+      "Passport: "+v("pass"),"",
+      "Total budget: "+v("budget"),
+      "Family income: "+v("income"),
+      "Funding: "+boxes("fund"),"",
+      "Level: "+v("level"),
+      "Intake: "+v("intake"),
+      "Course: "+v("course"),
+      "Countries: "+boxes("ctry"),
+      "Accommodation: "+v("acc"),"",
+      "Referred by: "+v("ref"),
+      "Notes: "+v("notes")
+    ].join("\n");
+    window.open("https://wa.me/"+WA_NUMBER+"?text="+encodeURIComponent(L), "_blank");
+  });
+</script>
