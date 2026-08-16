@@ -11,7 +11,18 @@ string standalone.wfLeadCreated(string lead_id)
 	 *  That is declarative platform config, not business logic - moving it into
 	 *  Deluge would lose the template editor for no gain.
 	 *
-	 *  Returns JSON: {"lifecycle":…,"tasks":…}
+	 *  ASSIGNMENT - added 2026-08-16 by the Department 9 automation audit.
+	 *  assignCounselor had been built, deployed and then called by nothing, so
+	 *  every lead was silently landing on the founder to route by hand. It is
+	 *  wired in here.
+	 *
+	 *  There are no Counselor users today (blocked on a licence), so this will
+	 *  currently return "no active counselors" and the lead correctly stays
+	 *  with the founder. That is the designed refusal, not a failure - and the
+	 *  day a Counselor licence exists, routing starts working with no code
+	 *  change and no one having to remember this file.
+	 *
+	 *  Returns JSON: {"lifecycle":…,"tasks":…,"assignment":…}
 	 */
 	lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
 	name = lead.get("Last_Name");
@@ -20,6 +31,7 @@ string standalone.wfLeadCreated(string lead_id)
 		name = lead_id;
 	}
 	lifecycle = standalone.updateLeadLifecycle(lead_id,"Attempted to Contact","new lead auto-triage");
+	assignment = standalone.assignCounselor(lead_id);
 	spec = List();
 	s1 = Map();
 	s1.put("days",0);
@@ -29,6 +41,7 @@ string standalone.wfLeadCreated(string lead_id)
 	tasks = standalone.createFollowUpTasks("Leads",lead_id,spec.toString());
 	out = Map();
 	out.put("lifecycle",lifecycle);
+	out.put("assignment",assignment);
 	out.put("tasks",tasks);
 	return out.toString();
 }

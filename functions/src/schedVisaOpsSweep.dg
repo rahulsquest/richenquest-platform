@@ -1,0 +1,14 @@
+void scheduler.schedVisaOpsSweep()
+{
+	/*  PURPOSE
+	 *    Thin scheduler wrapper for visaOpsSweep.
+	 *
+	 *  CADENCE  daily 05:30 - deliberately ONE HOUR BEFORE opsWatch (06:30).
+	 *           The sweep writes Visa_Ops_Risk; the watch reads it. Reversing
+	 *           the order would alert on yesterday's risk, which is the exact
+	 *           failure this pair was created to remove.
+	 *
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	standalone.visaOpsSweep();
+}

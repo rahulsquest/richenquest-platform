@@ -1,0 +1,86 @@
+string standalone.visaOpsSweep()
+{
+	/*  PURPOSE
+	 *    Re-plan every open Student Case, nightly.
+	 *
+	 *  WHY THIS EXISTS - a defect in Phase 9, found by the Department 9 audit
+	 *    visaOpsPlan was built, deployed and verified, and then nothing ever
+	 *    called it. File 47 §5 stated "Nightly, every open case" as though that
+	 *    were built. It was not.
+	 *
+	 *    The consequence was worse than a missing feature. opsWatch reads
+	 *    Visa_Ops_Risk and alerts on Amber/Red - so it was faithfully watching
+	 *    a field that nothing kept current. A case would have sat Green while
+	 *    its last safe filing date passed, and the watcher would have agreed
+	 *    with it. A stale green light is more dangerous than no light.
+	 *
+	 *    This is the whole argument for the weekly automation review.
+	 *
+	 *  ORDER MATTERS
+	 *    This must run BEFORE opsWatch each day. Sweep at 05:30, watch at
+	 *    06:30. Reversing them would alert on yesterday's risk.
+	 *
+	 *  OUTPUT  {"ok":true,"scanned":n,"planned":n,"skipped":n,
+	 *           "changed":[…],"unplannable":[…]}
+	 *
+	 *  DEPENDENCIES  visaOpsPlan
+	 *  VERSION       1.0 (2026-08-16)
+	 */
+	out = Map();
+	changed = List();
+	unplannable = List();
+	scanned = 0;
+	planned = 0;
+	skipped = 0;
+	closed = {"Visa Approved — Won","Closed Lost"};
+	pages = {1,2,3,4,5};
+	for each pg in pages
+	{
+		deals = zoho.crm.getRecords("Deals",pg,200);
+		if(deals.size() == 0)
+		{
+			break;
+		}
+		for each d in deals
+		{
+			stage = d.get("Stage");
+			nm = d.get("Deal_Name");
+			if(closed.contains(stage))
+			{
+				skipped = skipped + 1;
+				continue;
+			}
+			scanned = scanned + 1;
+			before = d.get("Visa_Ops_Risk");
+			res = standalone.visaOpsPlan(d.get("id")).toMap();
+			if(res.get("ok") == true)
+			{
+				planned = planned + 1;
+				if(res.get("changed") == true)
+				{
+					changed.add(nm + ": " + before + " -> " + res.get("risk") + " (file by " + res.get("file_by") + ")");
+				}
+			}
+			else
+			{
+				/*  Almost always a missing Course_Start_Date. Reported rather
+				 *  than swallowed - an unplannable case is a data gap someone
+				 *  has to close, not a silent no-op.
+				 */
+				unplannable.add(nm + ": " + res.get("error"));
+			}
+		}
+		if(deals.size() < 200)
+		{
+			break;
+		}
+	}
+	out.put("ok",true);
+	out.put("scanned",scanned);
+	out.put("planned",planned);
+	out.put("skipped_closed",skipped);
+	out.put("changed",changed);
+	out.put("unplannable",unplannable);
+	out.put("run_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

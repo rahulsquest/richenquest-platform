@@ -1,0 +1,135 @@
+string standalone.qualityGate(string text, string has_source)
+{
+	/*  PURPOSE
+	 *    Department 8. The single gate every customer-facing draft passes
+	 *    before it reaches a human approver - marketing copy, WhatsApp replies,
+	 *    proposals, knowledge articles, outreach emails.
+	 *
+	 *    It does NOT approve anything. It catches the specific, repeatable
+	 *    mistakes that would otherwise reach a family, so the human reviewer
+	 *    spends their attention on judgement rather than on proofreading for
+	 *    the same six errors every time. Approval remains human, always.
+	 *
+	 *  INPUTS
+	 *    text        the draft
+	 *    has_source  "true" if every factual claim is traceable to a verified
+	 *                CRM record or claims.json. The author asserts this; the
+	 *                gate records it. An unsourced draft cannot pass.
+	 *
+	 *  FOUR CHECKS, in the order they cause damage
+	 *    COMPLIANCE  predictions and promises - odds, guarantees, salaries.
+	 *                These are the ones that are actionable against the
+	 *                company, not merely embarrassing.
+	 *    CLAIMS      company facts outside claims.json - "placed", partnership
+	 *                claims, ranking claims.
+	 *    SOURCE      unsourced numbers.
+	 *    ADVISORY    things that are usually wrong but occasionally fine.
+	 *                Warnings, not failures - a gate that cries wolf gets
+	 *                switched off, and then it protects nothing.
+	 *
+	 *  OUTPUT  {"ok":bool,"verdict":"PASS|BLOCK","violations":[…],
+	 *           "warnings":[…],"checked":n}
+	 *
+	 *  VERSION  1.0 (2026-08-16)
+	 */
+	out = Map();
+	violations = List();
+	warnings = List();
+	if(text == null || text.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("verdict","BLOCK");
+		out.put("violations",{"empty draft - nothing to check"});
+		return out.toString();
+	}
+	t = text.toLowerCase();
+	/*  COMPLIANCE - predictions, promises, outcomes. Standing instruction:
+	 *  assistive AI, not predictive. Never estimate a student's odds.
+	 */
+	compliance = {"guarantee","guaranteed","assured admission","100% visa","sure shot","success rate","approval rate","acceptance rate","chances of getting","probability of","you will get","definitely get","earn up to","salary package","placement guarantee","job guarantee","visa guarantee"};
+	for each c in compliance
+	{
+		if(t.contains(c))
+		{
+			violations.add("COMPLIANCE: contains '" + c + "' - this is a prediction or a promise. RichenQuest does not estimate admission, scholarship, visa or employment outcomes.");
+		}
+	}
+	/*  CLAIMS - company facts. claims.json is the only permitted source.
+	 *  "placed" is specifically banned: the founder-confirmed verb is
+	 *  guided/supported/assisted.
+	 */
+	if(t.contains("students placed") || t.contains("we placed") || t.contains("placed over") || t.contains("placed more than"))
+	{
+		violations.add("CLAIMS: uses 'placed' about students. claims.json requires guided / supported / assisted - the placement figure is NOT approved for public use.");
+	}
+	partners = {"our partner university","partnership with","we are partnered","official partner","tie-up with","mou with"};
+	for each p in partners
+	{
+		if(t.contains(p))
+		{
+			violations.add("CLAIMS: asserts a partnership ('" + p + "'). claims.json records partnerships.signed as EMPTY. No partnership may be claimed publicly until the founder confirms one.");
+		}
+	}
+	rankings = {"top ranked","best university","#1 university","world's best","highest ranked","top 10 university"};
+	for each rk in rankings
+	{
+		if(t.contains(rk))
+		{
+			violations.add("CLAIMS: makes a ranking claim ('" + rk + "'). No ranking is held in any verified record.");
+		}
+	}
+	/*  SOURCE - the author's own assertion, recorded and enforced. */
+	sourced = false;
+	if(has_source != null && has_source.toLowerCase() == "true")
+	{
+		sourced = true;
+	}
+	if(!sourced)
+	{
+		violations.add("SOURCE: the author has not asserted that every factual claim traces to a verified record or claims.json. An unsourced draft cannot pass.");
+	}
+	/*  ADVISORY - warn, do not block. */
+	if(t.contains("%"))
+	{
+		warnings.add("Contains a percentage. Confirm it is a tuition discount or an entry requirement from a verified record, and not an outcome statistic.");
+	}
+	money = {"eur","usd","inr","₹","€","$","lakh"};
+	for each m in money
+	{
+		if(t.contains(m))
+		{
+			warnings.add("Contains a money figure ('" + m + "'). Confirm it matches the university record, and that NON-REFUNDABLE fees are stated alongside it.");
+			break;
+		}
+	}
+	if(t.contains("ielts") || t.contains("deadline") || t.contains("intake"))
+	{
+		warnings.add("Contains an English requirement, deadline or intake. These change - confirm Verified_On is current and Review_Date has not passed.");
+	}
+	if(t.contains("living cost") || t.contains("cost of living"))
+	{
+		warnings.add("Contains a living-cost claim. Living costs are NOT VERIFIED for any university in the portfolio - check before this goes out.");
+	}
+	if(t.contains("work permit") || t.contains("pr ") || t.contains("permanent residency") || t.contains("settle"))
+	{
+		warnings.add("Touches migration or work rights. Graduate work rights are unverified, and PR/migration advice is REGULATED in several jurisdictions - founder and legal boundary (C3).");
+	}
+	if(t.contains("slot") || t.contains("appointment"))
+	{
+		warnings.add("Mentions appointments. Confirm nothing implies RichenQuest can obtain or accelerate a slot - it cannot, and saying so is the visa grey market's core promise.");
+	}
+	verdict = "PASS";
+	okv = true;
+	if(violations.size() > 0)
+	{
+		verdict = "BLOCK";
+		okv = false;
+	}
+	out.put("ok",okv);
+	out.put("verdict",verdict);
+	out.put("violations",violations);
+	out.put("warnings",warnings);
+	out.put("note","PASS means no known violation was detected. It does NOT mean approved. Every customer-facing output still requires a named human approver.");
+	out.put("checked_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	return out.toString();
+}

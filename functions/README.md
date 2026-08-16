@@ -26,6 +26,8 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
 | `visaOpsPlan.dg` | Phase 9 backward planner. Course start − country lead time → risk flag + next deadline. Task **only on a risk transition** |
 | `studentActionPlan.dg` | The 60-second onboarding. Shortlist + reasons + timeline + risks + parent points. **Only reads Confidence High/Medium records** |
 | `opsWatch.dg` | Phase 10.7 daily sweep. Six watches, one digest, **silent when clear** |
+| `visaOpsSweep.dg` | Re-plans every open case nightly at 05:30. **Must run before `opsWatch`** — it writes the field the watch reads |
+| `qualityGate.dg` | Department 8. Compliance / claims / source checks on any customer-facing draft. **PASS is not approval** |
 
 ## Rules for adding one
 
