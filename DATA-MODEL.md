@@ -136,6 +136,21 @@ figure be published with a "Medium" label while its finance dimension was LOW.
 
 ---
 
+## 5b. 🔴 Zoho does NOT enforce picklist values
+
+**Verified by probe, 17 Aug 2026.** `parseInquiry` wrote **`Masters`** into `Interested_Level`, whose
+only valid value is **`Master's`**. **The record saved. No error, no warning.**
+
+**This is the most dangerous class of bug in the system**, because `leadToPlan` matches the exact
+string — so that lead can never be planned, and **nothing in the record looks wrong.** A counsellor
+opens it, sees "Masters", and cannot understand why the matcher returns an error.
+
+| Consequence | Rule |
+|---|---|
+| The CRM will not catch a bad value | **The form is the only guard. It emits CRM-exact values, always** |
+| A curly apostrophe surviving WhatsApp would break it | **`parseInquiry` normalises `Master`/`Masters`/`Master’s` → `Master's`** — verified |
+| Any future integration writing to a picklist | **Must normalise. Assume nothing validates** |
+
 ## 6. 🔴 DUPLICATES — defects to fix
 
 | # | Duplicate | Problem | Resolution |

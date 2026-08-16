@@ -42,22 +42,52 @@ string standalone.parseInquiry(string raw)
 		out.put("error","empty message");
 		return out.toString();
 	}
+	/*  PARSING — deliberately newline-independent.
+	 *
+	 *  The first version split on "\n" and returned nothing: how a newline
+	 *  survives the query string, the browser and Deluge's string literals is
+	 *  three layers of ambiguity, and it failed silently on a real message.
+	 *
+	 *  This version never looks for a newline. The form emits labels in a FIXED
+	 *  ORDER, so each value is simply the text between its own label and the
+	 *  next one. Deterministic, and immune to however the transport represents
+	 *  a line break.
+	 */
+	labels = {"Name","WhatsApp","Email","City","Studying","Percentage/CGPA","Backlogs","Study gap (yrs)","Work experience (yrs)","English","Passport","Total budget","Family income","Funding","Level","Intake","Course","Countries","Accommodation","Referred by","Notes"};
 	kv = Map();
 	unmapped = List();
-	lines = raw.toList("\n");
-	for each ln in lines
+	positions = Map();
+	for each lb in labels
 	{
-		line = ln.trim();
-		if(line == "" || line.indexOf(":") < 1)
+		positions.put(lb,raw.indexOf(lb + ":"));
+	}
+	idx = 0;
+	for each lb in labels
+	{
+		here = positions.get(lb);
+		if(here >= 0)
 		{
-			continue;
+			vstart = here + lb.length() + 1;
+			vend = raw.length();
+			/*  The end of this value is the start of the next label that
+			 *  actually appears AFTER it. Labels the student left blank are
+			 *  absent entirely, so we cannot assume label[i+1] is present.
+			 */
+			for each lb2 in labels
+			{
+				there = positions.get(lb2);
+				if(there > here && there < vend)
+				{
+					vend = there;
+				}
+			}
+			val = raw.subString(vstart,vend).trim();
+			if(val != "" && val != "-")
+			{
+				kv.put(lb,val);
+			}
 		}
-		k = line.subString(0,line.indexOf(":")).trim();
-		v = line.subString(line.indexOf(":") + 1).trim();
-		if(v != "" && v != "-")
-		{
-			kv.put(k,v);
-		}
+		idx = idx + 1;
 	}
 	name = kv.get("Name");
 	wa = kv.get("WhatsApp");
@@ -133,7 +163,23 @@ string standalone.parseInquiry(string raw)
 		}
 		else if(k == "Level")
 		{
-			rec.put("Interested_Level",v);
+			/*  DEFENSIVE NORMALISATION — Zoho does NOT enforce picklist values.
+			 *  A probe wrote "Masters" into a field whose only valid value is
+			 *  "Master's" and the record saved silently. leadToPlan matches on
+			 *  the exact string, so a curly apostrophe surviving a copy-paste
+			 *  through WhatsApp would produce a lead that can never be planned,
+			 *  with nothing in the record looking wrong.
+			 */
+			lv = v.replaceAll("\u2019","'");
+			if(lv == "Masters" || lv == "Master" || lv.startsWith("Master"))
+			{
+				lv = "Master's";
+			}
+			else if(lv == "Bachelors" || lv == "Bachelor" || lv.startsWith("Bachelor"))
+			{
+				lv = "Bachelor's";
+			}
+			rec.put("Interested_Level",lv);
 		}
 		else if(k == "Intake")
 		{
