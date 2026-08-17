@@ -57,7 +57,14 @@ Hard block present?  ──YES──▶  band = HIGH.  No arithmetic.
   (6 − worst severity) × urgency   ──▶  MEDIUM ≥ 12, else LOW
 ```
 
-The score still exists, but only to **order cases within a band**.
+The score still exists, but only to **order cases within a band** — `sortByScore()`
+does that ordering, because Deluge cannot sort a list of maps by one of their keys.
+
+**MEDIUM threshold is 8, calibrated not guessed.** At the original 12 the band was
+empty: a soft blocker with a deadline inside 45 days scores 8 and fell to LOW, which
+under-calls a this-week task as a whenever task. Since urgency 5 only occurs on Red —
+now a hard block — the highest reachable soft score is 16, so 12 left MEDIUM covering
+almost nothing.
 
 ### Implemented hard blocks
 
@@ -115,7 +122,7 @@ set to Valid; run 4 wrote `BLOCKER_CLEARED` + `BAND_CHANGE`; run 5 wrote nothing
 
 ## What comes next is UI, not engine
 
-1. Counsellor Dashboard — renders `buildWorkQueue`
+1. ✅ Counsellor Dashboard — `ui/counsellor-queue.html`, renders `buildWorkQueue`
 2. Manager Dashboard — aggregates `caseState`
 3. Parent PDF — `student360` → render
 4. Client Portal — `student360` → render

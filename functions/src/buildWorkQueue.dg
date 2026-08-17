@@ -23,7 +23,7 @@ string standalone.buildWorkQueue(string owner_filter)
 	 *    A hard block is a state, not a number, and only caseState decides it.
 	 *
 	 *  DEPENDENCIES  caseState
-	 *  VERSION       1.1 (2026-08-17)
+	 *  VERSION       1.2 (2026-08-17)
 	 */
 	out = Map();
 	high = List();
@@ -138,7 +138,52 @@ string standalone.buildWorkQueue(string owner_filter)
 			break;
 		}
 	}
+	/*  ORDER WITHIN EACH BAND.
+	 *
+	 *  Bands are separated but scan order is arbitrary, so HIGH came back as
+	 *  115, 111, 114 — a queue that is not ordered is not a queue. Deluge
+	 *  cannot sort a list of maps by key, so each item is tagged with a
+	 *  zero-padded score plus its own position, the tags are sorted as strings,
+	 *  and the items are re-collected in that order. Padding is what makes the
+	 *  string comparison agree with the numeric one.
+	 */
+	high = standalone.sortByScore(high.toString()).toList();
+	medium = standalone.sortByScore(medium.toString()).toList();
+	low = standalone.sortByScore(low.toString()).toList();
+	/*  COMPLETED TODAY — read from the audit timeline, not from a checkbox.
+	 *
+	 *  The queue is derived, so a task simply vanishes when its blocker clears
+	 *  and there is nothing to tick off. Inventing a completion field would
+	 *  mean a counsellor could mark work done that the engine still considers
+	 *  blocked. BLOCKER_CLEARED events are the honest record: they only exist
+	 *  because the underlying state actually changed.
+	 */
+	done = List();
+	td = zoho.currentdate.toString("yyyy-MM-dd");
+	cleared = zoho.crm.searchRecords("Case_Events","(Event_Type:equals:BLOCKER_CLEARED)");
+	if(cleared != null)
+	{
+		for each c in cleared
+		{
+			oa = c.get("Occurred_At");
+			if(oa != null && oa.toString().subString(0,10) == td)
+			{
+				dn = Map();
+				sc = c.get("Student_Case");
+				if(sc != null)
+				{
+					dn.put("student",sc.get("name"));
+					dn.put("case_id",sc.get("id"));
+				}
+				dn.put("cleared",c.get("From_Value"));
+				dn.put("at",oa.toString().subString(11,16));
+				done.add(dn);
+			}
+		}
+	}
+	out.put("completed_today",done);
 	counts = Map();
+	counts.put("completed_today",done.size());
 	counts.put("cases_scanned",scanned);
 	counts.put("high",high.size());
 	counts.put("medium",medium.size());

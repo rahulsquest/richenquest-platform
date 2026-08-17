@@ -73,6 +73,29 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
    the fix takes. `caseState` floors severity-1 blockers at 15 so they surface while there is
    still time to clear them.
 
+13. **The session-REST channel dies the moment the front Chrome tab leaves `crm.zoho.in`.**
+   Publishing an artifact navigates that tab, so a deploy or cleanup running afterwards
+   silently POSTs to claude.ai and "succeeds" against the wrong host. Cleanup was left
+   half-done exactly once this way. Switch the tab back before trusting any result:
+
+   ```
+   osascript -e 'tell application "Google Chrome"
+     repeat with w from 1 to (count of windows)
+       repeat with t from 1 to (count of tabs of window w)
+         if (URL of tab t of window w) contains "crm.zoho.in" then
+           set active tab index of window w to t
+           set index of window w to 1
+           return "SWITCHED"
+         end if
+       end repeat
+     end repeat
+     return "NONE"
+   end tell'
+   ```
+
+14. **`GET` cannot carry a body.** `zpost.sh` always sends one, so settings reads fail with
+   a `fetch` TypeError that looks like an auth problem. Use `zget.sh`.
+
 ## Verifying a change
 
 ```

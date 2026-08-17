@@ -1,0 +1,306 @@
+<title>Counsellor Work Queue</title>
+<style>
+/*  RichenQuest — Counsellor Work Queue
+ *
+ *  A RENDERER. It computes nothing. Band, score, blockers, ordering and the
+ *  "why" text all arrive from buildWorkQueue(), which gets them from
+ *  caseState(). If this file ever needs to decide something, the decision
+ *  belongs in the engine instead. See CORE-ENGINE.md.
+ */
+:root{
+  --ground:#EEF1F0; --surface:#FFFFFF; --surface-2:#F6F8F7; --line:#D5DCDA;
+  --ink:#0F1614; --ink-2:#4A5754; --ink-3:#77857F;
+  --accent:#0F766A; --accent-soft:#D9EBE8;
+  --high:#B3261E; --high-soft:#FBE6E4;
+  --med:#9A6206;  --med-soft:#FBEFD9;
+  --low:#5A6B66;  --low-soft:#E6ECEA;
+  --done:#0F766A; --done-soft:#DCEEEB;
+  --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --r:9px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1211; --surface:#141C1A; --surface-2:#101817; --line:#26332F;
+    --ink:#E8EFEC; --ink-2:#A3B2AD; --ink-3:#75847F;
+    --accent:#4FD1C0; --accent-soft:#14332E;
+    --high:#FF8A80; --high-soft:#3A1614;
+    --med:#F0B85C;  --med-soft:#33260E;
+    --low:#93A29D;  --low-soft:#1B2422;
+    --done:#4FD1C0; --done-soft:#122B27;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1211; --surface:#141C1A; --surface-2:#101817; --line:#26332F;
+  --ink:#E8EFEC; --ink-2:#A3B2AD; --ink-3:#75847F;
+  --accent:#4FD1C0; --accent-soft:#14332E;
+  --high:#FF8A80; --high-soft:#3A1614;
+  --med:#F0B85C;  --med-soft:#33260E;
+  --low:#93A29D;  --low-soft:#1B2422;
+  --done:#4FD1C0; --done-soft:#122B27;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 20px 72px}
+
+/* ---- masthead ---- */
+header{
+  position:sticky; top:0; z-index:20; background:var(--ground);
+  border-bottom:1px solid var(--line); padding:18px 0 14px; margin-bottom:22px;
+}
+.mast{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+h1{
+  font-size:20px; font-weight:700; letter-spacing:-.02em; margin:0;
+}
+.who{font-family:var(--mono); font-size:12px; color:var(--ink-3)}
+.built{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--ink-3)}
+
+/* ---- counts ---- */
+.counts{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.chip{
+  display:flex; align-items:baseline; gap:7px; padding:6px 11px;
+  border:1px solid var(--line); border-radius:100px; background:var(--surface);
+  font-family:var(--mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--ink-2);
+}
+.chip b{font-size:14px; font-variant-numeric:tabular-nums; letter-spacing:0}
+.chip.h b{color:var(--high)} .chip.m b{color:var(--med)}
+.chip.l b{color:var(--low)} .chip.d b{color:var(--done)}
+
+.search{
+  margin-top:12px; width:100%; padding:9px 13px; border-radius:var(--r);
+  border:1px solid var(--line); background:var(--surface); color:var(--ink);
+  font-family:var(--sans); font-size:14px;
+}
+.search::placeholder{color:var(--ink-3)}
+.search:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:transparent}
+
+/* ---- band sections ---- */
+section{margin-bottom:30px}
+.band{
+  display:flex; align-items:center; gap:10px; margin:0 0 11px;
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.13em; text-transform:uppercase;
+}
+.band .rule{flex:1; height:1px; background:var(--line)}
+.band.h{color:var(--high)} .band.m{color:var(--med)} .band.l{color:var(--low)}
+.band.d{color:var(--done)}
+
+/* ---- task card ---- */
+.card{
+  display:grid; grid-template-columns:4px 1fr; background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+  margin-bottom:9px;
+}
+.stripe{background:var(--low)}
+.card.h .stripe{background:var(--high)}
+.card.m .stripe{background:var(--med)}
+.body{padding:13px 15px}
+.top{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.name{font-weight:650; letter-spacing:-.01em}
+.tag{
+  font-family:var(--mono); font-size:10px; letter-spacing:.05em;
+  padding:2px 7px; border-radius:4px; background:var(--surface-2);
+  color:var(--ink-3); text-transform:uppercase; white-space:nowrap;
+}
+.score{
+  margin-left:auto; font-family:var(--mono); font-size:11px;
+  font-variant-numeric:tabular-nums; color:var(--ink-3);
+}
+.task{
+  margin-top:9px; font-family:var(--mono); font-size:13px; font-weight:600;
+  letter-spacing:-.01em; color:var(--ink);
+}
+.card.h .task{color:var(--high)}
+.card.m .task{color:var(--med)}
+.sla{
+  margin-top:7px; font-size:12.5px; color:var(--ink-2);
+  display:flex; gap:7px; align-items:baseline; flex-wrap:wrap;
+}
+.sla .days{font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:650}
+.sla.past .days{color:var(--high)}
+.sla.near .days{color:var(--med)}
+
+details{margin-top:10px}
+summary{
+  cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--accent); list-style:none; width:max-content;
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ "; }
+details[open] summary::before{content:"▾ "}
+summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+.why{
+  margin-top:9px; padding:11px 13px; border-radius:7px;
+  background:var(--surface-2); border:1px solid var(--line);
+}
+.why h4{
+  margin:0 0 6px; font-family:var(--mono); font-size:10px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+}
+.why ul{margin:0 0 12px; padding-left:17px}
+.why li{margin-bottom:3px; font-size:13.5px; color:var(--ink-2)}
+.why p{margin:0 0 12px; font-size:13.5px; color:var(--ink-2)}
+.why p:last-child{margin-bottom:0}
+.why .basis{
+  font-family:var(--mono); font-size:11.5px; line-height:1.55; color:var(--ink-3);
+  margin:0; padding-top:10px; border-top:1px solid var(--line);
+}
+
+/* ---- cleared today ---- */
+.done-row{
+  display:flex; align-items:baseline; gap:10px; padding:9px 13px;
+  background:var(--done-soft); border:1px solid var(--line);
+  border-radius:var(--r); margin-bottom:7px; font-size:13.5px;
+}
+.done-row .code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
+.done-row .at{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--ink-3)}
+
+.empty{
+  padding:15px; border:1px dashed var(--line); border-radius:var(--r);
+  color:var(--ink-3); font-size:13.5px;
+}
+footer{
+  margin-top:38px; padding-top:16px; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--ink-3);
+}
+footer code{font-family:var(--mono); font-size:11.5px; color:var(--ink-2)}
+.hide{display:none !important}
+@media (max-width:560px){
+  .score{margin-left:0; width:100%}
+  h1{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="mast">
+    <h1>Work Queue</h1>
+    <span class="who" id="who"></span>
+    <span class="built" id="built"></span>
+  </div>
+  <div class="counts" id="counts"></div>
+  <input class="search" id="q" type="search" placeholder="Search student, country, task or state…" autocomplete="off">
+</header>
+
+<div id="queue"></div>
+
+<footer>
+  <p><strong>This page decides nothing.</strong> Band, priority, blockers, the wording of
+  every “why”, and the order of every list arrive from <code>buildWorkQueue()</code>,
+  which gets them from <code>caseState()</code>. Search and expand are the only behaviour
+  written here.</p>
+  <p id="prov"></p>
+</footer>
+</div>
+
+<script>
+const DATA = {"completed_today": [{"student": "Priyanka Das", "case_id": "1292318000000965034", "cleared": "DOCUMENTS_INCOMPLETE", "at": "04:21"}, {"student": "Priyanka Das", "case_id": "1292318000000965034", "cleared": "APPOINTMENT_WITHOUT_DOCUMENTS", "at": "04:21"}], "ok": true, "owner_filter": "", "uncalled_leads": [], "high": [{"case_id": "1292318000000965033", "student": "Mohit Verma", "state": "OFFER_IN_HAND", "score": 115, "band": "HIGH", "hard_blocks": ["TIMING_LOST"], "why": "HARD BLOCK — TIMING_LOST. Banded HIGH as a state, not a score: these take longer to clear than any deadline gives you, so they cannot wait for urgency to rise", "country": "Italy", "owner": null, "task": "TIMING_LOST", "because": ["Visa_Ops_Risk is Red", "The last safe visa filing date computed by visaOpsPlan is behind us"], "consequence": "Continuing to work this intake sells a family a start date they cannot reach. That is the single most damaging thing this business can do, and it gets worse the longer nobody says it out loud", "next_irreversible": {"milestone": "Next deadline on the case", "date": "2026-09-17", "days_remaining": 31, "irreversible": "ALREADY PASSED — the last safe visa filing date is behind us", "if_we_do_nothing": "The intake is lost. Continuing to work it sells a family a start date they cannot reach"}}, {"case_id": "1292318000000965031", "student": "Aarav Kumar", "state": "VISA_REFUSED", "score": 114, "band": "HIGH", "hard_blocks": ["REFUSAL_NOT_RECORDED"], "why": "HARD BLOCK — REFUSAL_NOT_RECORDED. Banded HIGH as a state, not a score: these take longer to clear than any deadline gives you, so they cannot wait for urgency to rise", "country": "Germany", "owner": null, "task": "REFUSAL_NOT_RECORDED", "because": ["Visa_Decision is Refused", "Refusal_Grounds is empty"], "consequence": "The grounds are lost permanently. We cannot advise on appeal, cannot classify it as curable or substantive, and cannot add it to the refusal log that every future student benefits from", "next_irreversible": {"milestone": "Next deadline on the case", "date": "2026-09-04", "days_remaining": 18, "irreversible": "Yes — an application deadline and a visa filing date cannot be extended by us", "if_we_do_nothing": "The student waits a full intake cycle. For a February applicant that is roughly seven months"}}, {"case_id": "1292318000000965032", "student": "Sneha Raj", "state": "COLLECTING_DOCUMENTS", "score": 111, "band": "HIGH", "hard_blocks": ["NO_PASSPORT"], "why": "HARD BLOCK — NO_PASSPORT. Banded HIGH as a state, not a score: these take longer to clear than any deadline gives you, so they cannot wait for urgency to rise", "country": "Hungary", "owner": null, "task": "NO_PASSPORT", "because": ["Passport_Status is 'Not applied'", "A visa cannot be issued into a passport that does not exist"], "consequence": "A new Indian passport takes weeks. Every day of delay comes straight off the intake, and no other work compensates for it", "next_irreversible": {"milestone": "Next deadline on the case", "date": "2026-10-23", "days_remaining": 67, "irreversible": "Yes — an application deadline and a visa filing date cannot be extended by us", "if_we_do_nothing": "The student waits a full intake cycle. For a February applicant that is roughly seven months"}}], "medium": [{"case_id": "1292318000000965035", "student": "Rohan Singh", "state": "VISA_PREP", "score": 8, "band": "MEDIUM", "hard_blocks": [], "why": "No hard block. (6 - worst severity 2) x urgency 2 = 8", "country": "Czech Republic", "owner": null, "task": "AWAITING_SLOT", "because": ["No mission in the portfolio publishes an appointment API", "This requires a human to check a portal"], "consequence": "Slots are not monitored by anything. If nobody checks, nobody knows one opened", "next_irreversible": {"milestone": "Next deadline on the case", "date": "2026-09-18", "days_remaining": 32, "irreversible": "Yes — an application deadline and a visa filing date cannot be extended by us", "if_we_do_nothing": "The student waits a full intake cycle. For a February applicant that is roughly seven months"}}], "low": [{"case_id": "1292318000000965034", "student": "Priyanka Das", "state": "VISA_PREP", "score": 1, "band": "LOW", "hard_blocks": [], "why": "No hard block. (6 - worst severity 5) x urgency 1 = 1", "country": "Poland", "owner": null, "task": "WEEKLY_UPDATE", "because": ["Nothing is blocked"], "consequence": "Silence is what destroys trust in this business, not bad news. The Friday message exists for weeks like this", "next_irreversible": {"milestone": "Next deadline on the case", "date": "2026-11-02", "days_remaining": 77, "irreversible": "Yes — an application deadline and a visa filing date cannot be extended by us", "if_we_do_nothing": "The student waits a full intake cycle. For a February applicant that is roughly seven months"}}, {"case_id": "1292318000000965036", "student": "Ananya Mishra", "state": "OFFER_IN_HAND", "score": 1, "band": "LOW", "hard_blocks": [], "why": "No hard block. (6 - worst severity 5) x urgency 1 = 1", "country": "Ireland", "owner": null, "task": "WEEKLY_UPDATE", "because": ["Nothing is blocked"], "consequence": "Silence is what destroys trust in this business, not bad news. The Friday message exists for weeks like this", "next_irreversible": {"milestone": "Next deadline on the case", "date": "2027-04-24", "days_remaining": 250, "irreversible": "Yes — an application deadline and a visa filing date cannot be extended by us", "if_we_do_nothing": "The student waits a full intake cycle. For a February applicant that is roughly seven months"}}], "counts": {"completed_today": 2, "cases_scanned": 6, "high": 3, "medium": 1, "low": 2, "uncalled_leads": 0}, "built_at": "2026-08-17 11:16:09"};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* A task code is stored as NO_PASSPORT; a counsellor reads "No passport".
+   Presentation only — the code itself is never rewritten. */
+const human = c => c ? c.replace(/_/g," ").toLowerCase().replace(/^./, m => m.toUpperCase()) : "";
+
+function slaLine(ni){
+  if(!ni) return "";
+  const d = ni.days_remaining, irr = ni.irreversible || "";
+  const passed = /ALREADY PASSED/.test(irr);
+  let cls = "sla", txt;
+  if(passed){ cls += " past"; txt = `<span class="days">PASSED</span> ${esc(ni.milestone||"")}`; }
+  else if(typeof d === "number"){
+    if(d < 21) cls += " near";
+    txt = `<span class="days">${d}d</span> to ${esc(ni.milestone||"deadline")}${ni.date ? " · " + esc(String(ni.date).slice(0,10)) : ""}`;
+  } else {
+    txt = `<span class="days">—</span> ${esc(ni.milestone||"no date")}`;
+  }
+  return `<div class="${cls}">${txt}</div>`;
+}
+
+function card(it, band){
+  const ni = it.next_irreversible || {};
+  const because = (it.because || []).map(b => `<li>${esc(b)}</li>`).join("");
+  return `<article class="card ${band}" data-find="${esc([it.student,it.country,it.task,it.state].join(" ").toLowerCase())}">
+    <div class="stripe"></div>
+    <div class="body">
+      <div class="top">
+        <span class="name">${esc(it.student)}</span>
+        <span class="tag">${esc(it.state)}</span>
+        ${it.country ? `<span class="tag">${esc(it.country)}</span>` : ""}
+        <span class="score">${esc(it.score)}</span>
+      </div>
+      <div class="task">${esc(human(it.task))}</div>
+      ${slaLine(ni)}
+      <details>
+        <summary>Why</summary>
+        <div class="why">
+          ${because ? `<h4>Because</h4><ul>${because}</ul>` : ""}
+          ${it.consequence ? `<h4>If we do nothing</h4><p>${esc(it.consequence)}</p>` : ""}
+          ${ni.if_we_do_nothing && ni.if_we_do_nothing !== it.consequence ? `<h4>Milestone</h4><p>${esc(ni.if_we_do_nothing)}</p>` : ""}
+          <p class="basis">${esc(it.why || "")}</p>
+        </div>
+      </details>
+    </div>
+  </article>`;
+}
+
+function render(d){
+  $("#who").textContent = d.owner_filter ? d.owner_filter : "all counsellors";
+  $("#built").textContent = "built " + (d.built_at || "");
+  const c = d.counts || {};
+  $("#counts").innerHTML = [
+    ["h","High",c.high],["m","Medium",c.medium],["l","Low",c.low],
+    ["d","Cleared today",c.completed_today],["","Uncalled leads",c.uncalled_leads]
+  ].map(([k,l,v]) => `<span class="chip ${k}">${l} <b>${v ?? 0}</b></span>`).join("");
+
+  let html = "";
+  const leads = d.uncalled_leads || [];
+  if(leads.length){
+    html += `<section><h2 class="band h">Uncalled leads<span class="rule"></span></h2>` +
+      leads.map(l => `<article class="card h" data-find="${esc([l.name,l.city].join(" ").toLowerCase())}">
+        <div class="stripe"></div><div class="body">
+        <div class="top"><span class="name">${esc(l.name)}</span>
+        ${l.city ? `<span class="tag">${esc(l.city)}</span>` : ""}
+        ${l.intake ? `<span class="tag">${esc(l.intake)}</span>` : ""}</div>
+        <div class="task">Call within 48h</div>
+        <details><summary>Why</summary><div class="why"><p>${esc(l.consequence||"")}</p></div></details>
+        </div></article>`).join("") + `</section>`;
+  }
+
+  for(const [key,cls,label] of [["high","h","High"],["medium","m","Medium"],["low","l","Low"]]){
+    const items = d[key] || [];
+    html += `<section><h2 class="band ${cls}">${label} · ${items.length}<span class="rule"></span></h2>`;
+    html += items.length ? items.map(i => card(i, cls)).join("")
+                         : `<p class="empty">Nothing in this band.</p>`;
+    html += `</section>`;
+  }
+
+  const done = d.completed_today || [];
+  html += `<section><h2 class="band d">Cleared today · ${done.length}<span class="rule"></span></h2>`;
+  html += done.length ? done.map(x => `<div class="done-row" data-find="${esc(String(x.student||"").toLowerCase())}">
+      <span>${esc(x.student)}</span><span class="code">${esc(human(x.cleared))}</span>
+      <span class="at">${esc(x.at||"")}</span></div>`).join("")
+    : `<p class="empty">Nothing cleared yet today. This list is read from the audit
+       timeline — a row appears only when a blocker actually went away, never because
+       somebody ticked a box.</p>`;
+  html += `</section>`;
+
+  $("#queue").innerHTML = html;
+}
+
+$("#q").addEventListener("input", e => {
+  const t = e.target.value.trim().toLowerCase();
+  document.querySelectorAll("[data-find]").forEach(el =>
+    el.classList.toggle("hide", t && !el.dataset.find.includes(t)));
+});
+
+render(DATA);
+$("#prov").innerHTML = "Rendered from a live <code>buildWorkQueue()</code> payload captured 2026-08-17 11:16:09 against six seeded cases, which were deleted after capture. The company has no real students yet \u2014 these are the engine's actual outputs on realistic inputs, not mock-ups typed into a design.";
+</script>

@@ -381,8 +381,15 @@ string standalone.caseState(string case_id)
 		score = 100 + hard.size() * 10 + urgency;
 		basis = "HARD BLOCK — " + hard.toString(", ") + ". Banded HIGH as a state, not a score: these take longer to clear than any deadline gives you, so they cannot wait for urgency to rise";
 	}
-	else if(score >= 12)
+	else if(score >= 8)
 	{
+		/*  Calibrated against seeded cases, not guessed. At the original
+		 *  threshold of 12 the MEDIUM band was empty: a soft blocker with a
+		 *  deadline inside 45 days scored 8 and fell to LOW, which under-calls
+		 *  a this-week task as a whenever task. Since urgency 5 only occurs on
+		 *  Red — now a hard block — the highest reachable soft score is 16, so
+		 *  a threshold of 12 left MEDIUM covering almost nothing.
+		 */
 		band = "MEDIUM";
 	}
 	out.put("band",band);

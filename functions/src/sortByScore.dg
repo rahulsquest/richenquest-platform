@@ -1,0 +1,44 @@
+string standalone.sortByScore(string items_json)
+{
+	/*  PURPOSE
+	 *    Orders a list of work-queue items by their "score" key, descending.
+	 *
+	 *  WHY IT IS ITS OWN FUNCTION
+	 *    Deluge cannot sort a list of maps by one of their keys. The workaround
+	 *    — tag, sort the tags as strings, re-collect — is six lines of noise
+	 *    that would otherwise be pasted three times inside buildWorkQueue, once
+	 *    per band. Pasted three times is how it gets fixed in two of them.
+	 *
+	 *    Sorting is presentation, not a decision. This function reads the score
+	 *    caseState already computed; it never adjusts one.
+	 *
+	 *  THE PADDING MATTERS
+	 *    Tags are compared as text, so "9" would sort above "115". Zero-padding
+	 *    to five characters is what makes the string comparison agree with the
+	 *    numeric one.
+	 *
+	 *  VERSION  1.0 (2026-08-17)
+	 */
+	items = items_json.toList();
+	tags = List();
+	pos = 0;
+	for each it in items
+	{
+		sc = it.get("score");
+		if(sc == null)
+		{
+			sc = 0;
+		}
+		pad = "00000" + sc;
+		pad = pad.subString(pad.length() - 5);
+		tags.add(pad + "#" + pos);
+		pos = pos + 1;
+	}
+	tags.sort(false);
+	ordered = List();
+	for each t in tags
+	{
+		ordered.add(items.get(t.subString(t.indexOf("#") + 1).toLong()));
+	}
+	return ordered.toString();
+}
