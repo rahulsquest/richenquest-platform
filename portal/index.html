@@ -1,0 +1,838 @@
+<title>Start With RichenQuest</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   RichenQuest — Public Student Portal + Application Wizard
+   ONE link. Landing, eligibility check, and the full 10-step application.
+
+   EVERY value this page emits is CRM-exact, verified against
+   /crm/v8/settings/fields?module=Leads on 2026-08-17. Zoho does NOT enforce
+   picklists — a wrong string saves silently and never matches, so the
+   options below are the CRM's own actual_values, not friendly labels.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#F4F3EE; --card:#FFFFFF; --card-2:#FAF9F5; --line:#DFDCD2;
+  --ink:#171B24; --ink-2:#4C525F; --ink-3:#7C8290;
+  --brass:#7A5C18; --brass-2:#9C7825; --brass-soft:#F0E7CE;
+  --navy:#1D2740; --ok:#1F6B4A; --ok-soft:#DEEDE4; --warn:#8A4B10;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --r:10px; --shadow:0 1px 2px rgba(23,27,36,.06),0 8px 24px rgba(23,27,36,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#101319; --card:#171C25; --card-2:#141922; --line:#2A313E;
+    --ink:#ECEEF2; --ink-2:#A8AEBC; --ink-3:#767D8C;
+    --brass:#D9B25C; --brass-2:#E5C173; --brass-soft:#2E2716;
+    --navy:#C3CEE6; --ok:#6BC49A; --ok-soft:#12291F; --warn:#E0A268;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101319; --card:#171C25; --card-2:#141922; --line:#2A313E;
+  --ink:#ECEEF2; --ink-2:#A8AEBC; --ink-3:#767D8C;
+  --brass:#D9B25C; --brass-2:#E5C173; --brass-soft:#2E2716;
+  --navy:#C3CEE6; --ok:#6BC49A; --ok-soft:#12291F; --warn:#E0A268;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px; margin:0 auto; padding:0 20px}
+a{color:var(--brass); text-decoration-thickness:1px; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--brass); outline-offset:2px; border-radius:4px}
+
+/* ── nav ── */
+nav{
+  position:sticky; top:0; z-index:40; background:var(--paper);
+  border-bottom:1px solid var(--line);
+}
+nav .wrap{display:flex; align-items:center; gap:16px; padding-block:13px}
+.logo{font-family:var(--serif); font-size:19px; font-weight:700; letter-spacing:-.02em}
+.logo em{font-style:normal; color:var(--brass)}
+.navlinks{margin-left:auto; display:flex; gap:20px; font-size:14px}
+.navlinks a{color:var(--ink-2); text-decoration:none}
+.navlinks a:hover{color:var(--ink)}
+@media(max-width:720px){.navlinks{display:none}}
+
+/* ── buttons ── */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:13px 24px; border-radius:var(--r); border:1px solid transparent;
+  font-family:var(--sans); font-size:15px; font-weight:600; cursor:pointer;
+  background:var(--brass); color:#FFF8E7; text-decoration:none;
+}
+:root[data-theme="dark"] .btn, :root:not([data-theme="light"]) .btn{color:#241C08}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .btn{color:#FFF8E7}}
+.btn:hover{background:var(--brass-2)}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line)}
+.btn.ghost:hover{background:var(--card-2)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+
+/* ── hero ── */
+header.hero{padding:64px 0 52px; border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--brass); margin-bottom:16px;
+}
+h1{
+  font-family:var(--serif); font-size:clamp(34px,6.2vw,54px); line-height:1.08;
+  letter-spacing:-.025em; margin:0 0 20px; text-wrap:balance; font-weight:700;
+}
+.lede{font-size:clamp(17px,2.2vw,19.5px); color:var(--ink-2); max-width:60ch; margin:0 0 28px}
+.hero-cta{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+.hero-note{font-size:13.5px; color:var(--ink-3); margin-top:14px}
+
+/* ── sections ── */
+section{padding:52px 0; border-bottom:1px solid var(--line)}
+h2{
+  font-family:var(--serif); font-size:clamp(24px,3.6vw,32px); line-height:1.18;
+  letter-spacing:-.02em; margin:0 0 10px; text-wrap:balance;
+}
+.sub{color:var(--ink-2); max-width:62ch; margin:0 0 28px}
+h3{font-size:17px; margin:0 0 6px; letter-spacing:-.01em}
+
+.grid{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+  padding:20px; box-shadow:var(--shadow);
+}
+.card p{margin:0; color:var(--ink-2); font-size:14.5px}
+.card .num{
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--brass);
+  display:block; margin-bottom:9px;
+}
+
+/* ── eligibility ── */
+.elig{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px; box-shadow:var(--shadow)}
+.field{margin-bottom:16px}
+label{display:block; font-size:13.5px; font-weight:600; margin-bottom:6px}
+label .opt{font-weight:400; color:var(--ink-3)}
+select,input[type=text],input[type=tel],input[type=email],input[type=number],input[type=date],textarea{
+  width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:8px;
+  background:var(--card-2); color:var(--ink); font-family:var(--sans); font-size:15px;
+}
+textarea{min-height:84px; resize:vertical}
+select:focus,input:focus,textarea:focus{outline:2px solid var(--brass); outline-offset:1px; border-color:transparent}
+.row{display:grid; gap:14px; grid-template-columns:1fr 1fr}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.result{
+  margin-top:18px; padding:18px; border-radius:10px; background:var(--ok-soft);
+  border:1px solid var(--line);
+}
+.result h4{margin:0 0 8px; font-size:15.5px}
+.result p{margin:0 0 10px; font-size:14.5px; color:var(--ink-2)}
+.result ul{margin:0 0 10px; padding-left:20px; font-size:14.5px; color:var(--ink-2)}
+.result li{margin-bottom:4px}
+.result .src{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); margin:0}
+
+/* ── timeline ── */
+.tl{list-style:none; margin:0; padding:0; position:relative}
+.tl::before{content:""; position:absolute; left:7px; top:8px; bottom:8px; width:1px; background:var(--line)}
+.tl li{position:relative; padding:0 0 22px 32px}
+.tl li::before{
+  content:""; position:absolute; left:2px; top:7px; width:11px; height:11px;
+  border-radius:50%; background:var(--paper); border:2px solid var(--brass);
+}
+.tl .when{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--brass)}
+.tl p{margin:3px 0 0; color:var(--ink-2); font-size:14.5px}
+
+/* ── faq ── */
+details.faq{border-bottom:1px solid var(--line); padding:15px 0}
+details.faq summary{
+  cursor:pointer; font-weight:600; font-size:16px; list-style:none;
+  display:flex; gap:12px; align-items:baseline;
+}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::after{content:"+"; margin-left:auto; color:var(--brass); font-family:var(--mono)}
+details.faq[open] summary::after{content:"−"}
+details.faq p{margin:11px 0 0; color:var(--ink-2); font-size:15px; max-width:66ch}
+
+.notice{
+  background:var(--card-2); border:1px solid var(--line); border-left:3px solid var(--brass);
+  border-radius:8px; padding:17px 19px;
+}
+.notice p{margin:0 0 10px; font-size:14.5px; color:var(--ink-2)}
+.notice p:last-child{margin:0}
+.notice strong{color:var(--ink)}
+
+footer{padding:34px 0 60px; font-size:13.5px; color:var(--ink-3)}
+footer p{margin:0 0 8px; max-width:70ch}
+
+/* ═══ WIZARD ═══ */
+#wizard{display:none; position:fixed; inset:0; z-index:60; background:var(--paper); overflow-y:auto}
+#wizard.on{display:block}
+.wz-top{position:sticky; top:0; background:var(--paper); border-bottom:1px solid var(--line); z-index:5}
+.wz-top .wrap{padding-block:13px}
+.wz-bar{display:flex; align-items:center; gap:14px}
+.wz-close{
+  background:none; border:none; color:var(--ink-2); font-size:22px; cursor:pointer;
+  line-height:1; padding:4px 8px; font-family:var(--sans);
+}
+.wz-step{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.wz-saved{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--ok)}
+.prog{height:3px; background:var(--line); border-radius:2px; margin-top:11px; overflow:hidden}
+.prog i{display:block; height:100%; background:var(--brass); width:0; transition:width .3s ease}
+@media(prefers-reduced-motion:reduce){.prog i{transition:none}}
+.wz-body{max-width:640px; margin:0 auto; padding:30px 20px 120px}
+.wz-body h2{margin-bottom:6px}
+.wz-body .sub{margin-bottom:26px}
+.wz-nav{
+  position:fixed; bottom:0; left:0; right:0; background:var(--card);
+  border-top:1px solid var(--line); padding:13px 20px;
+  display:flex; gap:12px; justify-content:space-between;
+}
+.wz-nav .inner{max-width:640px; margin:0 auto; width:100%; display:flex; gap:12px}
+.wz-nav .btn{flex:1}
+.err{color:var(--warn); font-size:13px; margin-top:5px; display:none}
+.err.on{display:block}
+.field.bad input,.field.bad select,.field.bad textarea{border-color:var(--warn)}
+
+.checks{display:grid; gap:9px}
+.check{
+  display:flex; gap:11px; align-items:flex-start; padding:12px 14px;
+  border:1px solid var(--line); border-radius:9px; background:var(--card); cursor:pointer;
+}
+.check:hover{background:var(--card-2)}
+.check input{margin:3px 0 0; accent-color:var(--brass); width:16px; height:16px; flex:none}
+.check span{font-size:14.5px}
+.check span small{display:block; color:var(--ink-3); font-size:12.5px; margin-top:2px}
+
+.rev{border:1px solid var(--line); border-radius:var(--r); overflow:hidden; margin-bottom:20px}
+.rev h4{
+  margin:0; padding:11px 15px; background:var(--card-2); font-size:12px;
+  font-family:var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+  display:flex; align-items:center;
+}
+.rev h4 button{
+  margin-left:auto; background:none; border:none; color:var(--brass);
+  font-family:var(--mono); font-size:11px; cursor:pointer; text-transform:uppercase; letter-spacing:.08em;
+}
+.rev dl{margin:0; padding:6px 15px 13px; display:grid; grid-template-columns:auto 1fr; gap:3px 16px; font-size:14px}
+.rev dt{color:var(--ink-3); padding-top:5px}
+.rev dd{margin:0; padding-top:5px; word-break:break-word}
+.rev dd.miss{color:var(--ink-3); font-style:italic}
+
+#done{text-align:center; padding:44px 0}
+#done .case{
+  font-family:var(--mono); font-size:26px; font-weight:700; letter-spacing:.04em;
+  color:var(--brass); margin:16px 0; user-select:all;
+}
+#done .grid{margin-top:26px; text-align:left}
+.copybox{
+  background:var(--card-2); border:1px solid var(--line); border-radius:9px;
+  padding:14px; font-family:var(--mono); font-size:12.5px; white-space:pre-wrap;
+  color:var(--ink-2); text-align:left; max-height:230px; overflow:auto; margin-top:14px;
+}
+.hidden{display:none !important}
+</style>
+
+<nav><div class="wrap">
+  <span class="logo">Richen<em>Quest</em></span>
+  <div class="navlinks">
+    <a href="#why">Why us</a><a href="#check">Eligibility</a>
+    <a href="#process">Process</a><a href="#faq">FAQ</a><a href="#privacy">Privacy</a>
+  </div>
+  <button class="btn" data-start>Start application</button>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">Patna · English-taught degrees in Europe</p>
+  <h1>The number that matters is what it costs by the time you land.</h1>
+  <p class="lede">Most families are quoted a tuition fee and discover the rest later — rent,
+  the blocked account, insurance, the residence permit, the flight. We tell you the whole
+  number before you commit to anything, and we put it in writing.</p>
+  <div class="hero-cta">
+    <button class="btn" data-start>Start your application</button>
+    <a class="btn ghost" href="#check">Free eligibility check</a>
+  </div>
+  <p class="hero-note">Takes about 10 minutes. Save and come back any time — nothing is lost.</p>
+</div></header>
+
+<section id="why"><div class="wrap">
+  <h2>Why RichenQuest</h2>
+  <p class="sub">We are a new consultancy and we are not going to pretend otherwise. What we
+  can promise is a way of working, and you can hold us to every line of it.</p>
+  <div class="grid">
+    <div class="card"><span class="num">01</span><h3>The whole cost, up front</h3>
+      <p>Tuition, rent, food, insurance, the blocked account or proof of funds, visa fees,
+      permit fees, flights. One total, sourced, before you pay us anything.</p></div>
+    <div class="card"><span class="num">02</span><h3>We name our sources</h3>
+      <p>Every figure we give you says where it came from and when we checked it. If we
+      have not verified something, we say we have not verified it.</p></div>
+    <div class="card"><span class="num">03</span><h3>We will tell you not to go</h3>
+      <p>If the timing no longer works for your intake, or the budget does not reach, you
+      will hear it from us early — while there is still a next intake to plan for.</p></div>
+    <div class="card"><span class="num">04</span><h3>A written update every week</h3>
+      <p>Every Friday, whether or not there is news. Silence is what destroys trust in this
+      business, not bad news.</p></div>
+  </div>
+</div></section>
+
+<section id="check"><div class="wrap">
+  <h2>Free eligibility check</h2>
+  <p class="sub">Four questions, an honest answer, no contact details required. This is a
+  first read, not a promise — nothing here is a guarantee of admission or of a visa.</p>
+  <div class="elig">
+    <div class="row">
+      <div class="field"><label for="e_level">What do you want to study?</label>
+        <select id="e_level"><option value="">Select…</option>
+          <option>Bachelor's</option><option>Master's</option>
+          <option>Diploma</option><option>PhD</option></select></div>
+      <div class="field"><label for="e_budget">Total budget for the first year</label>
+        <select id="e_budget"><option value="">Select…</option>
+          <option value="&lt;10L">Under ₹10 lakh</option>
+          <option value="10-20L">₹10–20 lakh</option>
+          <option value="20-35L">₹20–35 lakh</option>
+          <option value="35L+">Above ₹35 lakh</option></select></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="e_eng">English test</label>
+        <select id="e_eng"><option value="">Select…</option>
+          <option value="None">No test yet</option>
+          <option value="MOI">Medium of Instruction letter</option>
+          <option value="5.5">IELTS 5.5</option><option value="6.0">IELTS 6.0</option>
+          <option value="6.5">IELTS 6.5</option><option value="7.0">IELTS 7.0 or above</option>
+        </select></div>
+      <div class="field"><label for="e_pass">Passport</label>
+        <select id="e_pass"><option value="">Select…</option>
+          <option value="Valid">I have a valid passport</option>
+          <option value="Applied">Applied, waiting</option>
+          <option value="Expired">Expired</option>
+          <option value="Not applied">Not applied yet</option></select></div>
+    </div>
+    <button class="btn" id="e_go">Check my eligibility</button>
+    <div class="result hidden" id="e_out"></div>
+  </div>
+</div></section>
+
+<section id="process"><div class="wrap">
+  <h2>How it works</h2>
+  <p class="sub">Nine steps. You do four of them.</p>
+  <div class="grid">
+    <div class="card"><span class="num">You</span><h3>1 · Apply online</h3><p>One form, about ten minutes. Everything we need to start.</p></div>
+    <div class="card"><span class="num">Us</span><h3>2 · Counsellor call</h3><p>Within 48 hours. We come prepared — we do not ask you the same questions again.</p></div>
+    <div class="card"><span class="num">Us</span><h3>3 · Course shortlist</h3><p>With the true cost of each, and why it fits your budget and profile.</p></div>
+    <div class="card"><span class="num">You</span><h3>4 · Documents</h3><p>Upload once. We tell you exactly what is missing, never a generic list.</p></div>
+    <div class="card"><span class="num">Us</span><h3>5 · Applications</h3><p>Submitted and tracked. You see every deadline we are working to.</p></div>
+    <div class="card"><span class="num">Us</span><h3>6 · Offers</h3><p>Explained side by side, with your parents in the conversation.</p></div>
+    <div class="card"><span class="num">You</span><h3>7 · Funds &amp; visa file</h3><p>We build the file. You sign it. We never sign anything on your behalf.</p></div>
+    <div class="card"><span class="num">You</span><h3>8 · Visa appointment</h3><p>You attend. We prepare you for it and check the file before you go.</p></div>
+    <div class="card"><span class="num">Us</span><h3>9 · Arrival &amp; permit</h3><p>Accommodation, registration, residence permit within the legal window.</p></div>
+  </div>
+</div></section>
+
+<section id="timeline"><div class="wrap">
+  <h2>What a February 2027 intake looks like</h2>
+  <p class="sub">Worked backwards from the start date, because that is the only date that
+  cannot move. Exact dates depend on the country and the university.</p>
+  <ul class="tl">
+    <li><span class="when">Now</span><h3>Apply and get your shortlist</h3><p>Course selection closes early for February intakes — most European universities stop accepting well before Christmas.</p></li>
+    <li><span class="when">Within 2 weeks</span><h3>Passport in hand</h3><p>If you do not have one, apply this week. Nothing downstream can start without it.</p></li>
+    <li><span class="when">Sep – Oct 2026</span><h3>Documents complete, applications submitted</h3><p>Transcripts, degree certificate, English evidence, SOP, references.</p></li>
+    <li><span class="when">Oct – Nov 2026</span><h3>Offers and acceptance</h3><p>Tuition deposit where the university requires one before issuing admission papers.</p></li>
+    <li><span class="when">Nov – Dec 2026</span><h3>Funds ready and visa file built</h3><p>Blocked account or proof of funds, insurance, accommodation proof.</p></li>
+    <li><span class="when">Dec 2026 – Jan 2027</span><h3>Visa appointment</h3><p>Appointment slots are the single least predictable part of this process. We plan for the slot, not the ideal date.</p></li>
+    <li><span class="when">Jan – Feb 2027</span><h3>Fly, register, residence permit</h3><p>The permit window is a legal deadline: Italy 8 days from arrival, Hungary 30 days, Malta 3 months.</p></li>
+  </ul>
+</div></section>
+
+<section id="stories"><div class="wrap">
+  <h2>Student stories</h2>
+  <div class="notice">
+    <p><strong>This section is empty, and it will stay empty until it is true.</strong></p>
+    <p>We have not yet placed a student. When we have, this space will carry their name,
+    their university, what they actually paid, and what went wrong along the way — with
+    their written permission and not before.</p>
+    <p>Any consultancy can buy testimonials. We would rather you judged us on the fact
+    that we left this blank.</p>
+  </div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <h2>Questions families actually ask</h2>
+  <details class="faq"><summary>What do you charge?</summary>
+    <p>Our fee is quoted in writing before you commit, alongside the full cost of the
+    country and course you choose. We will not give you a number on this page that we have
+    not yet agreed with you in person, because a number without its scope is how families
+    get misled.</p></details>
+  <details class="faq"><summary>Can you guarantee admission or a visa?</summary>
+    <p>No, and neither can anybody else. Admission is decided by the university and a visa
+    is decided by a government. Any consultancy that guarantees either is either lying or
+    doing something you do not want to be part of.</p></details>
+  <details class="faq"><summary>Do I need IELTS?</summary>
+    <p>Not always. Many European universities accept a Medium of Instruction letter from
+    your college, and some run their own English interview. Which applies to you depends on
+    the specific university, and we will tell you which before you spend money on a test.</p></details>
+  <details class="faq"><summary>I do not have a passport yet. Is that a problem?</summary>
+    <p>It is the most common reason a family misses an intake. A new Indian passport takes
+    weeks. Apply this week regardless of how far away your intake feels — everything else
+    can happen in parallel, but nothing can happen without it.</p></details>
+  <details class="faq"><summary>Will you handle my visa interview or sign my forms?</summary>
+    <p>No. We prepare you and we check your file, but you sign your own declarations and you
+    attend your own appointment. It is your application, legally and practically, and
+    anyone offering to sign on your behalf is putting you at risk.</p></details>
+  <details class="faq"><summary>What happens to my documents and my data?</summary>
+    <p>See the privacy notice directly below. Short version: we store it in our CRM, we
+    share it only with universities and authorities you approve, and you can ask us to
+    delete it.</p></details>
+</div></section>
+
+<section id="privacy"><div class="wrap">
+  <h2>Privacy notice</h2>
+  <div class="notice">
+    <p><strong>Who we are.</strong> RichenQuest, an education consultancy based in Patna,
+    Bihar, India. We are the data fiduciary for the information you give us here.</p>
+    <p><strong>What we collect.</strong> Your name and contact details, academic history,
+    budget and funding information, passport and English-test status, course and country
+    preferences, parent or guardian contact details, and the documents you choose to
+    upload.</p>
+    <p><strong>Why.</strong> To assess your eligibility, to advise you, to prepare and submit
+    applications on your instruction, and to support your visa and arrival.</p>
+    <p><strong>Who we share it with.</strong> Universities you approve, and visa authorities
+    where your application requires it. We do not sell your data and we do not pass it to
+    other consultancies or lenders.</p>
+    <p><strong>Your rights.</strong> Under India's Digital Personal Data Protection Act you
+    may access what we hold, correct it, withdraw consent, or ask us to erase it. Write to
+    us and we will act on it.</p>
+    <p><strong>If you are under 18</strong>, a parent or guardian must give consent before
+    you submit this form.</p>
+    <p class="src" style="font-family:var(--mono);font-size:11.5px;color:var(--ink-3)">
+    FOUNDER DECISION REQUIRED — registered entity name, registered address, grievance
+    officer name and email, and retention period must be filled in by the founder before
+    this page goes live. They are legally required and must not be invented.</p>
+  </div>
+</div></section>
+
+<section style="border:none"><div class="wrap" style="text-align:center">
+  <h2>Ready when you are</h2>
+  <p class="sub" style="margin-inline:auto">Ten minutes. Save and return whenever you like.</p>
+  <button class="btn" data-start>Start your application</button>
+</div></section>
+
+<footer><div class="wrap">
+  <p>RichenQuest · Patna, Bihar · We do not guarantee admission or visa outcomes.
+  Every cost figure we publish carries its source and the date we checked it.</p>
+  <p>FOUNDER DECISION REQUIRED before launch: office address, phone number, email,
+  registered entity name, and grievance officer for the privacy notice.</p>
+</div></footer>
+
+<!-- ═══════════════ WIZARD ═══════════════ -->
+<div id="wizard" role="dialog" aria-modal="true" aria-label="Application">
+  <div class="wz-top"><div class="wrap">
+    <div class="wz-bar">
+      <button class="wz-close" id="wzClose" aria-label="Close application">×</button>
+      <span class="wz-step" id="wzStep"></span>
+      <span class="wz-saved" id="wzSaved"></span>
+    </div>
+    <div class="prog"><i id="wzProg"></i></div>
+  </div></div>
+  <div class="wz-body" id="wzBody"></div>
+  <div class="wz-nav"><div class="inner">
+    <button class="btn ghost" id="wzBack">Back</button>
+    <button class="btn" id="wzNext">Continue</button>
+  </div></div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════
+   CONFIG
+   ENDPOINT is the server-side proxy that holds the Zoho credential. A public
+   page can never hold one itself. Until it is deployed, submission falls back
+   to a pre-filled WhatsApp message that parseInquiry() already understands —
+   so this page works on day one and upgrades silently later.
+   ═══════════════════════════════════════════════════════════════════════ */
+const CFG = {
+  ENDPOINT: "",                 // e.g. "https://api.richenquest.com/apply"
+  WA_NUMBER: "910000000000",    // FOUNDER DECISION REQUIRED — real WhatsApp number
+  POLICY_VERSION: "v1.0-2026-08"
+};
+
+const $  = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ── eligibility check ── */
+$("#e_go").addEventListener("click", () => {
+  const lvl = $("#e_level").value, bud = $("#e_budget").value,
+        eng = $("#e_eng").value,   pas = $("#e_pass").value;
+  const out = $("#e_out");
+  if(!lvl || !bud || !eng || !pas){
+    out.className = "result";
+    out.innerHTML = "<p>Please answer all four so the answer means something.</p>";
+    return;
+  }
+  const notes = [], flags = [];
+  if(bud === "<10L") notes.push("Under ₹10 lakh, an English-taught European degree with living costs is not realistic for a first year. We would rather say so now than take your file and let you find out in November.");
+  else if(bud === "10-20L") notes.push("₹10–20 lakh puts Hungary, Poland, Latvia and Lithuania in range for most programmes. Germany can work where tuition is low, but the blocked account is a hard requirement you must plan for from day one.");
+  else if(bud === "20-35L") notes.push("₹20–35 lakh opens most of Central Europe comfortably, and Italy, Ireland, Malta and the Netherlands for many programmes.");
+  else notes.push("Above ₹35 lakh, budget is unlikely to be your constraint. Course fit, entry requirements and timing will decide this — not money.");
+
+  if(eng === "None") flags.push("No English evidence yet. Many European universities accept a Medium of Instruction letter from your college — often free and quick. Check that before booking IELTS.");
+  else if(eng === "MOI") flags.push("An MOI letter is accepted by many but not all universities. We will confirm per university before you spend anything on a test.");
+  else if(eng === "5.5") flags.push("IELTS 5.5 meets some Bachelor's requirements but is below the usual 6.0–6.5 for Master's.");
+
+  if(pas === "Not applied" || pas === "Expired") flags.push("PASSPORT — this is the critical path. A new Indian passport takes weeks and nothing else can proceed without it. Apply this week whatever else you decide.");
+  else if(pas === "Applied") flags.push("Passport applied for. Tell us the moment it arrives — several steps unlock on that date.");
+
+  if(lvl === "PhD") flags.push("PhD admissions run on supervisor contact and funding rather than a normal application cycle, and take considerably longer to arrange.");
+
+  out.className = "result";
+  out.innerHTML =
+    `<h4>A first read on your position</h4><p>${esc(notes[0])}</p>` +
+    (flags.length ? `<ul>${flags.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>` : "") +
+    `<p class="src">Not a promise of admission or of a visa. Based only on the four answers above.</p>` +
+    `<button class="btn" data-start>Continue to the full application</button>`;
+  out.querySelector("[data-start]").addEventListener("click", () => openWizard({
+    level: lvl, budget: bud, english: eng, passport: pas
+  }));
+});
+
+/* ═══════════════════════════════════════════════════════════════════════
+   WIZARD — 10 steps. Every option value below is CRM-exact.
+   ═══════════════════════════════════════════════════════════════════════ */
+const COUNTRIES = ["Italy","Germany","France","Spain","Hungary","Latvia","Lithuania","Ireland",
+  "Netherlands","Malta","Poland","Other Schengen","United Kingdom","Australia","New Zealand",
+  "Singapore","Japan","South Korea","Other"];
+const FUNDING = ["Family savings","Education loan","Loan sanctioned","Property sale","Sponsor",
+  "Needs scholarship","Not decided"];
+const DOCS = [
+  ["passport","Passport","Photo page. If you do not have one yet, tick nothing here."],
+  ["transcript","Marksheets / transcripts","All years of your current qualification."],
+  ["degree","Degree or provisional certificate","Only if you have finished."],
+  ["moi","Medium of Instruction letter","From your college, on letterhead."],
+  ["ielts","IELTS / TOEFL / PTE result","If you have taken one."],
+  ["resume","CV or resume","One page is fine."],
+  ["lor","Letters of recommendation","From a teacher or an employer."],
+  ["sop","Statement of purpose","A draft is fine. We will work on it with you."],
+  ["financial","Bank statements / loan sanction","Proof of funds. Needed for the visa, not the application."],
+  ["work","Experience letters","If you have worked."]
+];
+
+const KEY = "rq_application_v1";
+let D = {}, step = 0;
+
+const STEPS = [
+  { t:"Your details", s:"How we reach you. We will use WhatsApp unless you tell us otherwise.",
+    f:[
+      {k:"name",  l:"Full name, as printed on your passport", type:"text", req:true},
+      {k:"phone", l:"WhatsApp number", type:"tel", req:true, ph:"+91…"},
+      {k:"email", l:"Email", type:"email", req:true},
+      {k:"city",  l:"City you live in", type:"text", req:true},
+      {k:"dob",   l:"Date of birth", type:"date", req:true}
+    ]},
+  { t:"Your education", s:"What you have studied so far. Approximate is fine — we verify from documents later.",
+    f:[
+      {k:"education",  l:"What are you studying, or what did you finish?", type:"text", req:true, ph:"e.g. B.Tech Computer Science, 2025"},
+      {k:"percentage", l:"Percentage or CGPA", type:"text", req:true, ph:"e.g. 72% or 7.4"},
+      {k:"backlogs",   l:"Number of backlogs", type:"number", req:true, ph:"0"},
+      {k:"gap",        l:"Study gap in years", type:"number", req:true, ph:"0"},
+      {k:"work",       l:"Work experience in years", type:"number", req:true, ph:"0"}
+    ]},
+  { t:"Budget", s:"The honest number, including living costs — not just tuition. This decides more than anything else on this form.",
+    f:[
+      {k:"budget", l:"Total budget for the first year", type:"select", req:true,
+        o:[["<10L","Under ₹10 lakh"],["10-20L","₹10–20 lakh"],["20-35L","₹20–35 lakh"],["35L+","Above ₹35 lakh"]]},
+      {k:"income", l:"Family annual income", type:"text", req:false, ph:"Optional — helps with loan and scholarship advice"},
+      {k:"funding", l:"How will this be funded?", type:"checks", req:true, o:FUNDING}
+    ]},
+  { t:"Passport", s:"The single most common reason a family misses an intake.",
+    f:[
+      {k:"passport", l:"Passport status", type:"select", req:true,
+        o:[["Valid","I have a valid passport"],["Applied","Applied, waiting for it"],
+           ["Expired","I have one but it has expired"],["Not applied","Not applied yet"]]},
+      {k:"passport_no", l:"Passport number", type:"text", req:false, ph:"Only if you have it"},
+      {k:"passport_exp", l:"Expiry date", type:"date", req:false}
+    ]},
+  { t:"English", s:"Many European universities accept a Medium of Instruction letter instead of IELTS. Do not book a test before we confirm.",
+    f:[
+      {k:"english", l:"English evidence", type:"select", req:true,
+        o:[["None","No test taken yet"],["MOI","Medium of Instruction letter"],
+           ["5.5","IELTS 5.5"],["6.0","IELTS 6.0"],["6.5","IELTS 6.5"],["7.0","IELTS 7.0 or above"]]},
+      {k:"english_date", l:"Test date, if taken", type:"date", req:false}
+    ]},
+  { t:"Where and what", s:"Pick as many countries as you would genuinely consider. More options means more chance of a workable timeline.",
+    f:[
+      {k:"level", l:"Level of study", type:"select", req:true,
+        o:[["Bachelor's","Bachelor's"],["Master's","Master's"],["Diploma","Diploma"],
+           ["PhD","PhD"],["PR/Immigration","PR / Immigration"],["Other","Other"]]},
+      {k:"course", l:"Subject or career goal", type:"text", req:true, ph:"e.g. Data Science, Nursing, Business"},
+      {k:"intake", l:"Which intake are you aiming for?", type:"select", req:true,
+        o:[["Sep 2026","September 2026"],["Jan 2027","January 2027"],["Feb 2027","February 2027"],
+           ["Mar 2027","March 2027"],["May 2027","May 2027"],["Sep 2027","September 2027"],
+           ["2028+","2028 or later"],["Undecided","Not sure yet"]]},
+      {k:"countries", l:"Countries you would consider", type:"checks", req:true, o:COUNTRIES},
+      {k:"accommodation", l:"Accommodation preference", type:"select", req:false,
+        o:[["Dormitory","University dormitory"],["Shared private","Shared private flat"],
+           ["Private flat","Private flat"],["No preference","No preference"]]}
+    ]},
+  { t:"Parent or guardian", s:"Whoever is funding this should be in the conversation from the start, not at the end when the money is due.",
+    f:[
+      {k:"parent_name", l:"Parent or guardian name", type:"text", req:true},
+      {k:"parent_phone", l:"Their WhatsApp number", type:"tel", req:true, ph:"+91…"},
+      {k:"parent_relation", l:"Relationship", type:"select", req:true,
+        o:[["Father","Father"],["Mother","Mother"],["Guardian","Guardian"],["Sibling","Sibling"],["Other","Other"]]},
+      {k:"parent_consent", l:"", type:"single",
+        o:[["yes","My parent or guardian agrees to receive updates from RichenQuest about the progress of my application."]]}
+    ]},
+  { t:"Documents", s:"Tick what you already have. Nothing is uploaded yet — you will get a secure link after you submit, and we will only ask for what is actually missing.",
+    f:[{k:"docs", l:"What do you have ready today?", type:"checks", req:false, o:DOCS.map(d=>d[0]), labels:DOCS}]},
+  { t:"Consent", s:"Required by India's Digital Personal Data Protection Act. Read it — it is short and it is not boilerplate.",
+    f:[
+      {k:"consent", l:"", type:"single", req:true,
+        o:[["yes","I agree that RichenQuest may store and process the information above in order to advise me, and may share it with universities and visa authorities that I approve. I can withdraw this at any time."]]},
+      {k:"consent_referrer", l:"Who told you about RichenQuest?", type:"text", req:false,
+        ph:"A teacher, a friend, a relative — a name helps us thank them"},
+      {k:"notes", l:"Anything else we should know?", type:"textarea", req:false,
+        ph:"A medical condition, a family constraint, a deadline you are working to — anything that changes the advice."}
+    ]},
+  { t:"Review", s:"Check it once. You can change anything before you submit.", f:[] }
+];
+
+/* ── persistence ── */
+function save(flash){
+  try{ localStorage.setItem(KEY, JSON.stringify({D, step, at:Date.now()})); }catch(e){}
+  if(flash){ $("#wzSaved").textContent = "Saved"; setTimeout(()=>{$("#wzSaved").textContent="";}, 1600); }
+}
+function load(){
+  try{
+    const r = JSON.parse(localStorage.getItem(KEY) || "null");
+    if(r && r.D){ D = r.D; step = r.step || 0; return true; }
+  }catch(e){}
+  return false;
+}
+
+/* ── field rendering ── */
+function fieldHTML(f){
+  const v = D[f.k];
+  const id = "f_" + f.k;
+  let inner = "";
+  if(f.type === "select"){
+    inner = `<select id="${id}" data-k="${f.k}"><option value="">Select…</option>` +
+      f.o.map(([val,lab]) => `<option value="${esc(val)}"${v===val?" selected":""}>${esc(lab)}</option>`).join("") +
+      `</select>`;
+  } else if(f.type === "textarea"){
+    inner = `<textarea id="${id}" data-k="${f.k}" placeholder="${esc(f.ph||"")}">${esc(v||"")}</textarea>`;
+  } else if(f.type === "checks"){
+    const cur = Array.isArray(v) ? v : [];
+    inner = `<div class="checks">` + f.o.map((val,i) => {
+      const lab = f.labels ? f.labels[i][1] : val;
+      const hint = f.labels ? f.labels[i][2] : "";
+      return `<label class="check"><input type="checkbox" data-k="${f.k}" value="${esc(val)}"${cur.includes(val)?" checked":""}>
+        <span>${esc(lab)}${hint?`<small>${esc(hint)}</small>`:""}</span></label>`;
+    }).join("") + `</div>`;
+  } else if(f.type === "single"){
+    inner = `<div class="checks">` + f.o.map(([val,lab]) =>
+      `<label class="check"><input type="checkbox" data-k="${f.k}" value="${esc(val)}"${v===val?" checked":""}>
+       <span>${esc(lab)}</span></label>`).join("") + `</div>`;
+  } else {
+    inner = `<input id="${id}" type="${f.type}" data-k="${f.k}" value="${esc(v||"")}" placeholder="${esc(f.ph||"")}">`;
+  }
+  return `<div class="field" data-field="${f.k}">
+    ${f.l ? `<label for="${id}">${esc(f.l)}${f.req?"":' <span class="opt">(optional)</span>'}</label>` : ""}
+    ${inner}<div class="err" data-err="${f.k}"></div></div>`;
+}
+
+const LABELS = {};
+STEPS.forEach(s => s.f.forEach(f => LABELS[f.k] = f.l || s.t));
+
+function reviewHTML(){
+  return STEPS.slice(0,9).map((s,i) => `<div class="rev">
+    <h4>${esc(s.t)}<button type="button" data-goto="${i}">Edit</button></h4>
+    <dl>${s.f.map(f => {
+      let v = D[f.k];
+      if(Array.isArray(v)) v = v.join(", ");
+      if(f.k === "consent" || f.k === "parent_consent") v = v === "yes" ? "Given" : "";
+      const miss = !v;
+      return `<dt>${esc((f.l||f.k).replace(/\?$/,"").slice(0,42))}</dt>
+              <dd class="${miss?"miss":""}">${miss ? "not given" : esc(v)}</dd>`;
+    }).join("")}</dl></div>`).join("");
+}
+
+function render(){
+  const s = STEPS[step];
+  $("#wzStep").textContent = `Step ${step+1} of ${STEPS.length} · ${s.t}`;
+  $("#wzProg").style.width = ((step) / (STEPS.length-1) * 100) + "%";
+  $("#wzBack").style.visibility = step === 0 ? "hidden" : "visible";
+  $("#wzNext").textContent = step === STEPS.length-1 ? "Submit application" : "Continue";
+  $("#wzBody").innerHTML = `<h2>${esc(s.t)}</h2><p class="sub">${esc(s.s)}</p>` +
+    (step === STEPS.length-1 ? reviewHTML() : s.f.map(fieldHTML).join(""));
+  $("#wzBody").querySelectorAll("[data-goto]").forEach(b =>
+    b.addEventListener("click", () => { step = +b.dataset.goto; render(); }));
+  bind();
+  window.scrollTo(0,0);
+  save(false);
+}
+
+function bind(){
+  $("#wzBody").querySelectorAll("input,select,textarea").forEach(el => {
+    const k = el.dataset.k;
+    if(el.type === "checkbox"){
+      el.addEventListener("change", () => {
+        const f = STEPS[step].f.find(x => x.k === k);
+        if(f.type === "single"){
+          $("#wzBody").querySelectorAll(`input[data-k="${k}"]`).forEach(o => { if(o!==el) o.checked = false; });
+          D[k] = el.checked ? el.value : "";
+        } else {
+          const on = [...$("#wzBody").querySelectorAll(`input[data-k="${k}"]:checked`)].map(o=>o.value);
+          D[k] = on;
+        }
+        save(true);
+      });
+    } else {
+      el.addEventListener("input", () => { D[k] = el.value; });
+      el.addEventListener("change", () => save(true));
+    }
+  });
+}
+
+function validate(){
+  const s = STEPS[step];
+  let ok = true, first = null;
+  s.f.forEach(f => {
+    const box = $("#wzBody").querySelector(`[data-field="${f.k}"]`);
+    const err = $("#wzBody").querySelector(`[data-err="${f.k}"]`);
+    if(!box) return;
+    box.classList.remove("bad"); if(err){ err.classList.remove("on"); err.textContent = ""; }
+    let v = D[f.k], bad = "";
+    if(f.req){
+      if(Array.isArray(v) ? !v.length : !v) bad = "This one is required.";
+    }
+    if(!bad && f.k === "email" && v && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) bad = "That does not look like an email address.";
+    if(!bad && (f.k === "phone" || f.k === "parent_phone") && v && v.replace(/\D/g,"").length < 10)
+      bad = "Please include the full number with country code.";
+    if(bad){
+      ok = false; box.classList.add("bad");
+      if(err){ err.textContent = bad; err.classList.add("on"); }
+      if(!first) first = box;
+    }
+  });
+  if(first) first.scrollIntoView({block:"center", behavior:"smooth"});
+  return ok;
+}
+
+/* ── the message parseInquiry() already understands ── */
+function buildMessage(){
+  const L = [
+    ["Name", D.name], ["WhatsApp", D.phone], ["Email", D.email], ["City", D.city],
+    ["Studying", D.education], ["Percentage/CGPA", D.percentage], ["Backlogs", D.backlogs],
+    ["Study gap (yrs)", D.gap], ["Work experience (yrs)", D.work],
+    ["English", D.english], ["Passport", D.passport],
+    ["Total budget", D.budget], ["Family income", D.income],
+    ["Funding", (D.funding||[]).join(",")], ["Level", D.level], ["Intake", D.intake],
+    ["Course", D.course], ["Countries", (D.countries||[]).join(",")],
+    ["Accommodation", D.accommodation], ["Referred by", D.consent_referrer],
+    ["Notes", [
+      D.notes || "",
+      D.dob ? "DOB " + D.dob : "",
+      D.parent_name ? `Parent ${D.parent_name} (${D.parent_relation}) ${D.parent_phone}` : "",
+      D.parent_consent === "yes" ? "Parent consent given" : "Parent consent NOT given",
+      D.consent === "yes" ? `Consent given ${CFG.POLICY_VERSION}` : "",
+      D.passport_no ? "Passport " + D.passport_no + (D.passport_exp ? " exp " + D.passport_exp : "") : "",
+      (D.docs||[]).length ? "Has documents: " + (D.docs||[]).join(", ") : ""
+    ].filter(Boolean).join(" | ")]
+  ];
+  return "RICHENQUEST APPLICATION\n" +
+    L.filter(([,v]) => v !== undefined && v !== null && String(v).trim() !== "")
+     .map(([k,v]) => `${k}: ${v}`).join("\n");
+}
+
+async function submit(){
+  const btn = $("#wzNext");
+  btn.disabled = true; btn.textContent = "Submitting…";
+  const msg = buildMessage();
+  let caseNo = "", online = false;
+  if(CFG.ENDPOINT){
+    try{
+      const r = await fetch(CFG.ENDPOINT, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ raw: msg, consent_version: CFG.POLICY_VERSION, fields: D })
+      });
+      const j = await r.json();
+      if(j && j.ok){ caseNo = j.case_no || j.lead_id || ""; online = true; }
+    }catch(e){ /* falls through to WhatsApp */ }
+  }
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  done(msg, caseNo, online);
+}
+
+function done(msg, caseNo, online){
+  const ref = caseNo || ("RQ-" + new Date().toISOString().slice(2,10).replace(/-/g,"") + "-" +
+                         String(Math.abs([...(D.name||"x")].reduce((a,c)=>a+c.charCodeAt(0),0)) % 9973).padStart(4,"0"));
+  const wa = `https://wa.me/${CFG.WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+  $("#wzStep").textContent = "Submitted";
+  $("#wzProg").style.width = "100%";
+  $("#wzBody").innerHTML = `<div id="done">
+    <h2>Thank you, ${esc((D.name||"").split(" ")[0] || "")}. We have your application.</h2>
+    <p class="sub" style="margin-inline:auto">Your reference number — quote it in any message to us.</p>
+    <div class="case">${esc(ref)}</div>
+    ${online ? "" : `<p class="sub" style="margin-inline:auto">One last step: send this to us on WhatsApp so it reaches your counsellor.</p>
+      <a class="btn" href="${wa}" target="_blank" rel="noopener">Send on WhatsApp</a>
+      <div class="copybox">${esc(msg)}</div>`}
+    <div class="grid">
+      <div class="card"><span class="num">Next</span><h3>A counsellor calls you within 48 hours</h3>
+        <p>They will already have read everything above. You will not be asked the same questions again.</p></div>
+      <div class="card"><span class="num">Then</span><h3>Your document checklist</h3>
+        <p>Only what is actually missing from your file — not a generic list.</p></div>
+      <div class="card"><span class="num">Weekly</span><h3>A written update every Friday</h3>
+        <p>Whether or not there is news.</p></div>
+      ${D.passport === "Not applied" || D.passport === "Expired" ? `<div class="card" style="border-color:var(--brass)">
+        <span class="num">Do this week</span><h3>Apply for your passport</h3>
+        <p>You told us you do not have one. Nothing else in your application can move until it exists, and it takes weeks. Do not wait for our call.</p></div>` : ""}
+    </div>
+    <p style="margin-top:26px"><button class="btn ghost" id="wzDone">Close</button></p>
+  </div>`;
+  $("#wzDone").addEventListener("click", closeWizard);
+  $(".wz-nav").classList.add("hidden");
+}
+
+/* ── open / close ── */
+function openWizard(seed){
+  const had = load();
+  if(seed) Object.assign(D, seed);
+  if(!had) step = 0;
+  $(".wz-nav").classList.remove("hidden");
+  $("#wizard").classList.add("on");
+  document.body.style.overflow = "hidden";
+  render();
+}
+function closeWizard(){
+  $("#wizard").classList.remove("on");
+  document.body.style.overflow = "";
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-start]");
+  if(b){ e.preventDefault(); openWizard(); }
+});
+$("#wzClose").addEventListener("click", closeWizard);
+$("#wzBack").addEventListener("click", () => { if(step>0){ step--; render(); } });
+$("#wzNext").addEventListener("click", () => {
+  if(step === STEPS.length-1){
+    if(D.consent !== "yes"){
+      step = 8; render();
+      setTimeout(()=>{ const e2=$("#wzBody").querySelector('[data-err="consent"]');
+        if(e2){ e2.textContent="We cannot process your application without this."; e2.classList.add("on"); } },60);
+      return;
+    }
+    submit(); return;
+  }
+  if(validate()){ step++; render(); }
+});
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && $("#wizard").classList.contains("on")) closeWizard();
+});
+
+/* Offer to resume an unfinished application. */
+(function(){
+  try{
+    const r = JSON.parse(localStorage.getItem(KEY) || "null");
+    if(r && r.D && r.D.name){
+      document.querySelectorAll("[data-start]").forEach(b => b.textContent = "Continue your application");
+    }
+  }catch(e){}
+})();
+</script>

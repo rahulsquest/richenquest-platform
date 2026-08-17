@@ -32,7 +32,7 @@ string standalone.parseInquiry(string raw)
 	 *    - Everything unmapped is appended to Description, so no answer a family
 	 *      took the trouble to give is ever thrown away.
 	 *
-	 *  DEPENDENCIES  normalizeInput, qualifyLead, assignCounselor, createFollowUpTasks
+	 *  DEPENDENCIES  normalizeInput (11 call sites), qualifyLead, assignCounselor, createFollowUpTasks
 	 *  VERSION       1.0 (2026-08-17)
 	 */
 	out = Map();
@@ -127,19 +127,25 @@ string standalone.parseInquiry(string raw)
 		}
 		else if(k == "Percentage/CGPA")
 		{
-			rec.put("Academic_Percentage",v);
+			/*  Kept verbatim in the notes as well: normalizeInput strips "72%" to 72
+				 *  so the double will accept it, but 7.4 CGPA and 72% are different
+				 *  scales and the conversion between them differs by university. We
+				 *  do not guess it — we keep what the family actually wrote.
+				 */
+				rec.put("Academic_Percentage",standalone.normalizeInput("Academic_Percentage",v));
+				notes.add("Percentage/CGPA as given: " + v);
 		}
 		else if(k == "Backlogs")
 		{
-			rec.put("Backlogs",v);
+			rec.put("Backlogs",standalone.normalizeInput("Backlogs",v));
 		}
 		else if(k == "Study gap (yrs)")
 		{
-			rec.put("Study_Gap_Years",v);
+			rec.put("Study_Gap_Years",standalone.normalizeInput("Study_Gap_Years",v));
 		}
 		else if(k == "Work experience (yrs)")
 		{
-			rec.put("Work_Experience_Years",v);
+			rec.put("Work_Experience_Years",standalone.normalizeInput("Work_Experience_Years",v));
 		}
 		else if(k == "English")
 		{
@@ -155,7 +161,7 @@ string standalone.parseInquiry(string raw)
 		}
 		else if(k == "Family income")
 		{
-			rec.put("Parents_Annual_Income",v);
+			rec.put("Parents_Annual_Income",standalone.normalizeInput("Parents_Annual_Income",v));
 		}
 		else if(k == "Funding")
 		{

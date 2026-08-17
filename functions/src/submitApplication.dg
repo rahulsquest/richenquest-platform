@@ -1,0 +1,147 @@
+string standalone.submitApplication(string raw, string consent_version, string parent_name, string parent_phone, string parent_consent)
+{
+	/*  PURPOSE
+	 *    The single entry point for the public application wizard. One call
+	 *    from the web proxy turns a submitted form into a fully processed Lead
+	 *    with a quotable case number, consent on record, and every downstream
+	 *    automation already run. No human touches anything.
+	 *
+	 *  IT ORCHESTRATES, IT DOES NOT DECIDE
+	 *    Core Engine v1.0 is frozen. This function calls parseInquiry — which
+	 *    already routes through normalizeInput, qualifyLead, assignCounselor
+	 *    and createFollowUpTasks — and then records the three things the wizard
+	 *    knows that a WhatsApp paste never did: consent, the parent, and a
+	 *    reference number the family can quote back to us.
+	 *
+	 *  CONSENT IS WRITTEN SEPARATELY AND DELIBERATELY
+	 *    It is not squeezed into the message body. DPDP requires consent to be
+	 *    demonstrable — which means a field, a timestamp and a policy version,
+	 *    not a sentence buried in a notes blob. caseState raises CONSENT_MISSING
+	 *    as a hard block precisely so an un-consented file cannot be worked.
+	 *
+	 *  THE CASE NUMBER IS FOR THE FAMILY, NOT FOR US
+	 *    RQ-YYMMDD-NNNN, derived from the Lead id so it is unique without a
+	 *    counter to race on. It exists so a parent in Patna can quote one short
+	 *    string instead of spelling out a name over a bad phone line.
+	 *
+	 *  RETURNS
+	 *    {"ok":true,"lead_id":"…","case_no":"RQ-…","name":"…",
+	 *     "counselor":"…","call_by":"…","passport_urgent":bool,
+	 *     "checklist":[…],"qualify":{…}}
+	 *
+	 *  DEPENDENCIES  parseInquiry (→ normalizeInput, qualifyLead,
+	 *                assignCounselor, createFollowUpTasks)
+	 *  VERSION       1.0 (2026-08-17)
+	 */
+	out = Map();
+	if(raw == null || raw.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","empty submission");
+		return out.toString();
+	}
+	/*  Consent is checked BEFORE anything is written. Creating the record first
+	 *  and asking about consent afterwards would mean processing personal data
+	 *  we were never permitted to process, which is the exact thing the rule
+	 *  exists to prevent.
+	 */
+	if(consent_version == null || consent_version.trim() == "")
+	{
+		out.put("ok",false);
+		out.put("error","consent required — nothing was stored");
+		return out.toString();
+	}
+	res = standalone.parseInquiry(raw).toMap();
+	if(res.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("error",res.get("error"));
+		return out.toString();
+	}
+	lead_id = res.get("lead_id");
+	tail = lead_id.toString();
+	tail = tail.subString(tail.length() - 4);
+	case_no = "RQ-" + zoho.currentdate.toString("yyMMdd") + "-" + tail;
+	upd = Map();
+	upd.put("Case_Number",case_no);
+	upd.put("Consent_Given",true);
+	upd.put("Consent_Timestamp",zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss+05:30"));
+	upd.put("Consent_Policy_Version",consent_version);
+	upd.put("Lead_Source","Web Download");
+	if(parent_name != null && parent_name.trim() != "")
+	{
+		upd.put("Parent_Name",parent_name);
+	}
+	if(parent_phone != null && parent_phone.trim() != "")
+	{
+		upd.put("Parent_Phone",parent_phone);
+	}
+	upd.put("Parent_Consent",parent_consent == "yes");
+	zoho.crm.updateRecord("Leads",lead_id.toLong(),upd);
+	/*  The checklist is built from what the family told us they DO have, so the
+	 *  first message they get names only what is actually missing. A generic
+	 *  ten-item list is the thing every other consultancy sends, and it is why
+	 *  families stop reading them.
+	 */
+	lead = zoho.crm.getRecordById("Leads",lead_id.toLong());
+	desc = lead.get("Description");
+	if(desc == null)
+	{
+		desc = "";
+	}
+	needed = List();
+	if(!desc.containsIgnoreCase("transcript"))
+	{
+		needed.add("Marksheets for every year of your current qualification");
+	}
+	if(!desc.containsIgnoreCase("degree"))
+	{
+		needed.add("Degree or provisional certificate, if you have finished");
+	}
+	eng = lead.get("English_Status");
+	if(eng == "None")
+	{
+		needed.add("Medium of Instruction letter from your college — ask for it this week, it is usually free");
+	}
+	else if(eng == "MOI" && !desc.containsIgnoreCase("moi"))
+	{
+		needed.add("The Medium of Instruction letter itself");
+	}
+	else if(!desc.containsIgnoreCase("ielts"))
+	{
+		needed.add("Your English test result");
+	}
+	pp = lead.get("Passport_Status");
+	urgent = (pp != "Valid");
+	if(pp == "Not applied" || pp == "Expired")
+	{
+		needed.add("PASSPORT — apply this week. Nothing else can proceed without it");
+	}
+	else if(!desc.containsIgnoreCase("passport"))
+	{
+		needed.add("Passport photo page");
+	}
+	if(!desc.containsIgnoreCase("resume"))
+	{
+		needed.add("CV or resume — one page is enough");
+	}
+	/*  Deliberately NOT asked for yet: financial documents. They are needed for
+	 *  the visa, not the application, and asking a family for bank statements
+	 *  in the first message is how a legitimate consultancy comes across as a
+	 *  fraud. They are requested at the funds stage, with an explanation.
+	 */
+	call_by = zoho.currenttime.addDay(2).toString("EEEE d MMMM, h:mm a");
+	out.put("ok",true);
+	out.put("lead_id",lead_id);
+	out.put("case_no",case_no);
+	out.put("name",res.get("name"));
+	out.put("counselor",res.get("assignment"));
+	out.put("call_by",call_by);
+	out.put("passport_urgent",urgent);
+	out.put("checklist",needed);
+	out.put("referred_by",res.get("referred_by"));
+	out.put("fields_captured",res.get("fields_captured"));
+	out.put("qualify",res.get("qualify"));
+	out.put("unmapped",res.get("unmapped"));
+	return out.toString();
+}

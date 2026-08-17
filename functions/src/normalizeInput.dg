@@ -25,7 +25,7 @@ string standalone.normalizeInput(string field, string value)
 	 *    input - silently blanking a value is worse than passing it through,
 	 *    because a wrong value is visible and a missing one is not.
 	 *
-	 *  VERSION  1.0 (2026-08-17)
+	 *  VERSION  1.1 (2026-08-17) — numeric and income fields added
 	 */
 	if(value == null)
 	{
@@ -125,6 +125,111 @@ string standalone.normalizeInput(string field, string value)
 			return "10-20L";
 		}
 		return v;
+	}
+	/*  NUMERIC FIELDS.
+	 *
+	 *  Added 2026-08-17 after the first wizard submission failed outright:
+	 *  Academic_Percentage is a DOUBLE and the form sent "72%", so the whole
+	 *  Lead create was rejected. Four more fields have the same shape.
+	 *
+	 *  This is a louder failure than the picklist one — the record is refused
+	 *  rather than silently saved wrong — but the cause is identical, so the
+	 *  cure belongs in the same place. A human writing "1 year" or "none" in a
+	 *  WhatsApp message must never be able to reject a real enquiry.
+	 *
+	 *  SCALE IS NEVER GUESSED. "7.4" is a CGPA and "72" is a percentage, and
+	 *  the multiplier between them differs by university. This returns the
+	 *  number as given and parseInquiry keeps the original string in the
+	 *  Description, so nobody has to reconstruct what the family actually wrote.
+	 */
+	if(field == "Academic_Percentage" || field == "Work_Experience_Years")
+	{
+		num = "";
+		seen_dot = false;
+		for each ch in v.toList("")
+		{
+			if("0123456789".contains(ch))
+			{
+				num = num + ch;
+			}
+			else if(ch == "." && !seen_dot && num != "")
+			{
+				num = num + ch;
+				seen_dot = true;
+			}
+		}
+		if(num == "" || num == ".")
+		{
+			return "";
+		}
+		return num;
+	}
+	if(field == "Backlogs" || field == "Study_Gap_Years")
+	{
+		if(lower.contains("none") || lower.contains("nil") || lower == "no")
+		{
+			return "0";
+		}
+		num2 = "";
+		for each ch2 in v.toList("")
+		{
+			if("0123456789".contains(ch2))
+			{
+				num2 = num2 + ch2;
+			}
+		}
+		if(num2 == "")
+		{
+			return "";
+		}
+		return num2;
+	}
+	if(field == "Parents_Annual_Income")
+	{
+		/*  A picklist, not free text — the wizard was sending "12 lakh", which
+		 *  Zoho would have saved silently and no report would ever have matched.
+		 */
+		if(lower.contains("not stated") || lower.contains("prefer not"))
+		{
+			return "Not stated";
+		}
+		amt = "";
+		for each ch3 in v.toList("")
+		{
+			if("0123456789".contains(ch3))
+			{
+				amt = amt + ch3;
+			}
+		}
+		if(amt == "")
+		{
+			return "Not stated";
+		}
+		n = amt.toLong();
+		/*  A figure above 1000 was almost certainly typed in rupees rather than
+		 *  lakh ("1200000"), so it is converted rather than banded as "Above 35L".
+		 */
+		if(n > 1000)
+		{
+			n = n / 100000;
+		}
+		if(n < 5)
+		{
+			return "Under 5L";
+		}
+		if(n < 10)
+		{
+			return "5-10L";
+		}
+		if(n < 20)
+		{
+			return "10-20L";
+		}
+		if(n <= 35)
+		{
+			return "20-35L";
+		}
+		return "Above 35L";
 	}
 	if(field == "Intended_Intake")
 	{

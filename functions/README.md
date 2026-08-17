@@ -96,6 +96,18 @@ operate, and ADR-003 stays intact: still no server, no database, no custom infra
 14. **`GET` cannot carry a body.** `zpost.sh` always sends one, so settings reads fail with
    a `fetch` TypeError that looks like an auth problem. Use `zget.sh`.
 
+15. **A test runner that reuses a global can hand you a STALE result.** `zrun.sh`
+   interpolates the query string into a JS literal; `Master's` closed the string, the
+   fetch never ran, and the poll returned the *previous* call's `window.__x` — output
+   from a completely different function, which looked like a plausible answer. Use
+   `zrun2.sh`, which base64-encodes the query and sets `__x='PENDING'` first so a stale
+   value can never be mistaken for a fresh one.
+16. **Numeric and picklist fields both punish free text, but differently.** The first
+   wizard submission was REJECTED because `Academic_Percentage` is a `double` and the
+   form sent `"72%"`. `Parents_Annual_Income` is a `picklist` and would have accepted
+   `"12 lakh"` *silently*. Loud failure and silent failure, one cause. `normalizeInput`
+   now governs both — check `data_type` before adding any new field to a payload.
+
 ## Verifying a change
 
 ```
