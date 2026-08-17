@@ -1,0 +1,286 @@
+<title>RichenQuest Launch Control</title>
+<style>
+:root{
+  --bg:#F0F1F3; --surface:#FFFFFF; --surface-2:#F7F8F9; --line:#D8DCE1;
+  --ink:#12161C; --ink-2:#4B5563; --ink-3:#7A838F;
+  --accent:#1E4FBF; --accent-soft:#DEE7FB;
+  --stop:#B3261E; --stop-soft:#FBE7E5;
+  --wait:#8A5A00; --wait-soft:#FBF0D8;
+  --go:#116343;   --go-soft:#DCEEE6;
+  --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C0F14; --surface:#141922; --surface-2:#10151C; --line:#262E3A;
+  --ink:#E9EDF2; --ink-2:#A3ADBA; --ink-3:#727C89;
+  --accent:#7DA5FF; --accent-soft:#16233F;
+  --stop:#FF8A80; --stop-soft:#3A1513;
+  --wait:#F0B959; --wait-soft:#332708;
+  --go:#5FD3A0;   --go-soft:#0F2C21;
+}}
+:root[data-theme="dark"]{
+  --bg:#0C0F14; --surface:#141922; --surface-2:#10151C; --line:#262E3A;
+  --ink:#E9EDF2; --ink-2:#A3ADBA; --ink-3:#727C89;
+  --accent:#7DA5FF; --accent-soft:#16233F;
+  --stop:#FF8A80; --stop-soft:#3A1513;
+  --wait:#F0B959; --wait-soft:#332708;
+  --go:#5FD3A0;   --go-soft:#0F2C21;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+h1{font-size:clamp(26px,4vw,38px);letter-spacing:-.025em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:20px;letter-spacing:-.02em;margin:44px 0 4px}
+h3{font-size:15px;margin:0 0 4px}
+.sub{color:var(--ink-2);margin:0 0 22px;max-width:70ch}
+code{font-family:var(--mono);font-size:.9em;background:var(--surface-2);
+  padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+
+/* verdict */
+header{padding:34px 0 26px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 12px}
+.verdict{display:flex;gap:18px;align-items:flex-start;background:var(--stop-soft);
+  border:1px solid var(--line);border-left:5px solid var(--stop);
+  border-radius:10px;padding:19px 22px;margin-top:20px}
+.verdict .no{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--stop);
+  line-height:1;letter-spacing:-.02em}
+.verdict p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.verdict strong{color:var(--ink)}
+
+/* stats */
+.stats{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  margin-top:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:14px 16px}
+.stat b{display:block;font-size:27px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;line-height:1.1}
+.stat span{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3)}
+.stat.stop b{color:var(--stop)} .stat.wait b{color:var(--wait)} .stat.go b{color:var(--go)}
+
+/* controls */
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin:26px 0 14px;align-items:center}
+.pill{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+  padding:6px 12px;border-radius:100px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .pill[aria-pressed="true"],
+:root:not([data-theme="light"]) .pill[aria-pressed="true"]{color:#0C0F14}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .pill[aria-pressed="true"]{color:#fff}}
+input[type=search]{flex:1;min-width:190px;padding:8px 12px;border-radius:8px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:14px}
+input[type=search]:focus{outline:2px solid var(--accent);outline-offset:1px}
+
+/* table */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);position:sticky;top:0}
+td{padding:11px 13px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr.blk td:first-child{box-shadow:inset 3px 0 0 var(--stop)}
+.id{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:2px 7px;
+  border-radius:4px;white-space:nowrap;text-transform:uppercase}
+.tag.stop{background:var(--stop-soft);color:var(--stop)}
+.tag.wait{background:var(--wait-soft);color:var(--wait)}
+.tag.go{background:var(--go-soft);color:var(--go)}
+.dep{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.time{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{color:var(--ink-2);font-size:13px;margin-top:3px}
+
+/* day one */
+.flow{list-style:none;margin:0;padding:0;position:relative}
+.flow::before{content:"";position:absolute;left:14px;top:10px;bottom:10px;width:1px;background:var(--line)}
+.flow li{position:relative;padding:0 0 20px 42px}
+.flow li::before{content:attr(data-n);position:absolute;left:0;top:0;width:29px;height:29px;
+  border-radius:50%;background:var(--surface);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.flow li.auto::before{border-color:var(--accent);color:var(--accent)}
+.flow li.human::before{border-color:var(--wait);color:var(--wait)}
+.flow .who{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;margin-left:8px}
+.flow li.auto .who{background:var(--accent-soft);color:var(--accent)}
+.flow li.human .who{background:var(--wait-soft);color:var(--wait)}
+.flow p{margin:4px 0 0;color:var(--ink-2);font-size:14px}
+.flow .fn{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:4px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:19px 22px;margin-bottom:13px}
+.panel.stop{border-left:4px solid var(--stop)}
+.panel.go{border-left:4px solid var(--go)}
+.panel h3{margin-bottom:6px}
+.panel p{margin:0 0 9px;color:var(--ink-2);font-size:14px}
+.panel p:last-child{margin:0}
+.panel ul{margin:0;padding-left:19px;color:var(--ink-2);font-size:14px}
+.panel li{margin-bottom:5px}
+footer{margin-top:46px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink-3)}
+.hide{display:none !important}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Operations · 17 August 2026 · v1.0</p>
+  <h1>Launch Control</h1>
+  <p class="sub">Every gap between “the software is built” and “the company is live.”
+  Compiled as COO, from the live CRM rather than from memory.</p>
+  <div class="verdict">
+    <span class="no">NO</span>
+    <p><strong>RichenQuest cannot safely onboard 100 paying students, and cannot safely
+    onboard one.</strong> The software works end to end — a real submission was run through
+    the full chain today. What is missing is not code. It is a legal review, a set of
+    prices, a phone number, and — most seriously — <strong>a single university whose
+    tuition has been verified well enough to quote to a family.</strong></p>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<h2>Launch checklist</h2>
+<p class="sub">Sorted with blockers first. Estimated time is working time, not elapsed —
+a 5-day legal review is 5 days of waiting, not 5 days of effort.</p>
+<div class="controls">
+  <button class="pill" data-f="all" aria-pressed="true">All</button>
+  <button class="pill" data-f="blocker" aria-pressed="false">Blockers only</button>
+  <button class="pill" data-f="Founder" aria-pressed="false">Founder</button>
+  <button class="pill" data-f="Ops" aria-pressed="false">Ops</button>
+  <button class="pill" data-f="Tech" aria-pressed="false">Tech</button>
+  <input type="search" id="q" placeholder="Search item, owner or dependency…">
+</div>
+<div class="tablewrap"><table>
+  <thead><tr><th>Item</th><th>Owner</th><th>Status</th><th>Pri</th>
+  <th>Depends on</th><th>Est.</th><th>Blocker</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table></div>
+
+<h2>Day 1 — exactly what happens</h2>
+<p class="sub">Every automation and every human interaction, from the first click to the
+first application. Blue is the machine; amber is a person.</p>
+<ol class="flow" id="flow"></ol>
+
+<h2>Go-live audit</h2>
+<div id="audit"></div>
+
+<footer>
+  <p>Compiled from the live CRM on 17 August 2026. University readiness, active users and
+  the submission chain were each verified by running them, not by reading the code.
+  Package fees, entity details and the WhatsApp number are marked FOUNDER DECISION
+  REQUIRED and were deliberately not invented.</p>
+</footer>
+</div>
+
+<script>
+const ITEMS = [
+ ["L1","Advocate reviews the Legal Pack","Founder + lawyer","Not started","P0","—","5–10 days",1,"Privacy policy, T&C, service agreement and refund policy all create enforceable obligations. The refund clause §4.4 commits the company to a 100% refund from its own audit trail."],
+ ["L2","Registered entity name, address, registration number","Founder","Not started","P0","—","1 hr",1,"Appears in every legal document and on every invoice. Cannot be guessed."],
+ ["L3","Name a grievance officer","Founder","Not started","P0","—","15 min",1,"The DPDP Act requires a named human, not an inbox. Without it the privacy notice is non-compliant and no personal data may lawfully be processed."],
+ ["L4","Confirm retention period","Founder","Default 7 yrs","P2","L1","15 min",0,"7 years matches income-tax record-keeping. Default is sound unless the lawyer disagrees."],
+ ["L5","GST determination with a chartered accountant","Founder + CA","Not started","P0","L2","2 days",1,"Registration threshold and place-of-supply treatment both change whether GST is charged at all. An invoice silent on GST is the one that causes a problem later."],
+ ["L6","Confirm jurisdiction clause","Founder","Patna proposed","P2","L1","5 min",0,"Recommend Patna, Bihar."],
+
+ ["F1","Set the fee for each of the four packages","Founder","Not started","P0","—","1 hr",1,"Nothing can be quoted, invoiced or signed without this. Deliberately left blank rather than guessed — a published price the founder has not set is one the company is bound to."],
+ ["F2","Take Zoho Books out of test mode","Founder","Test mode","P0","—","30 min",1,"Until this is done no real invoice exists and no payment can be recorded."],
+ ["F3","Configure invoice and receipt series","Tech","Not started","P0","F2","30 min",1,"RQ/INV/26-27/0001 and RQ/RCT/26-27/0001. Gaps in the series are an audit question."],
+ ["F4","Link and reconcile the bank account","Founder","Not started","P0","F2","1 day",1,"Refunds must be paid to the originating account, which requires the account to be linked."],
+ ["F5","Create the four package items in Books","Tech","Not started","P1","F1, F2","30 min",0,"Mechanical once fees exist."],
+
+ ["T1","WhatsApp Business number","Founder","Placeholder","P0","—","1–2 days",1,"portal/index.html still carries 910000000000. Every student and parent message template depends on this."],
+ ["T2","Register apply.richenquest.com and point DNS","Founder","Not started","P0","—","2 hrs",1,"Recommend apply. over start. — it tells a family what the link does when a teacher forwards it with no explanation."],
+ ["T3","Deploy the Worker with OAuth secrets","Tech","Written, not deployed","P0","T2","2 hrs",1,"Holds the Zoho credential. Until deployed the wizard falls back to WhatsApp paste, which works but is not the launch experience."],
+ ["T4","Set ALLOWED_ORIGIN to the real domain","Tech","Currently \"*\"","P0","T2, T3","5 min",1,"As shipped, any site on the internet can create Leads in the CRM. Five minutes of work, unacceptable to skip."],
+ ["T5","Set CFG.ENDPOINT in the portal","Tech","Empty","P0","T3","5 min",1,"Switches intake from WhatsApp paste to direct CRM write."],
+ ["T6","Host the portal","Tech","Not started","P0","T2","1 hr",1,"Static hosting is sufficient — the page has no backend of its own."],
+ ["T7","Create a Counselor role and assign users","Founder","Fallback active","P1","—","15 min",0,"Fixed today: leads were being left unowned and invisible. They now route by fallback tier and warn about it, so this is no longer a blocker — but routing by accident is not routing by design."],
+ ["T8","Confirm nightly schedules are firing","Tech","Deployed","P1","—","30 min",0,"visaOpsSweep 05:30, opsWatch 06:30. Confirm they ran on a real case before student #1."],
+
+ ["O1","Verify tuition and living cost for at least 5 universities","Ops","0 of 20 ready","P0","—","3–5 days",1,"THE DEEPEST BLOCKER. readinessSweep reports 0 universities ready to quote, 4 needing verification, 18 not researched. SOP-2 and QA-2 both forbid quoting unverified tuition, so a counsellor cannot lawfully produce a shortlist today."],
+ ["O2","Record application deadlines for those universities","Ops","Not started","P0","O1","1 day",1,"Without a deadline the Applications module cannot raise DEADLINE_PASSED and no backward plan can be built."],
+ ["O3","Confirm agent or partner status with at least one university","Founder","1 pending","P1","—","5 days",0,"Commercial negotiation — founder only. Not required to advise a student, only to earn commission."],
+ ["O4","Verify mission visa checklists for the top 3 countries","Ops","Not started","P0","—","2 days",1,"SOP-6 requires the mission's own checklist, checked on the day. Filing against a stale list burns the appointment slot, not just the day."],
+ ["O5","Train the counsellor on the handbook and SOPs","Founder","Not started","P0","—","1 day",1,"A counsellor who has not read SOP-7 will paraphrase refusal grounds, and those grounds cannot be reconstructed afterwards."],
+ ["O6","Publish office hours and answer the phone","Founder","Not started","P0","T1","1 hr",1,"The 48-hour call SLA is the first promise the company makes. Breaking it on student #1 is unrecoverable."],
+
+ ["M1","Approve the True Cost report for publication","Founder","Drafted","P1","—","1 hr",0,"The primary teacher-outreach asset. Nothing customer-facing ships without approval."],
+ ["M2","Create the Google Business Profile","Founder","Not started","P2","L2","1 hr",0,"Needs the registered address."],
+ ["M3","Contact the first 30 trust nodes","Founder","Not started","P1","M1","5 days",0,"Not a launch blocker — it is the demand blocker. The company can be perfectly launch-ready and still have zero students."]
+];
+
+const FLOW = [
+ ["auto","Student opens apply.richenquest.com","Static page, no cookies and no trackers. The wizard offers to resume an unfinished application from the browser's own storage.","portal/index.html"],
+ ["human","Student runs the free eligibility check","Four questions, an honest read, no contact details required. If the budget does not reach, it says so rather than harvesting the lead.",""],
+ ["human","Student completes the 10-step wizard","About 10 minutes. Saves after every field, so a dropped connection costs nothing. Consent at Step 9 is mandatory and cannot be pre-ticked.",""],
+ ["auto","Submit posts to the Worker","The Worker holds the Zoho credential; the page never does. Consent is refused a second time here, because a client-side tick is a claim, not a control.","portal/worker.js"],
+ ["auto","submitApplication runs the whole chain","normalizeInput → parseInquiry → qualifyLead → assignCounselor → createFollowUpTasks, then consent, parent details and a case number. No human touches anything.","submitApplication()"],
+ ["auto","Lead lands in the CRM, owned","23 fields captured. Verified today: RQ-260817-4022. Consent, timestamp and policy version recorded as separate fields, because DPDP requires consent to be demonstrable.","Leads"],
+ ["auto","Two tasks are created","CALL WITHIN 48H at highest priority, plus a separate passport task when the student has no passport — it decides whether the intake is reachable at all.","createFollowUpTasks()"],
+ ["auto","Student receives WhatsApp within seconds","Case number, the counsellor's name, and when they will be called. If the passport is missing, the message says apply this week and not to wait for the call.","MESSAGES.md §1"],
+ ["auto","Student receives the confirmation email","What happens next, what is still needed, and what we will not do. The checklist names only what is actually missing — the wizard already knows what they have.","MESSAGES.md §4"],
+ ["auto","Parent receives their own message","Only when Parent_Consent is true. Reports on our work — stage, cost, deadlines — never on the student's conduct, marks or spending.","MESSAGES.md §3"],
+ ["auto","Case appears in the counsellor's work queue","Banded by hard block, not by score. A missing passport lands in HIGH on day one even though the deadline is months away, because it takes weeks to clear.","buildWorkQueue()"],
+ ["auto","The audit timeline opens","FIRST_SNAPSHOT records the state, band and every blocker with its reasoning. Append-only from here — six months later this is how anyone reconstructs what happened.","recordStateEvent()"],
+ ["human","Counsellor opens Student360 before dialling","Not the CRM record. State, blockers, the next irreversible date and the one action that matters, each with its reasoning attached. No preparation needed.","student360()"],
+ ["human","Counsellor calls within 48 hours","They may not ask a question the wizard already answered. Sets Course_Start_Date — without it nothing can be planned backwards and every deadline is invisible.","SOP-1"],
+ ["auto","Nightly sweep re-plans the case","05:30 computes the last safe visa filing date from the course start; 06:30 watches what it wrote. A stale green light is more dangerous than no light.","visaOpsSweep · opsWatch"],
+ ["human","Counselling session, parent present","Total cost before tuition. Every figure sourced. At least one real risk named — a counselling call with no risks named was a sales call.","SOP-2"],
+ ["human","Written shortlist within 3 working days","Only universities whose tuition has been verified. This is the step that is blocked today: zero universities currently qualify.","SOP-2 · O1"],
+ ["human","Service agreement signed, stage 1 invoiced","25% on signing. No stage is invoiced before the previous stage is delivered.","FINANCE-SETUP §4"],
+ ["human","Applications begin","Created in the CRM before submission, with the deadline filled in and Submitted_On set the same day — an empty submission date reads to the engine as never submitted.","SOP-4"]
+];
+
+const AUDIT = [
+ ["stop","Can RichenQuest safely onboard 100 paying students?","<p><strong>No — and the honest answer is that it cannot safely onboard one today.</strong></p><p>The distinction matters, so both are answered separately below. What is missing is almost entirely non-engineering: the platform ran a real application end to end today, created a Lead with 23 fields, issued a case number, recorded consent, assigned an owner and opened an audit timeline. None of the remaining blockers are code.</p>"],
+ ["stop","What blocks student #1","<ul><li><strong>No university can be quoted.</strong> readinessSweep: 0 ready, 4 needing verification, 18 unresearched. SOP-2 and QA-2 both prohibit quoting unverified tuition, so the shortlist — the thing the student is actually paying for — cannot be produced.</li><li><strong>No prices.</strong> The four package fees are unset. Nothing can be quoted, invoiced or signed.</li><li><strong>No lawful basis to process data.</strong> The privacy notice has no entity name and no named grievance officer, both required by the DPDP Act.</li><li><strong>No WhatsApp number.</strong> Still the 910000000000 placeholder, so every student and parent template is undeliverable.</li><li><strong>Nothing is hosted.</strong> No domain, no Worker deployed, ALLOWED_ORIGIN still \"*\".</li><li><strong>Books is in test mode.</strong> No real invoice can exist.</li></ul>"],
+ ["stop","What additionally blocks student #100","<ul><li><strong>Capacity.</strong> Three active CRM users, none holding a counsellor role. At the 48-hour call SLA and a weekly written update per case, 100 active cases is well beyond what this team can serve. That is a hiring decision, not a software one.</li><li><strong>No partner agreements.</strong> One pending. Without them the model is fee-only, which changes the unit economics at volume.</li><li><strong>No refund reserve.</strong> Refund Policy §4.4 commits to a 100% refund whenever the audit trail shows we advised an unreachable intake. That is the right promise and it needs money set aside against it.</li><li><strong>No second-line escalation.</strong> Every SOP escalates to the founder. At 100 students that is the bottleneck the whole project has been trying to remove.</li></ul>"],
+ ["go","What is genuinely ready","<ul><li>The intake chain, verified end to end today on a real submission.</li><li>The engine: caseState, student360, buildWorkQueue, the audit timeline — frozen, documented, and tested against seeded cases spanning every band.</li><li>normalizeInput now governs 10 fields across 11 call sites, after two real defects were found by running it rather than reading it.</li><li>Legal pack, 10 SOPs, 7 QA checklists, counsellor handbook, 11 client templates and the finance setup — all drafted and usable, all awaiting founder inputs rather than more work.</li><li>Lead assignment, fixed today. Leads were being created and left unowned, which meant invisible.</li></ul>"],
+ ["stop","The one thing I would do first","<p><strong>Verify five universities.</strong> Not the legal review, not the domain — those are waiting on other people and can run in parallel. University verification is the only blocker that is pure work the team can start this morning, it is on the critical path for every single student, and it is the constraint that makes the entire counselling proposition deliverable.</p><p>Five universities, with tuition, living cost, deadline and entry requirements each sourced and dated, is roughly three days. Everything else on this board is a phone call, a payment, or somebody else's turnaround.</p>"]
+];
+
+const el = (h)=>{const d=document.createElement("div");d.innerHTML=h;return d.firstElementChild;};
+const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const blockers = ITEMS.filter(i=>i[7]).length;
+const p0 = ITEMS.filter(i=>i[4]==="P0").length;
+document.getElementById("stats").innerHTML = [
+  ["stop",blockers,"Launch blockers"],["stop",p0,"P0 items"],
+  ["wait",ITEMS.length,"Total items"],["stop",0,"Universities quotable"],
+  ["go",3,"Active CRM users"]
+].map(([c,v,l])=>`<div class="stat ${c}"><b>${v}</b><span>${l}</span></div>`).join("");
+
+const rows = ITEMS.slice().sort((a,b)=>(b[7]-a[7])||a[4].localeCompare(b[4]));
+document.getElementById("rows").innerHTML = rows.map(([id,name,owner,status,pri,dep,est,blk,note])=>`
+  <tr class="${blk?"blk":""}" data-find="${esc((id+" "+name+" "+owner+" "+dep).toLowerCase())}"
+      data-owner="${esc(owner)}" data-blk="${blk}">
+    <td><span class="id">${esc(id)}</span> &nbsp;<strong>${esc(name)}</strong>
+        <div class="note">${esc(note)}</div></td>
+    <td>${esc(owner)}</td>
+    <td><span class="tag ${blk?"stop":status.match(/^(Deployed|Default|Patna|Drafted|Fallback|1 pending)/)?"wait":"wait"}">${esc(status)}</span></td>
+    <td class="time">${esc(pri)}</td>
+    <td class="dep">${esc(dep)}</td>
+    <td class="time">${esc(est)}</td>
+    <td><span class="tag ${blk?"stop":"go"}">${blk?"YES":"no"}</span></td>
+  </tr>`).join("");
+
+document.getElementById("flow").innerHTML = FLOW.map(([k,t,d,fn],i)=>`
+  <li class="${k}" data-n="${i+1}"><h3>${esc(t)}<span class="who">${k==="auto"?"automatic":"human"}</span></h3>
+  <p>${esc(d)}</p>${fn?`<div class="fn">${esc(fn)}</div>`:""}</li>`).join("");
+
+document.getElementById("audit").innerHTML = AUDIT.map(([k,t,b])=>
+  `<div class="panel ${k}"><h3>${esc(t)}</h3>${b}</div>`).join("");
+
+let filter="all", q="";
+function apply(){
+  document.querySelectorAll("#rows tr").forEach(tr=>{
+    const okF = filter==="all" || (filter==="blocker" ? tr.dataset.blk==="1" : tr.dataset.owner.includes(filter));
+    const okQ = !q || tr.dataset.find.includes(q);
+    tr.classList.toggle("hide", !(okF && okQ));
+  });
+}
+document.querySelectorAll(".pill").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".pill").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true"); filter=b.dataset.f; apply();
+}));
+document.getElementById("q").addEventListener("input",e=>{q=e.target.value.trim().toLowerCase();apply();});
+</script>

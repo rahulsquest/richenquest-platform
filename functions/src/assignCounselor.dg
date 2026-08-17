@@ -19,14 +19,50 @@ string standalone.assignCounselor(string lead_id)
 	users = resp.get("users");
 	best = "";
 	best_name = "";
+	best_tier = "";
 	best_load = -1;
 	if(users != null)
 	{
-		for each u in users
+		/*  TIERED FALLBACK — added 2026-08-17 after a live submission.
+		 *
+		 *  This function required role.name == "Counselor". No user in the org
+		 *  has that role (they are CEO and Operations), so EVERY lead fell
+		 *  through to "no active counselors" and was left unowned. An unowned
+		 *  lead is not in anybody's work queue: it is in the CRM and invisible,
+		 *  which is worse than being assigned to the wrong person.
+		 *
+		 *  Preference order, first non-empty tier wins. A suboptimal owner is
+		 *  always better than no owner, and the tier is reported so nobody
+		 *  mistakes a fallback for a proper routing decision.
+		 */
+		tiers = {"Counselor","Operations","*"};
+		for each tier in tiers
 		{
-			role = u.get("role");
-			if(role != null && role.get("name") == "Counselor" && u.get("status") == "active")
+			if(best != "")
 			{
+				continue;
+			}
+			for each u in users
+			{
+				if(u.get("status") != "active")
+				{
+					continue;
+				}
+				role = u.get("role");
+				rname = "";
+				if(role != null)
+				{
+					rname = role.get("name");
+				}
+				/*  The administrator is the founder. Included only in the last
+				 *  tier, so leads do not silently pile onto the founder while a
+				 *  real counsellor exists — the exact dependency this company is
+				 *  trying to reduce.
+				 */
+				if(tier != "*" && rname != tier)
+				{
+					continue;
+				}
 				uid = u.get("id");
 				owned = zoho.crm.searchRecords("Leads","(Owner:equals:" + uid + ")");
 				load = 0;
@@ -45,6 +81,7 @@ string standalone.assignCounselor(string lead_id)
 					best_load = load;
 					best = uid;
 					best_name = u.get("full_name");
+					best_tier = tier;
 				}
 			}
 		}
@@ -52,7 +89,7 @@ string standalone.assignCounselor(string lead_id)
 	if(best == "")
 	{
 		out.put("ok",false);
-		out.put("reason","no active counselors");
+		out.put("reason","no active users at all — the CRM has nobody to own this lead");
 		return out.toString();
 	}
 	upd = Map();
@@ -69,5 +106,10 @@ string standalone.assignCounselor(string lead_id)
 	out.put("assigned_to",best_name);
 	out.put("assigned_to_id",best);
 	out.put("load",best_load);
+	out.put("tier",best_tier);
+	if(best_tier != "Counselor")
+	{
+		out.put("warning","Assigned by FALLBACK tier '" + best_tier + "'. No user holds the Counselor role. Create it and assign counsellors, or every lead routes by accident rather than by design");
+	}
 	return out.toString();
 }
