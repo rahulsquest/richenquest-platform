@@ -24,10 +24,10 @@
  *   POST /apply            { raw, consent_version, fields } -> { ok, case_no, lead_id, … }
  *   POST /upload?lead=<id> multipart file -> attaches to the Lead, auto-tagged
  *
- * FOUNDER DECISION REQUIRED
- *   ALLOWED_ORIGIN must be set to the real portal domain before launch.
- *   "*" is fine while testing and unacceptable in production — it lets any
- *   site on the internet create Leads in your CRM.
+ * STATUS 2026-08-17: not deployed. The portal's CFG.ENDPOINT is empty and the
+ *   live intake path is the WhatsApp fallback, so nothing here is running yet.
+ *   ALLOWED_ORIGIN now fails closed at https://apply.richenquest.com — update it
+ *   if the portal is served from a different origin before `wrangler deploy`.
  */
 
 const ZOHO_ACCOUNTS = "https://accounts.zoho.in";
