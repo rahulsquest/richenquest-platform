@@ -54,7 +54,7 @@ Hard block present?  ──YES──▶  band = HIGH.  No arithmetic.
         │
         NO
         ▼
-  (6 − worst severity) × urgency   ──▶  MEDIUM ≥ 12, else LOW
+  (6 − worst severity) × urgency   ──▶  MEDIUM ≥ 8, else LOW
 ```
 
 The score still exists, but only to **order cases within a band** — `sortByScore()`
