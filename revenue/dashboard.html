@@ -1,0 +1,192 @@
+<title>Revenue Operating System</title>
+<style>
+:root{
+  --bg:#F2F3F1; --card:#FFF; --card2:#F8F9F7; --line:#DBDED8;
+  --ink:#14170F; --ink2:#4E5449; --ink3:#7E857A;
+  --gold:#7A5F13; --gold-soft:#F1E9D2;
+  --up:#15613D; --up-soft:#DCEDE3; --down:#A32B22; --down-soft:#FAE5E3;
+  --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1010; --card:#171A17; --card2:#131614; --line:#2A2F29;
+  --ink:#EBEEE8; --ink2:#A6ACA1; --ink3:#767C72;
+  --gold:#D6B45C; --gold-soft:#2C2513;
+  --up:#68C79A; --up-soft:#10281C; --down:#F08D84; --down-soft:#2E1512;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1010; --card:#171A17; --card2:#131614; --line:#2A2F29;
+  --ink:#EBEEE8; --ink2:#A6ACA1; --ink3:#767C72;
+  --gold:#D6B45C; --gold-soft:#2C2513;
+  --up:#68C79A; --up-soft:#10281C; --down:#F08D84; --down-soft:#2E1512;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px 70px}
+header{padding:32px 0 22px;border-bottom:1px solid var(--line);margin-bottom:26px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 10px}
+h1{font-size:clamp(25px,4vw,35px);letter-spacing:-.025em;margin:0 0 8px}
+.sub{color:var(--ink2);margin:0;max-width:66ch}
+h2{font-size:19px;letter-spacing:-.02em;margin:38px 0 4px}
+.h2sub{color:var(--ink2);margin:0 0 16px;font-size:14px;max-width:70ch}
+
+.funnel{display:grid;gap:2px;background:var(--line);border:1px solid var(--line);
+  border-radius:10px;overflow:hidden}
+.fr{display:grid;grid-template-columns:1.6fr 82px 1fr 1.3fr;background:var(--card);
+  padding:12px 15px;align-items:center;gap:12px}
+.fr.head{background:var(--card2);font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.fname{font-weight:600;font-size:14.5px}
+.fname small{display:block;font-weight:400;color:var(--ink3);font-size:12px;
+  font-family:var(--mono);margin-top:2px}
+.fval{font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums;
+  text-align:right;letter-spacing:-.02em}
+.fval.zero{color:var(--ink3)}
+.bar{height:7px;background:var(--card2);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--gold)}
+.frate{font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+
+table{width:100%;border-collapse:collapse;background:var(--card);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);text-align:left;padding:10px 14px;background:var(--card2);
+  border-bottom:1px solid var(--line)}
+td{padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.f{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.tw{overflow-x:auto;border-radius:10px}
+
+.note{background:var(--gold-soft);border:1px solid var(--line);border-left:4px solid var(--gold);
+  border-radius:9px;padding:15px 18px;margin:22px 0}
+.note p{margin:0 0 8px;font-size:14px;color:var(--ink2)}
+.note p:last-child{margin:0}
+.note strong{color:var(--ink)}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+.card b{display:block;font-family:var(--mono);font-size:25px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;line-height:1.15}
+.card span{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:5px}
+.card em{font-style:normal;font-size:12.5px;color:var(--ink3);display:block;margin-top:4px}
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink3)}
+@media(max-width:640px){.fr{grid-template-columns:1fr 70px;gap:8px}.bar,.frate{display:none}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Chief Revenue Officer · 17 August 2026</p>
+  <h1>Revenue Operating System</h1>
+  <p class="sub">Every metric with its formula and its live value. All actuals are zero
+  because no student has yet been acquired — the zeros are the point, not an omission.</p>
+</header>
+
+<h2>The funnel</h2>
+<p class="h2sub">Targets are the 90-day plan. Actuals come from the CRM, verified today.</p>
+<div class="funnel" id="funnel"></div>
+
+<div class="note">
+  <p><strong>Every actual is zero.</strong> Leads 0 · Cases 0 · Applications 0 · Revenue ₹0,
+  read from the CRM today. The funnel below is therefore a plan, not a measurement.</p>
+  <p><strong>Two numbers gate the whole thing.</strong> Package fees are unset — assumed at
+  ₹15k/₹35k/₹60k/₹25k to make selling possible, and the founder must confirm them.
+  And exactly <strong>one university is quotable</strong> (Debrecen), so today the company
+  can only honestly sell Hungary.</p>
+</div>
+
+<h2>Metric formulas</h2>
+<p class="h2sub">Each is computable from the CRM as it stands. No new fields, no new reports.</p>
+<div class="tw"><table>
+  <thead><tr><th>Metric</th><th>Formula</th><th>Source</th><th style="text-align:right">Now</th></tr></thead>
+  <tbody id="formulas"></tbody>
+</table></div>
+
+<h2>Unit economics at the assumed prices</h2>
+<div class="cards" id="econ"></div>
+
+<h2>90-day revenue path</h2>
+<p class="h2sub">Only the two zero-cost channels carry days 1–30. Paid acquisition is last,
+because buying traffic before a proven close rate buys expensive learning.</p>
+<div class="tw"><table>
+  <thead><tr><th>Window</th><th>Channels</th><th style="text-align:right">Leads</th>
+  <th style="text-align:right">Students</th><th style="text-align:right">Revenue</th>
+  <th style="text-align:right">Cum.</th></tr></thead>
+  <tbody id="path"></tbody>
+</table></div>
+
+<footer>
+  <p>Actuals read from Zoho CRM on 17 Aug 2026 via the record-count API. Conversion rates
+  are planning assumptions — RichenQuest has no historical conversion data and none of these
+  percentages is evidence. Replace every one of them with observed values after student #5.
+  Package fees are assumed and flagged in revenue/00-PRICING-ASSUMPTION.md.</p>
+</footer>
+</div>
+
+<script>
+const F = [
+ ["Visitors","portal analytics — none installed",0,"—","not measured"],
+ ["Leads","wizard submissions",0,100,"90-day target"],
+ ["Qualified","budget ≥₹10L · intake ≥4mo · passport · parent",0,50,"50% of leads"],
+ ["Counselling calls","sessions held",0,30,"60% of qualified"],
+ ["Proposals","shortlists sent",0,27,"90% of counselled"],
+ ["Payments","stage-1 received",0,10,"30% close"],
+ ["Applications","submitted to a university",0,10,"1 per paying student"],
+ ["Visas filed","file submitted",0,8,"lag beyond 90 days"],
+ ["Arrivals","student landed",0,0,"beyond horizon"]
+];
+const el=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const inr=n=>"₹"+n.toLocaleString("en-IN");
+
+el("funnel").innerHTML = `<div class="fr head"><span>Stage</span><span style="text-align:right">Now</span><span>vs target</span><span>Target</span></div>` +
+ F.map(([n,d,a,t,note])=>{
+  const pct = (typeof t==="number" && t>0) ? Math.round(a/t*100) : 0;
+  return `<div class="fr"><div class="fname">${esc(n)}<small>${esc(d)}</small></div>
+   <div class="fval ${a===0?"zero":""}">${a}</div>
+   <div class="bar"><i style="width:${pct}%"></i></div>
+   <div class="frate">${typeof t==="number"?t+" · "+esc(note):esc(note)}</div></div>`;
+ }).join("");
+
+const M = [
+ ["Lead conversion","Qualified ÷ Leads","CRM Leads by Lead_Status","0%"],
+ ["Call rate","Counselling held ÷ Qualified","Tasks completed","0%"],
+ ["Proposal rate","Proposals ÷ Counselling","Deals at Proposal stage","0%"],
+ ["Close rate","Payments ÷ Proposals","Books invoices paid","0%"],
+ ["Overall conversion","Payments ÷ Leads","Books ÷ CRM Leads","0%"],
+ ["Revenue","Σ stage payments received","Zoho Books","₹0"],
+ ["Recognised revenue","Σ fees for stages DELIVERED","Books × Deals stage","₹0"],
+ ["Deferred liability","Cash received − recognised","Books","₹0"],
+ ["CAC","Total acquisition spend ÷ paying students","Books expenses ÷ Contacts","n/a — 0 students"],
+ ["Avg fee","Revenue ÷ paying students","Books","n/a"],
+ ["Referral %","Leads with Lead_Source_Detail ÷ all Leads","CRM Leads","0%"],
+ ["Time to payment","Payment date − Lead created (median days)","CRM + Books","n/a"],
+ ["Cash flow","Opening + receipts − outgoings","Books bank account","not configured"],
+ ["48h SLA","Leads called ≤48h ÷ all Leads","Tasks vs Lead created","n/a"],
+ ["Friday updates","Updates sent ÷ active cases","Manual log","n/a"]
+];
+el("formulas").innerHTML = M.map(([n,f,s,v])=>
+ `<tr><td><strong>${esc(n)}</strong></td><td class="f">${esc(f)}</td>
+  <td class="f">${esc(s)}</td><td class="n">${esc(v)}</td></tr>`).join("");
+
+const mix = 0.6*60000 + 0.3*35000 + 0.1*15000;
+el("econ").innerHTML = [
+ ["Blended fee","₹"+mix.toLocaleString("en-IN"),"60% COMP · 30% STD · 10% GUID"],
+ ["10 students","₹"+(mix*10).toLocaleString("en-IN"),"the first revenue milestone"],
+ ["Stage 1 cash","₹"+(mix*10*0.25).toLocaleString("en-IN"),"25% collected at signing"],
+ ["Break-even CAC","₹"+Math.round(mix*0.4).toLocaleString("en-IN"),"40% of fee — ceiling on paid acquisition"],
+ ["Leads per student","3.3","at 30% close of 90% proposal of 60% call of 50% qualified"],
+ ["Universities quotable","1","Debrecen only — the binding constraint"]
+].map(([s,b,e])=>`<div class="card"><span>${esc(s)}</span><b>${esc(b)}</b><em>${esc(e)}</em></div>`).join("");
+
+const P = [
+ ["Days 1–30","Teacher nodes · personal network",30,3,138000,138000],
+ ["Days 31–60","+ seminars · GBP · WhatsApp",30,4,184000,322000],
+ ["Days 61–90","+ college boards · ads if close ≥25%",40,3,138000,460000]
+];
+el("path").innerHTML = P.map(([w,c,l,s,r,cu])=>
+ `<tr><td><strong>${esc(w)}</strong></td><td>${esc(c)}</td><td class="n">${l}</td>
+  <td class="n">${s}</td><td class="n">${inr(r)}</td><td class="n"><strong>${inr(cu)}</strong></td></tr>`).join("");
+</script>
