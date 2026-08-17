@@ -182,7 +182,10 @@ Italy-based students and university correspondence: **+39 327 186 6329**.
 > the final wording**, and templates 6 and 7 in particular should be read aloud once
 > before they are ever used.
 >
-> Two items are still blocked and are marked FOUNDER DECISION REQUIRED elsewhere in
-> this repo: the WhatsApp business number, and the registered entity details required
-> in the privacy notice. Messages 1–5 cannot legally go out until the privacy notice
-> is complete, because they are the first processing of personal data.
+> **Resolved 2026-08-17:** the WhatsApp business number (+91 76312 07948), the entity
+> details and the grievance officer are now in production across the portal and the
+> legal pack, so the privacy-notice blocker on messages 1-5 is cleared.
+>
+> **Still outstanding:** these templates have not been reviewed by the advocate, and
+> templates 6 and 7 - timing-lost and visa-refused - should be read aloud once before
+> they are ever used on a real family.
