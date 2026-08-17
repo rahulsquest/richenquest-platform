@@ -163,6 +163,19 @@ raises the block, not a week later.*
 
 ---
 
+## 7a · Sender block — append to templates 1, 3 and 4
+
+Every first contact must identify the sender and offer an exit. A message from an
+unknown Indian number asking a family for documents is indistinguishable from a scam
+unless it says who it is.
+
+> — RICHENQUEST PVT LTD, Boring Road, Patna · support@richenquest.com · +91 76312 07948
+> Reply STOP and we will not message you again.
+
+Italy-based students and university correspondence: **+39 327 186 6329**.
+
+---
+
 ## 8 · Approval gate
 
 > **Nothing in this file may be sent to a real family until the founder has approved

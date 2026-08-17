@@ -11,7 +11,7 @@ Prices per `00-PRICING-ASSUMPTION.md`. Sellable country today: **Hungary only.**
 **WhatsApp** *(sent by a teacher / node, forwarded to students)*
 > I've been sending students this — it's a breakdown of what a European degree actually
 > costs an Indian family in the first year, including rent, insurance and the visa, not
-> just tuition. Free, no sign-up: {{PORTAL_URL}}
+> just tuition. Free, no sign-up: https://claude.ai/code/artifact/ddfef94c-20ee-4f88-a09a-dcea3c58bef5
 
 **Email** none · **Next trigger** student clicks Start Application
 

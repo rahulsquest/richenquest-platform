@@ -7,7 +7,7 @@ Merge fields `{{like_this}}` come from the CRM or `caseState()`. Placeholders in
 
 ## 1 · Quotation
 
-**{{ENTITY}}** · {{ADDRESS}} · {{EMAIL}} · {{PHONE}}
+**RICHENQUEST PVT LTD** · Boring Road, Patna, Bihar, India · support@richenquest.com · +91 76312 07948
 **QUOTATION** — `RQ/EST/26-27/{{n}}` · Date {{date}} · Valid 30 days
 **For:** {{student_name}} · Case {{case_no}}
 
@@ -63,7 +63,7 @@ We do not guarantee admission or a visa. Every figure above carries its source a
 
 ## 3 · Invoice
 
-**{{ENTITY}}** · {{ADDRESS}} · GSTIN: {{GSTIN}}
+**RICHENQUEST PVT LTD** · Boring Road, Patna, Bihar, India · GSTIN: {{GSTIN}}
 **TAX INVOICE** `RQ/INV/26-27/{{n}}` · Date {{date}} · **Due on receipt**
 **Bill to:** {{student_name}}, {{address}} · Case {{case_no}}
 
@@ -81,13 +81,13 @@ fees are paid by you directly.*
 
 ## 4 · Receipt
 
-**{{ENTITY}}** · **RECEIPT** `RQ/RCT/26-27/{{n}}` · {{date}}
+**RICHENQUEST PVT LTD** · **RECEIPT** `RQ/RCT/26-27/{{n}}` · {{date}}
 
 Received from **{{student_name}}** (Case {{case_no}}) the sum of **₹{{amount}}**
 ({{amount_words}}) by {{method}} on {{payment_date}}, towards invoice
 `RQ/INV/26-27/{{inv}}` — Stage {{stage}}, {{stage_name}}.
 
-Balance on this engagement: ₹{{balance}}.   For {{ENTITY}}: ____________________
+Balance on this engagement: ₹{{balance}}.   For RICHENQUEST PVT LTD: ____________________
 
 ---
 
@@ -98,7 +98,7 @@ Balance on this engagement: ₹{{balance}}.   For {{ENTITY}}: __________________
 **Your case number is {{case_no}}.** Quote it in any message and we will find your file
 immediately.
 
-**Your counsellor** is {{counsellor}}, reachable on {{WA_NUMBER}} during {{hours}}.
+**Your counsellor** is {{counsellor}}, reachable on +91 76312 07948 during {{hours}}.
 
 **What happens now**
 1. Your counsellor calls you by **{{call_by}}**. They have read your file.
@@ -115,7 +115,7 @@ telling you where it came from · let you find out late that your intake is unre
 **Your rights over your data.** You can ask us at any time to show you what we hold,
 correct it, or delete it. Message us the word WITHDRAW to withdraw consent.
 
-**If we get something wrong**, email {{EMAIL}} with your case number. We acknowledge
+**If we get something wrong**, email support@richenquest.com with your case number. We acknowledge
 within 3 working days.
 
 ---
@@ -266,7 +266,7 @@ private conduct.*
 >
 > **What we need:** {{pending}}
 >
-> If you have questions, call me on {{PHONE}}.
+> If you have questions, call me on +91 76312 07948.
 >
 > {{counsellor}} · RichenQuest
 >

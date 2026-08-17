@@ -32,7 +32,12 @@
 
 const ZOHO_ACCOUNTS = "https://accounts.zoho.in";
 const ZOHO_API      = "https://www.zohoapis.in";
-const ALLOWED_ORIGIN = "*";           // ← set to https://apply.richenquest.com
+/*  Fail closed. "*" let any site on the internet create Leads in the CRM.
+ *  This worker is NOT deployed yet (portal CFG.ENDPOINT is empty and the live
+ *  path is the WhatsApp fallback), so no behaviour changes today — but the
+ *  unsafe default is removed now rather than remembered at deploy time.
+ *  Set this to the real portal origin before running `wrangler deploy`. */
+const ALLOWED_ORIGIN = "https://apply.richenquest.com";
 const MAX_UPLOAD    = 15 * 1024 * 1024;
 
 /* Documents are tagged from the filename so a counsellor never opens an

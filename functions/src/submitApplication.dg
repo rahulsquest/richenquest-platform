@@ -142,6 +142,11 @@ string standalone.submitApplication(string raw, string consent_version, string p
 	out.put("referred_by",res.get("referred_by"));
 	out.put("fields_captured",res.get("fields_captured"));
 	out.put("qualify",res.get("qualify"));
+	/*  Surfaced 2026-08-17. The tasks were being created correctly but the result
+	 *  was not passed through, so any monitor watching this response saw a blank
+	 *  where the 48-hour call task should have been confirmed.
+	 */
+	out.put("tasks",res.get("tasks"));
 	out.put("unmapped",res.get("unmapped"));
 	return out.toString();
 }

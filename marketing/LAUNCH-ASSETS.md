@@ -34,7 +34,7 @@ asset the moment it is filled with anything unverified.
 **New enquiry, no application yet**
 > Thank you for your interest. The fastest way to start is our application form —
 > it takes about 10 minutes and means your counsellor has read everything before they
-> call: {{PORTAL_URL}}
+> call: https://claude.ai/code/artifact/ddfef94c-20ee-4f88-a09a-dcea3c58bef5
 > A counsellor calls you within 48 hours of submission.
 
 **"What is your fee?"**
@@ -59,10 +59,10 @@ asset the moment it is filled with anything unverified.
 **Auto-acknowledgement**
 > Thank you for writing to RichenQuest. We reply to every email within one working day.
 > If this concerns an existing application, please include your RQ- case number.
-> If it is urgent — a deadline, an appointment, or a refusal — call {{PHONE}}.
+> If it is urgent — a deadline, an appointment, or a refusal — call +91 76312 07948.
 
 **Grievance acknowledgement** *(required by the DPDP Act)*
-> We have received your message and logged it. Our grievance officer, {{GRIEVANCE_NAME}},
+> We have received your message and logged it. Our grievance officer, Rahul Kumar,
 > will respond within 3 working days and we aim to resolve within 30 days. Your reference
 > is {{ref}}.
 
@@ -105,7 +105,7 @@ asset the moment it is filled with anything unverified.
 > Your students are quoted tuition and discover the rest in November. If the breakdown is
 > useful, share it. If it is not, tell me why and I will fix it.
 >
-> {{founder}} · {{PHONE}}
+> {{founder}} · +91 76312 07948
 
 **What to send:** the True Cost report. Nothing else. No brochure, no fee list.
 
@@ -140,7 +140,7 @@ writing within 48 hours. Do not sign anyone up at the venue. Give them the porta
 
 **To a past student**
 > {{name}}, if anyone asks you about studying abroad, send them this link:
-> {{PORTAL_URL}}. They will get the same full-cost breakdown you got, before they commit
+> https://claude.ai/code/artifact/ddfef94c-20ee-4f88-a09a-dcea3c58bef5. They will get the same full-cost breakdown you got, before they commit
 > to anything. And if they mention your name I will tell you when they get their offer.
 
 **To a teacher or a node** — see §5. Track every referrer in `Lead_Source_Detail`. **The

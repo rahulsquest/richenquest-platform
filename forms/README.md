@@ -1,3 +1,7 @@
+> **SUPERSEDED.** The live intake is `portal/index.html` (10-step wizard, save-and-
+> continue, CRM-exact values, verified end to end). This single-page form is kept only
+> as a fallback. Both now carry the production number +91 76312 07948.
+
 # forms/ — the public inquiry form
 
 **`student-inquiry.html`** · live at **https://claude.ai/code/artifact/b59be8ea-59e9-44cd-9c04-fe85ea0084c0**
@@ -5,7 +9,7 @@
 
 ## 🔴 FOUNDER DECISION REQUIRED — before this is used
 
-**One line, `WA_NUMBER` at the bottom of the file.** Replace `910000000000` with RichenQuest's
+**One line, `WA_NUMBER` at the bottom of the file.** Replace `917631207948` with RichenQuest's
 WhatsApp business number — country code first, digits only. **Then republish.** The form does nothing
 useful until this is done.
 

@@ -60,7 +60,7 @@ source and the date we checked it. Third-party costs change without notice.
 ## 4.2 Quotation *(one page, no narrative)*
 
 ```
-{{ENTITY}} · {{ADDRESS}} · {{EMAIL}} · {{PHONE}}
+RICHENQUEST PVT LTD · Boring Road, Patna, Bihar, India · support@richenquest.com · +91 76312 07948
 QUOTATION  RQ/EST/26-27/{{n}}   Date {{date}}   Valid 30 days
 For: {{student_name}}   Case {{case_no}}
 
@@ -118,7 +118,7 @@ We do not guarantee admission, scholarship or visa outcomes.
 ## 4.5 Receipt
 
 ```
-{{ENTITY}}
+RICHENQUEST PVT LTD
 RECEIPT  RQ/RCT/26-27/{{n}}   {{date}}
 
 Received from {{student_name}} (Case {{case_no}}) the sum of ₹{{amount}}
@@ -127,7 +127,7 @@ RQ/INV/26-27/{{inv}} — stage {{stage}}, {{stage_name}}.
 
 Balance on this engagement: ₹{{balance}}
 
-For {{ENTITY}}  ______________________
+For RICHENQUEST PVT LTD  ______________________
 ```
 
 ---
@@ -137,7 +137,7 @@ For {{ENTITY}}  ______________________
 > **Welcome to RichenQuest, {{first_name}}.**
 >
 > **Case number {{case_no}}** — quote it in any message.
-> **Counsellor** {{counsellor}}, {{WA_NUMBER}}, {{hours}}.
+> **Counsellor** {{counsellor}}, +91 76312 07948, {{hours}}.
 >
 > **What happens now**
 > 1. {{first_step}} — by {{date_1}}
@@ -163,7 +163,7 @@ For {{ENTITY}}  ______________________
 
 ```
 STUDENT SERVICE AGREEMENT
-Between {{ENTITY}} and ____________________  Date __________
+Between RICHENQUEST PVT LTD and ____________________  Date __________
 Case {{case_no}}
 
 Package: [ ] RQ-GUID ₹15,000   [ ] RQ-STD ₹35,000
@@ -177,14 +177,14 @@ I confirm I have read and received:
   [ ] The Privacy Notice
   [ ] The statement that admission and visa outcomes are NOT guaranteed
 
-Student ______________  Parent/Guardian ______________  {{ENTITY}} ______________
+Student ______________  Parent/Guardian ______________  RICHENQUEST PVT LTD ______________
 ```
 
 ---
 
 ## 4.8 Refund Process *(operational, 4 steps)*
 
-1. Claim to {{EMAIL}} with case number → **acknowledge within 3 working days**
+1. Claim to support@richenquest.com with case number → **acknowledge within 3 working days**
 2. Ops pulls `Case_Events` timeline + stage reached
 3. **Check §4.4 first** — if the timeline shows we advised an already-unreachable intake,
    it is a **100% refund, no further assessment**, paid without being asked
@@ -230,7 +230,7 @@ Student ______________  Parent/Guardian ______________  {{ENTITY}} _____________
 
 **To the student**
 > {{first_name}}, now you're settled — if anyone asks you about studying abroad, send them
-> {{PORTAL_URL}}. They'll get the same full-cost breakdown you got, before committing to
+> https://claude.ai/code/artifact/ddfef94c-20ee-4f88-a09a-dcea3c58bef5. They'll get the same full-cost breakdown you got, before committing to
 > anything. If they mention your name, I'll tell you when they get their offer.
 
 **To the referrer — the highest-leverage message in the business**

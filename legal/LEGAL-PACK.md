@@ -12,26 +12,26 @@ written to be used as-is once the placeholders are filled.
 
 | Token | What it is | Needed for |
 |---|---|---|
-| `{{ENTITY}}` | Registered legal name (e.g. "RichenQuest Consultancy Pvt Ltd" or the proprietor's name) | Every document |
-| `{{ENTITY_TYPE}}` | Proprietorship / LLP / Pvt Ltd | T&C, Agreement |
+| `RICHENQUEST PVT LTD` | Registered legal name (e.g. "RichenQuest Consultancy Pvt Ltd" or the proprietor's name) | Every document |
+| `a private limited company` | Proprietorship / LLP / Pvt Ltd | T&C, Agreement |
 | `{{REG_NO}}` | CIN / LLPIN / Udyam number | T&C |
-| `{{ADDRESS}}` | Registered office address with PIN | All |
-| `{{EMAIL}}` | Official email | All |
-| `{{PHONE}}` | Official phone | All |
-| `{{WA_NUMBER}}` | WhatsApp business number | Consents |
-| `{{GRIEVANCE_NAME}}` `{{GRIEVANCE_EMAIL}}` | Grievance officer — **DPDP requires a named human** | Privacy Policy |
+| `Boring Road, Patna, Bihar, India` | Registered office address with PIN | All |
+| `support@richenquest.com` | Official email | All |
+| `+91 76312 07948` | Official phone | All |
+| `+91 76312 07948` | WhatsApp business number | Consents |
+| `Rahul Kumar` `support@richenquest.com` | Grievance officer — **DPDP requires a named human** | Privacy Policy |
 | `{{GSTIN}}` | GST number, or "Not registered — turnover below threshold" | Invoices |
-| `{{JURISDICTION}}` | Courts (recommend: Patna, Bihar) | T&C, Agreement |
-| `{{RETENTION_YEARS}}` | Recommend 7 — matches income-tax record-keeping | Retention Policy |
+| `Patna, Bihar` | Courts (recommend: Patna, Bihar) | T&C, Agreement |
+| `7` | Recommend 7 — matches income-tax record-keeping | Retention Policy |
 
 ---
 
 # 1 · Privacy Policy
 
-**{{ENTITY}} — Privacy Policy** · Version 1.0 · Effective {{DATE}}
+**RICHENQUEST PVT LTD — Privacy Policy** · Version 1.0 · Effective {{DATE}}
 
 ## 1.1 Who we are
-{{ENTITY}}, {{ENTITY_TYPE}}, registered at {{ADDRESS}}. We are the **Data Fiduciary** for
+RICHENQUEST PVT LTD, a private limited company, registered at Boring Road, Patna, Bihar, India. We are the **Data Fiduciary** for
 personal data you give us, as that term is used in India's Digital Personal Data
 Protection Act, 2023 ("DPDP Act"). You are the **Data Principal**.
 
@@ -78,15 +78,15 @@ relevant visa authority. We transfer nothing beyond what that application requir
 
 ## 1.6 How long we keep it
 See the Data Retention Policy (§7). In short: while you are an active client, plus
-{{RETENTION_YEARS}} years for financial and legal records, after which we delete.
+7 years for financial and legal records, after which we delete.
 
 ## 1.7 Your rights under the DPDP Act
 You may at any time:
 - **Access** a summary of what we hold about you and who we have shared it with.
 - **Correct** anything inaccurate, incomplete or out of date.
 - **Erase** your data, where we are not required by law to keep it.
-- **Withdraw consent** — as easily as you gave it. Message {{WA_NUMBER}} or email
-  {{EMAIL}} with the word WITHDRAW.
+- **Withdraw consent** — as easily as you gave it. Message +91 76312 07948 or email
+  support@richenquest.com with the word WITHDRAW.
 - **Nominate** another person to exercise these rights if you die or become incapacitated.
 - **Complain** to us first, and to the Data Protection Board of India if we do not
   resolve it.
@@ -107,15 +107,15 @@ breach occurs that is likely to affect you, we will notify you and the Data Prot
 Board as the DPDP Act requires.
 
 ## 1.10 Grievance officer
-**{{GRIEVANCE_NAME}}**, {{GRIEVANCE_EMAIL}}, {{ADDRESS}}.
+**Rahul Kumar**, support@richenquest.com, Boring Road, Patna, Bihar, India.
 We will acknowledge within 3 working days and resolve within 30 days.
 
 ---
 
 # 2 · Terms & Conditions
 
-**2.1 Who these bind.** These terms are between you and {{ENTITY}}, {{ENTITY_TYPE}},
-{{REG_NO}}, of {{ADDRESS}}.
+**2.1 Who these bind.** These terms are between you and RICHENQUEST PVT LTD, a private limited company,
+{{REG_NO}}, of Boring Road, Patna, Bihar, India.
 
 **2.2 What we are.** We are an independent education consultancy. We are **not** a
 university, an agent of any government, an immigration lawyer, or a lender.
@@ -156,13 +156,13 @@ policy, appointment availability, or delays at any government office.
 by §4.
 
 **2.11 Governing law.** These terms are governed by the laws of India, and the courts at
-{{JURISDICTION}} have exclusive jurisdiction.
+Patna, Bihar have exclusive jurisdiction.
 
 ---
 
 # 3 · Student Service Agreement
 
-**Between** {{ENTITY}} ("we") **and** ______________________ ("you"), dated ____________.
+**Between** RICHENQUEST PVT LTD ("we") **and** ______________________ ("you"), dated ____________.
 Case number: ______________
 
 ## 3.1 What you are buying
@@ -200,7 +200,7 @@ invoiced and receipted. No stage is payable in advance of the one before it.
 ## 3.6 Refunds
 Governed by §4 below, which forms part of this agreement.
 
-Signed: Student ________________  Parent/Guardian ________________  {{ENTITY}} ____________
+Signed: Student ________________  Parent/Guardian ________________  RICHENQUEST PVT LTD ____________
 
 ---
 
@@ -237,7 +237,7 @@ enforceable against us from our own audit timeline.
 **4.5 If we fail to deliver.** If we miss a deadline through our own inaction and you lose
 an intake as a result, you may cancel and receive a full refund of our fee.
 
-**4.6 How to claim.** Email {{EMAIL}} with your case number. We acknowledge within 3
+**4.6 How to claim.** Email support@richenquest.com with your case number. We acknowledge within 3
 working days, decide within 15, and pay within 15 of deciding, to the account the payment
 came from.
 
@@ -248,7 +248,7 @@ came from.
 **Wording is fixed. Do not paraphrase it in conversation or on any form.**
 
 ## 5.1 Primary consent (application wizard, Step 9 — mandatory)
-> I agree that {{ENTITY}} may store and process the information above in order to advise
+> I agree that RICHENQUEST PVT LTD may store and process the information above in order to advise
 > me, and may share it with universities and visa authorities that I approve. I can
 > withdraw this at any time.
 
@@ -256,13 +256,13 @@ Recorded as: `Consent_Given`, `Consent_Timestamp`, `Consent_Policy_Version`.
 
 ## 5.2 Parent / guardian consent (Step 7 — mandatory if student is under 18)
 > I confirm I am the parent or lawful guardian of the applicant, and I consent to
-> {{ENTITY}} processing their personal data for the purpose of their study-abroad
+> RICHENQUEST PVT LTD processing their personal data for the purpose of their study-abroad
 > application. I understand I may withdraw this at any time.
 
 Recorded as: `Parent_Name`, `Parent_Phone`, `Parent_Consent`.
 
 ## 5.3 Parent update consent (optional, separate)
-> My parent or guardian agrees to receive updates from {{ENTITY}} about the progress of my
+> My parent or guardian agrees to receive updates from RICHENQUEST PVT LTD about the progress of my
 > application.
 
 **This does not entitle a parent to the student's private information.** Parent updates
@@ -270,7 +270,7 @@ report on *our* work — stage, deadlines, cost, what we are waiting for. They d
 attendance, marks, personal conduct or spending.
 
 ## 5.4 Marketing consent (optional — must default to OFF)
-> I would like {{ENTITY}} to send me information about seminars, scholarships and intake
+> I would like RICHENQUEST PVT LTD to send me information about seminars, scholarships and intake
 > deadlines. I understand this is optional and that my application is not affected either
 > way.
 
@@ -284,11 +284,11 @@ A STOP reply must be honoured within one working day and recorded on the Lead.
 
 ## 5.6 Document processing consent (at first upload)
 > I confirm the documents I am uploading are genuine and relate to me. I authorise
-> {{ENTITY}} to store them and to forward them to the universities and authorities I
+> RICHENQUEST PVT LTD to store them and to forward them to the universities and authorities I
 > approve.
 
 ## 5.7 Testimonial and success-story consent (separate, after outcome)
-> I agree that {{ENTITY}} may publish my first name, my university and my course. ☐
+> I agree that RICHENQUEST PVT LTD may publish my first name, my university and my course. ☐
 > I also agree they may publish my photograph. ☐
 > I also agree they may publish what I actually paid. ☐
 
@@ -316,8 +316,8 @@ a consent banner added before that code ships.*
 |---|---|---|
 | Enquiries that never became clients | 24 months from last contact | Deleted |
 | Active client records | Duration of engagement | Moves to the row below |
-| Completed client records | {{RETENTION_YEARS}} years from final invoice | Deleted |
-| Invoices, receipts, agreements | {{RETENTION_YEARS}} years (income-tax requirement) | Deleted |
+| Completed client records | 7 years from final invoice | Deleted |
+| Invoices, receipts, agreements | 7 years (income-tax requirement) | Deleted |
 | Uploaded documents (passport, financial) | 12 months after case closes | **Deleted** |
 | Visa refusal grounds, de-identified | Indefinite | Retained — see below |
 | Marketing consent records | Until withdrawn, plus 3 years | Deleted |
