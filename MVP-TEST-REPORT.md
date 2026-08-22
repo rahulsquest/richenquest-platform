@@ -50,3 +50,46 @@ ran. Part D is genuinely not done.
 Open **`https://crm.zoho.in`** in Chrome and leave the tab open. That single action restores
 the Deluge deployment channel, after which items 17–19 and 21 can be completed and Part D
 executed.
+
+---
+
+# Addendum — 2026-08-23, blocker-closing pass
+
+## Step 5 executed (the only step not credential-blocked)
+
+**Verified and written to CRM:** University of Pécs tuition — EUR 2,200–3,900/semester for
+business and social sciences (EUR 4,400–7,800/yr), application fee EUR 100–200. Source:
+`international.pte.hu/admission/fees`, the university's own published fee table.
+`Verified_On` 2026-08-23.
+
+**Deliberately NOT written:** METU living cost. METU's only published figure is the
+promotional phrase *"only EUR 500 per month or even less"* — marketing copy, not a costed
+breakdown. Writing it would have pushed METU through the matching engine's verification
+gate and put a marketing claim into a family's cost total. `Confidence_Finance` set to LOW
+with the reason recorded instead.
+
+**Operational finding:** METU's only published deadlines are Fall 2026 — non-EU 30 June
+2026 (**passed**) and EU/visa-free 31 August 2026. No February 2027 date is published.
+
+## Opportunity completeness after this pass
+
+| State | Count | Which |
+|---|---|---|
+| Fully rankable (tuition + living + deadline + source + verified date) | **1** | Debrecen |
+| Tuition verified with source and date | **4** | Debrecen, METU, EU Business School, Pécs |
+| Living cost recorded | 3 | Debrecen, Vistula, (Pécs pending) |
+| Deadline recorded | 1 | Debrecen |
+
+The binding gap is unchanged and now confirmed twice: **tuition is published; living costs
+and deadlines are mostly not.** Four fetch attempts across `pte.hu` and `metropolitan.hu`
+returned link stubs or navigation hubs. This is an email task, not a research task.
+
+## Steps blocked, with the evidence
+
+| Step | Blocked by |
+|---|---|
+| 1 DNS | Zone is on **GoDaddy** (`ns71/ns72.domaincontrol.com`), not Cloudflare. No GoDaddy credential, no Cloudflare credential, `wrangler` not installed |
+| 2 Slate | `zcatalyst-cli 1.27.0` has no remote delete; `slate:unlink` is local-only |
+| 3/4 CRM engine | No `crm.zoho.in` tab → Deluge deploy channel down. MCP has records/fields but **no function-create** |
+| 6 GitHub | `gh` absent, `brew` absent, osxkeychain holds no github.com credential |
+| 7 Push | `git push --dry-run` → *could not read Username* |
