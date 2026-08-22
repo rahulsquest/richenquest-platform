@@ -26,7 +26,7 @@ string standalone.studentIntelligence(string record_id, string module)
 	 *    never used to rank them and never shown as a quality judgement.
 	 *
 	 *  DEPENDENCIES  none (read-only)
-	 *  VERSION       1.0 (2026-08-23)
+	 *  VERSION       2.0 (2026-08-23) — Intake V2 dimensions + profile strength
 	 */
 	out = Map();
 	mod = "Leads";
@@ -133,6 +133,155 @@ string standalone.studentIntelligence(string record_id, string module)
 	}
 	out.put("ielts_numeric",ielts);
 	out.put("has_moi",eng == "MOI");
+	/*  INTELLIGENCE DIMENSIONS — Intake V2 fields.
+	 *
+	 *  These describe the STUDENT, not the student's fit to any opportunity.
+	 *  No opportunity record expresses "required skills" or "values projects",
+	 *  so scoring them as opportunity FIT would score against nothing. They
+	 *  form a separate PROFILE STRENGTH axis instead.
+	 */
+	dims = Map();
+	dims.put("skills",s.get("Skills"));
+	dims.put("interests",s.get("Interests"));
+	dims.put("preferred_domain",s.get("Preferred_Domain"));
+	dims.put("project_count",s.get("Project_Count"));
+	dims.put("projects_detail",s.get("Projects_Detail"));
+	dims.put("achievement_level",s.get("Achievement_Level"));
+	dims.put("achievements_detail",s.get("Achievements_Detail"));
+	dims.put("extracurriculars",s.get("Extracurriculars"));
+	dims.put("languages_spoken",s.get("Languages_Spoken"));
+	dims.put("preferred_language",s.get("Preferred_Language"));
+	out.put("dimensions",dims);
+	/*  PROFILE STRENGTH — a SECOND, independent 100-point axis.
+	 *
+	 *  Deliberately NOT folded into the opportunity match score. A student can
+	 *  have an outstanding portfolio and still be a poor fit for a specific
+	 *  programme, and a weak portfolio and a perfect fit. Blending them would
+	 *  hide both facts behind one number.
+	 *
+	 *  Weights: academics 30 · skills 20 · projects 20 · achievements 15 ·
+	 *  extracurriculars and languages 15. Total exactly 100.
+	 */
+	ps = 0;
+	ps_parts = List();
+	pct_val = s.get("Academic_Percentage");
+	if(pct_val != null)
+	{
+		/*  A value at or below 10 is a CGPA, not a percentage. The conversion
+		 *  between them varies by university and is never guessed, so CGPA is
+		 *  banded on its own scale rather than multiplied by an invented factor.
+		 */
+		if(pct_val <= 10)
+		{
+			if(pct_val >= 8)
+			{
+				ps = ps + 30;
+				ps_parts.add("Academics 30/30 — CGPA " + pct_val + " is strong");
+			}
+			else if(pct_val >= 6.5)
+			{
+				ps = ps + 20;
+				ps_parts.add("Academics 20/30 — CGPA " + pct_val + " is solid");
+			}
+			else
+			{
+				ps = ps + 10;
+				ps_parts.add("Academics 10/30 — CGPA " + pct_val + " is below the usual bar");
+			}
+		}
+		else
+		{
+			if(pct_val >= 75)
+			{
+				ps = ps + 30;
+				ps_parts.add("Academics 30/30 — " + pct_val + "% is strong");
+			}
+			else if(pct_val >= 60)
+			{
+				ps = ps + 20;
+				ps_parts.add("Academics 20/30 — " + pct_val + "% is solid");
+			}
+			else
+			{
+				ps = ps + 10;
+				ps_parts.add("Academics 10/30 — " + pct_val + "% is below the usual bar");
+			}
+		}
+	}
+	else
+	{
+		ps_parts.add("Academics 0/30 — no percentage or CGPA recorded");
+	}
+	sk = s.get("Skills");
+	if(sk != null && sk.size() > 0 && !sk.contains("None yet"))
+	{
+		sp = sk.size() * 5;
+		if(sp > 20)
+		{
+			sp = 20;
+		}
+		ps = ps + sp;
+		ps_parts.add("Skills " + sp + "/20 — " + sk.size() + " recorded: " + sk.toString(", "));
+	}
+	else
+	{
+		ps_parts.add("Skills 0/20 — none recorded yet");
+	}
+	pc = s.get("Project_Count");
+	if(pc != null && pc > 0)
+	{
+		pp2 = pc * 7;
+		if(pp2 > 20)
+		{
+			pp2 = 20;
+		}
+		ps = ps + pp2;
+		ps_parts.add("Projects " + pp2 + "/20 — " + pc + " project(s)");
+	}
+	else
+	{
+		ps_parts.add("Projects 0/20 — none recorded yet");
+	}
+	al = s.get("Achievement_Level");
+	ap = 0;
+	if(al == "International")
+	{
+		ap = 15;
+	}
+	else if(al == "National")
+	{
+		ap = 12;
+	}
+	else if(al == "State")
+	{
+		ap = 9;
+	}
+	else if(al == "District")
+	{
+		ap = 6;
+	}
+	else if(al == "School / College")
+	{
+		ap = 3;
+	}
+	ps = ps + ap;
+	ps_parts.add("Achievements " + ap + "/15 — highest level: " + al);
+	ec = s.get("Extracurriculars");
+	ls = s.get("Languages_Spoken");
+	ep = 0;
+	if(ec != null && ec.size() > 0 && !ec.contains("None yet"))
+	{
+		ep = ep + 8;
+	}
+	if(ls != null && ls.size() >= 2)
+	{
+		ep = ep + 7;
+	}
+	ps = ps + ep;
+	ps_parts.add("Extracurriculars and languages " + ep + "/15");
+	out.put("profile_strength",ps);
+	out.put("profile_strength_breakdown",ps_parts);
+	out.put("profile_strength_meaning","The student's own standing out of 100, independent of any opportunity. Academics 30, skills 20, projects 20, achievements 15, extracurriculars and languages 15. It is NOT a match score and NOT a probability of anything.");
 	/*  ATTRIBUTION — who introduced this student. */
 	attr = Map();
 	attr.put("source",s.get("Lead_Source"));
@@ -171,7 +320,7 @@ string standalone.studentIntelligence(string record_id, string module)
 	}
 	out.put("history",history);
 	/*  COMPLETENESS — measured, with the exact gaps named. */
-	checks = {"Last_Name","Email","Phone","City","Current_Education","Academic_Percentage","English_Status","Passport_Status","Budget_Range","Interested_Level","Career_Goal","Intended_Intake","Interested_Country","Funding_Source","Parent_Name","Lead_Source_Detail"};
+	checks = {"Last_Name","Email","Phone","City","Current_Education","Academic_Percentage","English_Status","Passport_Status","Budget_Range","Interested_Level","Career_Goal","Intended_Intake","Interested_Country","Funding_Source","Parent_Name","Lead_Source_Detail","Skills","Interests","Preferred_Domain","Project_Count","Achievement_Level","Extracurriculars"};
 	for each c in checks
 	{
 		total = total + 1;

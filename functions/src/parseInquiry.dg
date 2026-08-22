@@ -53,7 +53,7 @@ string standalone.parseInquiry(string raw)
 	 *  next one. Deterministic, and immune to however the transport represents
 	 *  a line break.
 	 */
-	labels = {"Name","WhatsApp","Email","City","Studying","Percentage/CGPA","Backlogs","Study gap (yrs)","Work experience (yrs)","English","Passport","Total budget","Family income","Funding","Level","Intake","Course","Countries","Accommodation","Referred by","Notes"};
+	labels = {"Name","WhatsApp","Email","City","Studying","Percentage/CGPA","Backlogs","Study gap (yrs)","Work experience (yrs)","English","Passport","Total budget","Family income","Funding","Level","Intake","Course","Countries","Accommodation","Referred by","Domain","Skills","Interests","Projects","Project detail","Achievement level","Achievement detail","Activities","Languages","Notes"};
 	kv = Map();
 	unmapped = List();
 	positions = Map();

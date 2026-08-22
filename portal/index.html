@@ -521,7 +521,19 @@ const DOCS = [
   ["work","Experience letters","If you have worked."]
 ];
 
-const KEY = "rq_application_v1";
+const SKILLS = ["Programming","Data Analysis","Machine Learning","Web Development","Design",
+  "Lab Research","Clinical Skills","Accounting","Marketing","Public Speaking","Writing","Teaching",
+  "Project Management","CAD / Engineering Tools","Languages","None yet"];
+const INTERESTS = ["Technology","Healthcare","Business","Finance","Engineering","Sciences",
+  "Arts and Design","Social Impact","Law and Policy","Education"];
+const DOMAINS = ["Computer Science / IT","Data Science / AI","Engineering","Business / Management",
+  "Finance / Accounting","Health / Nursing","Medicine / Dentistry","Design / Media",
+  "Natural Sciences","Social Sciences","Law","Not decided"];
+const EXTRAS = ["Sports","Volunteering","Student Government","Clubs / Societies","Internship",
+  "Part-time Work","Competitions","Research","None yet"];
+const SPOKEN = ["English","Hindi","Bhojpuri","Maithili","Nepali","Bengali","Urdu","German","French"];
+
+const KEY = "rq_application_v2";
 let D = {}, step = 0;
 
 const STEPS = [
@@ -577,6 +589,22 @@ const STEPS = [
       {k:"accommodation", l:"Accommodation preference", type:"select", req:false,
         o:[["Dormitory","University dormitory"],["Shared private","Shared private flat"],
            ["Private flat","Private flat"],["No preference","No preference"]]}
+    ]},
+  { t:"What you have done so far", s:"This is the part most application forms skip. It is what makes your file distinctive, and it is what a mentor is matched on. Tick what is true — there is no wrong answer, and 'none yet' is a real answer.",
+    f:[
+      {k:"domain", l:"Which field do you actually want to work in?", type:"select", req:true,
+        o:DOMAINS.map(d=>[d,d])},
+      {k:"skills", l:"Skills you already have", type:"checks", req:false, o:SKILLS},
+      {k:"interests", l:"What genuinely interests you", type:"checks", req:false, o:INTERESTS},
+      {k:"project_count", l:"How many projects have you built or worked on?", type:"number", req:false, ph:"0"},
+      {k:"projects_detail", l:"Describe one of them briefly", type:"textarea", req:false,
+        ph:"What it was, what you did, what it was for. Two or three lines is plenty."},
+      {k:"achievement_level", l:"Highest level you have competed or been recognised at", type:"select", req:false,
+        o:[["None yet","None yet"],["School / College","School or college"],["District","District"],
+           ["State","State"],["National","National"],["International","International"]]},
+      {k:"achievements_detail", l:"What was it for?", type:"text", req:false, ph:"Optional"},
+      {k:"extracurriculars", l:"Activities outside class", type:"checks", req:false, o:EXTRAS},
+      {k:"languages_spoken", l:"Languages you speak", type:"checks", req:false, o:SPOKEN}
     ]},
   { t:"Parent or guardian", s:"Whoever is funding this should be in the conversation from the start, not at the end when the money is due.",
     f:[
@@ -734,6 +762,12 @@ function buildMessage(){
     ["Funding", (D.funding||[]).join(",")], ["Level", D.level], ["Intake", D.intake],
     ["Course", D.course], ["Countries", (D.countries||[]).join(",")],
     ["Accommodation", D.accommodation], ["Referred by", D.consent_referrer],
+    ["Domain", D.domain], ["Skills", (D.skills||[]).join(",")],
+    ["Interests", (D.interests||[]).join(",")], ["Projects", D.project_count],
+    ["Project detail", D.projects_detail], ["Achievement level", D.achievement_level],
+    ["Achievement detail", D.achievements_detail],
+    ["Activities", (D.extracurriculars||[]).join(",")],
+    ["Languages", (D.languages_spoken||[]).join(",")],
     ["Notes", [
       D.notes || "",
       D.dob ? "DOB " + D.dob : "",

@@ -1,29 +1,41 @@
 string standalone.matchOpportunities(string lead_or_contact_id, string module)
 {
-	/*  RichenQuest Student Intelligence — Matching Engine v1.0
+	/*  RichenQuest Matching Engine v2.0
 	 *
-	 *  PURPOSE
-	 *    Rank Opportunities against one student's Intelligence Profile and
-	 *    explain every placement. Consumes the frozen Core Engine; it does not
-	 *    re-decide risk, band or next action — caseState owns those.
+	 *  FOUR AXES, NEVER BLENDED
+	 *    v1 returned one number that quietly mixed fit with reachability, so a
+	 *    perfect-fit programme whose deadline had passed still scored well. v2
+	 *    separates what the brief separates:
 	 *
-	 *  THE MATCH SCORE IS NOT A PROBABILITY.
-	 *    It is a FIT score: how well the student's stated profile lines up with
-	 *    the opportunity's PUBLISHED requirements. It says nothing about whether
-	 *    they will be admitted, funded or granted a visa, because those are
-	 *    decisions made by universities and governments and nobody can compute
-	 *    them. Every payload carries score_meaning saying exactly this, so no
-	 *    downstream surface can quietly relabel it as a chance of success.
+	 *      match_score        FIT       — does this student suit this programme
+	 *      eligibility_status ELIGIBLE  — do they meet the PUBLISHED entry bar
+	 *      readiness_status   READY     — can they act at all right now
+	 *      deadline_status    OPEN      — is the door still open
+	 *      financial_fit      AFFORD    — can the family actually pay
 	 *
-	 *  VERIFIED DATA ONLY.
-	 *    An opportunity is only rankable when tuition, living cost and deadline
-	 *    are all present AND a Source_URL and Verified_On exist. Anything else
-	 *    is returned in `not_rankable` with the exact missing fields, never
-	 *    silently dropped and never shown as a recommendation. This is the same
-	 *    rule SOP-2 and QA-2 already enforce on counsellors.
+	 *    A high-fit opportunity can still be ineligible, unreachable,
+	 *    under-documented, unaffordable or closed. All five are reported.
 	 *
-	 *  DEPENDENCIES  studentIntelligence. Sibling of caseState, never a replacement.
-	 *  VERSION       1.1 (2026-08-23) — profile delegated to studentIntelligence
+	 *  THE SCORE IS FIT. IT IS NEVER A PROBABILITY.
+	 *    Not of admission, not of a scholarship, not of a visa. Those are
+	 *    decided by institutions and governments and are not computable. Every
+	 *    row carries score_meaning as a FIELD so no surface can render the
+	 *    number without it.
+	 *
+	 *  MISSING DATA REDUCES CONFIDENCE, IT NEVER SCORES ZERO
+	 *    Weights total exactly 100. When an opportunity does not publish the
+	 *    data a dimension needs, that dimension's weight is removed from the
+	 *    DENOMINATOR and listed in unscored_dimensions. Score is
+	 *    earned/available x 100, and confidence is available/100. A programme is
+	 *    never punished for our not having researched it, and never flattered
+	 *    either.
+	 *
+	 *  WEIGHTS — total exactly 100
+	 *    Financial fit 30 · Country 20 · Domain 20 · English 15 · Level 15
+	 *    Timeline is NOT in the score. Reachability is its own axis.
+	 *
+	 *  DEPENDENCIES  studentIntelligence
+	 *  VERSION       2.1 (2026-08-23) — closed opportunities demoted in ordering
 	 */
 	out = Map();
 	mod = "Leads";
@@ -31,17 +43,6 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 	{
 		mod = module;
 	}
-	/*  No direct fetch here: studentIntelligence performs the read and the
-	 *  existence check. Fetching again would be a second round-trip and a
-	 *  second place for the not-found message to drift.
-	 */
-	/*  1. PROFILE — from studentIntelligence, NOT re-read here.
-	 *
-	 *  v1.0 assembled the profile inline. That was a second copy of "what do we
-	 *  know about this student", and it would have drifted from
-	 *  studentIntelligence the first time one was edited and the other was not —
-	 *  the exact failure student360 v1 already paid for against caseState.
-	 */
 	si = standalone.studentIntelligence(lead_or_contact_id,mod).toMap();
 	if(si.get("ok") != true)
 	{
@@ -49,7 +50,8 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		out.put("error",si.get("error"));
 		return out.toString();
 	}
-	out.put("profile",si);
+	out.put("profile_strength",si.get("profile_strength"));
+	out.put("profile_completeness",si.get("profile_completeness"));
 	budget_eur = si.get("finance").get("budget_ceiling_eur");
 	countries = List();
 	ic = si.get("goals").get("countries");
@@ -60,6 +62,7 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 	ielts = si.get("ielts_numeric");
 	has_moi = si.get("has_moi");
 	level = si.get("goals").get("level");
+	domain = si.get("dimensions").get("preferred_domain");
 	passport_ok = !si.get("readiness").get("passport_blocking");
 	consent_ok = si.get("readiness").get("consent_given");
 	today = zoho.currentdate;
@@ -68,13 +71,14 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 	opps = zoho.crm.getRecords("Accounts",1,200);
 	for each o in opps
 	{
-		otype = o.get("Opportunity_Type");
-		if(otype == "Service Vendor")
+		if(o.get("Opportunity_Type") == "Service Vendor")
 		{
 			continue;
 		}
 		nm = o.get("Account_Name");
-		/*  2. VERIFICATION GATE — before any scoring. */
+		/*  VERIFICATION GATE — unchanged from v1. Cost, deadline and provenance
+		 *  must all exist before anything is shown to a family.
+		 */
 		missing = List();
 		if(o.get("Tuition_Min_EUR_Year") == null)
 		{
@@ -102,126 +106,247 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 			nr.put("opportunity",nm);
 			nr.put("country",o.get("University_Country"));
 			nr.put("missing",missing);
-			nr.put("why_excluded","Cannot be quoted to a family until these are verified against the institution's own published page. Not shown as a recommendation and not scored.");
+			nr.put("why_excluded","Cannot be quoted to a family until these are verified against the institution's own published page. Not scored and not shown.");
 			not_rankable.add(nr);
 			continue;
 		}
-		/*  3. SCORING — additive, bounded, and every point is explained. */
-		score = 0;
-		reasons = List();
+		earned = 0;
+		available = 0;
+		breakdown = List();
+		why = List();
 		gaps = List();
-		blockers = List();
+		unscored = List();
+		risks = List();
 		total_eur = o.get("Tuition_Min_EUR_Year") + o.get("Living_Cost_EUR_Year");
-		/*  Affordability, 40 points. The heaviest weight because budget is what
-		 *  actually decides whether a family proceeds.
+		/*  DIMENSION 1 — FINANCIAL FIT, 30. Both sides always have data here,
+		 *  because the verification gate guarantees it.
 		 */
+		available = available + 30;
+		fin_status = "UNAFFORDABLE";
 		if(budget_eur == 0)
 		{
-			blockers.add("Budget band is under 10 lakh. No verified European option in this portfolio fits, and saying so early is the honest answer");
+			breakdown.add("Financial fit 0/30 — stated budget is under 10 lakh");
+			gaps.add("Budget band is under 10 lakh. No verified European option in this portfolio fits, and saying so early is the honest answer");
+			risks.add("BUDGET_BELOW_FLOOR");
 		}
 		else if(total_eur <= budget_eur)
 		{
-			score = score + 40;
-			reasons.add("Affordable: verified total EUR " + total_eur + "/yr is within the stated budget of about EUR " + budget_eur);
+			earned = earned + 30;
+			fin_status = "AFFORDABLE";
+			breakdown.add("Financial fit 30/30 — EUR " + total_eur + "/yr within a budget of about EUR " + budget_eur);
+			why.add("Affordable: verified total EUR " + total_eur + "/yr is within the stated budget");
 		}
 		else if(total_eur <= budget_eur * 1.15)
 		{
-			score = score + 20;
+			earned = earned + 15;
+			fin_status = "STRETCH";
+			breakdown.add("Financial fit 15/30 — EUR " + (total_eur - budget_eur) + " above budget");
 			gaps.add("About EUR " + (total_eur - budget_eur) + " above the stated budget — reachable only with a loan or a top-up");
+			risks.add("BUDGET_STRETCH");
 		}
 		else
 		{
+			breakdown.add("Financial fit 0/30 — EUR " + (total_eur - budget_eur) + " above budget");
 			gaps.add("EUR " + (total_eur - budget_eur) + " above the stated budget. Not affordable on the numbers given");
+			risks.add("UNAFFORDABLE");
 		}
-		/*  Country preference, 20 points. */
+		/*  DIMENSION 2 — COUNTRY, 20. */
 		cn = o.get("University_Country");
 		if(countries.size() == 0)
 		{
-			score = score + 10;
-			reasons.add("No country preference stated, so no country was ruled out");
-		}
-		else if(countries.contains(cn))
-		{
-			score = score + 20;
-			reasons.add(cn + " is one of the countries the student named");
+			unscored.add("country — student stated no country preference");
+			breakdown.add("Country not scored — no preference stated");
 		}
 		else
 		{
-			gaps.add(cn + " is not among the student's stated countries (" + countries.toString(", ") + ")");
+			available = available + 20;
+			if(countries.contains(cn))
+			{
+				earned = earned + 20;
+				breakdown.add("Country 20/20 — " + cn + " is on the student's list");
+				why.add(cn + " is one of the countries the student named");
+			}
+			else
+			{
+				breakdown.add("Country 0/20 — " + cn + " not on the student's list");
+				gaps.add(cn + " is not among the student's stated countries (" + countries.toString(", ") + ")");
+			}
 		}
-		/*  English, 20 points, from the opportunity's PUBLISHED minimum. */
+		/*  DIMENSION 3 — DOMAIN, 20. Needs BOTH sides. Most opportunities do
+		 *  not yet publish Domains_Offered, so this is usually unscored rather
+		 *  than scored zero.
+		 */
+		dof = o.get("Domains_Offered");
+		if(domain == null || domain == "" || domain == "Not decided")
+		{
+			unscored.add("domain — student has not chosen a domain");
+			breakdown.add("Domain not scored — student undecided");
+		}
+		else if(dof == null || dof.size() == 0)
+		{
+			unscored.add("domain — this institution's domains are not recorded");
+			breakdown.add("Domain not scored — institution's domains unverified");
+		}
+		else
+		{
+			available = available + 20;
+			if(dof.contains(domain))
+			{
+				earned = earned + 20;
+				breakdown.add("Domain 20/20 — offers " + domain);
+				why.add("Offers " + domain + ", which is the student's chosen domain");
+			}
+			else
+			{
+				breakdown.add("Domain 0/20 — does not offer " + domain);
+				gaps.add("Does not appear to offer " + domain + " (offers: " + dof.toString(", ") + ")");
+			}
+		}
+		/*  DIMENSION 4 — ENGLISH, 15. Also the ELIGIBILITY axis. */
 		req = o.get("IELTS_Min_PG");
 		if(level == "Bachelor's")
 		{
 			req = o.get("IELTS_Min_UG");
 		}
+		elig = "UNKNOWN";
 		if(req == null)
 		{
+			unscored.add("english — this institution's published minimum is not recorded");
+			breakdown.add("English not scored — published minimum unverified");
 			gaps.add("This institution's published English requirement is not recorded — confirm before advising on IELTS");
 		}
-		else if(has_moi)
+		else
 		{
-			if(o.get("English_Waiver_Route") == "MOI")
+			available = available + 15;
+			if(has_moi)
 			{
-				score = score + 20;
-				reasons.add("Accepts a Medium of Instruction letter, which the student already has — no test needed");
+				if(o.get("English_Waiver_Route") == "MOI")
+				{
+					earned = earned + 15;
+					elig = "ELIGIBLE";
+					breakdown.add("English 15/15 — accepts an MOI letter, which the student holds");
+					why.add("Accepts a Medium of Instruction letter, so no test is needed");
+				}
+				else
+				{
+					elig = "UNKNOWN";
+					breakdown.add("English 0/15 — MOI acceptance not confirmed");
+					gaps.add("Student holds an MOI letter; this institution's acceptance of MOI is not confirmed");
+				}
+			}
+			else if(ielts >= req)
+			{
+				earned = earned + 15;
+				elig = "ELIGIBLE";
+				breakdown.add("English 15/15 — " + ielts + " meets the published minimum of " + req);
+				why.add("English meets the published minimum: " + ielts + " against " + req);
+			}
+			else if(ielts == 0.0)
+			{
+				elig = "NOT_ELIGIBLE_YET";
+				breakdown.add("English 0/15 — no evidence held, minimum is " + req);
+				gaps.add("No English evidence yet. Published minimum is " + req + ". Ask your college for an MOI letter before booking a test");
+				risks.add("NO_ENGLISH_EVIDENCE");
 			}
 			else
 			{
-				gaps.add("Student holds an MOI letter; this institution's acceptance of MOI is not confirmed");
+				elig = "NOT_ELIGIBLE";
+				breakdown.add("English 0/15 — " + ielts + " is below the published minimum of " + req);
+				gaps.add("English " + ielts + " is below the published minimum of " + req);
+				risks.add("ENGLISH_BELOW_MINIMUM");
 			}
 		}
-		else if(ielts >= req)
+		/*  DIMENSION 5 — LEVEL OFFERED, 15. */
+		lv = o.get("Levels_Offered");
+		if(level == null || lv == null || lv.size() == 0)
 		{
-			score = score + 20;
-			reasons.add("English meets the published minimum: student " + ielts + " against required " + req);
-		}
-		else if(ielts == 0.0)
-		{
-			gaps.add("No English evidence yet. Published minimum is " + req + ". Ask the college for an MOI letter before booking a test");
+			unscored.add("level — the levels this institution offers are not recorded");
+			breakdown.add("Level not scored — institution's levels unverified");
 		}
 		else
 		{
-			gaps.add("English " + ielts + " is below the published minimum of " + req);
+			available = available + 15;
+			want = "Masters";
+			if(level == "Bachelor's")
+			{
+				want = "Bachelors";
+			}
+			else if(level == "PhD")
+			{
+				want = "PhD";
+			}
+			if(lv.contains(want))
+			{
+				earned = earned + 15;
+				breakdown.add("Level 15/15 — offers " + want);
+				why.add("Offers study at " + level + " level");
+			}
+			else
+			{
+				breakdown.add("Level 0/15 — does not offer " + want);
+				gaps.add("Does not appear to offer " + level + " level study");
+				elig = "NOT_ELIGIBLE";
+			}
 		}
-		/*  Timeline, 20 points, computed against the real deadline. */
+		/*  SCORE — earned out of AVAILABLE, not out of 100. */
+		score = 0;
+		conf = 0;
+		if(available > 0)
+		{
+			score = earned * 100 / available;
+			conf = available;
+		}
+		/*  DEADLINE REACHABILITY — its own axis, deliberately not in the score. */
 		dl = o.get("Next_App_Deadline").toString().subString(0,10).toDate();
 		days = days360(today,dl);
+		dstat = "OPEN";
 		if(days < 0)
 		{
-			blockers.add("Application deadline " + o.get("Next_App_Deadline") + " has already passed");
+			dstat = "CLOSED";
+			risks.add("DEADLINE_PASSED");
 		}
-		else if(days >= 45)
+		else if(days < 21)
 		{
-			score = score + 20;
-			reasons.add(days + " days until the deadline — enough time to assemble documents without rushing");
+			dstat = "VERY_TIGHT";
+			risks.add("DEADLINE_TIGHT");
 		}
-		else if(days >= 21)
+		else if(days < 45)
 		{
-			score = score + 10;
-			gaps.add("Only " + days + " days to the deadline. Possible, but documents must move this week");
+			dstat = "TIGHT";
 		}
-		else
-		{
-			gaps.add("Only " + days + " days to the deadline — very tight");
-		}
-		/*  Passport is a hard blocker, consistent with caseState. */
-		if(!passport_ok)
-		{
-			blockers.add("Passport status is '" + si.get("readiness").get("passport") + "'. Nothing downstream can proceed and a new Indian passport takes weeks");
-		}
+		/*  READINESS — can the student act at all. */
+		rstat = "READY";
+		blockers = List();
 		if(!consent_ok)
 		{
+			rstat = "BLOCKED";
 			blockers.add("Consent is not recorded. Nothing may be submitted to this institution until it is");
+			risks.add("NO_CONSENT");
+		}
+		if(!passport_ok)
+		{
+			rstat = "BLOCKED";
+			blockers.add("Passport status is '" + si.get("readiness").get("passport") + "'. Nothing downstream can proceed and a new Indian passport takes weeks");
+			risks.add("NO_PASSPORT");
 		}
 		row = Map();
 		row.put("opportunity",nm);
-		row.put("type",otype);
+		row.put("type",o.get("Opportunity_Type"));
 		row.put("country",cn);
 		row.put("match_score",score);
-		row.put("score_meaning","FIT against published requirements, out of 100. NOT a probability of admission, scholarship or visa — those are decided by the institution and the government, and cannot be computed.");
-		row.put("matched_because",reasons);
+		row.put("score_meaning","FIT between this student's stated profile and this programme's PUBLISHED requirements, scored out of the " + conf + " points of data actually available. NOT a probability of admission, scholarship or visa — those are decided by institutions and governments and are not computable.");
+		row.put("score_breakdown",breakdown);
+		row.put("confidence",conf);
+		row.put("confidence_meaning","Points of the 100-point model that could be scored. " + (100 - conf) + " points were unscored because the data does not exist, not because the student failed them.");
+		row.put("unscored_dimensions",unscored);
+		row.put("why_it_matches",why);
+		row.put("student_strengths",si.get("profile_strength_breakdown"));
 		row.put("missing_requirements",gaps);
+		row.put("eligibility_status",elig);
+		row.put("readiness_status",rstat);
+		row.put("deadline_status",dstat);
+		row.put("financial_fit",fin_status);
+		row.put("risk_flags",risks);
 		row.put("blockers",blockers);
 		row.put("verified_total_eur_year",total_eur);
 		row.put("deadline",o.get("Next_App_Deadline"));
@@ -229,13 +354,23 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		ev = Map();
 		ev.put("source_url",o.get("Source_URL"));
 		ev.put("verified_on",o.get("Verified_On"));
-		ev.put("confidence",o.get("Confidence"));
+		ev.put("confidence_rating",o.get("Confidence"));
 		ev.put("tuition_eur",o.get("Tuition_Min_EUR_Year"));
 		ev.put("living_eur",o.get("Living_Cost_EUR_Year"));
-		row.put("evidence",ev);
-		if(blockers.size() > 0)
+		ev.put("domains_source",o.get("Domains_Source"));
+		row.put("provenance",ev);
+		/*  NEXT ACTION — ordered by what actually stops progress, closed first. */
+		if(dstat == "CLOSED")
+		{
+			row.put("next_action","Do not pursue for this intake — the deadline of " + o.get("Next_App_Deadline") + " has passed. Ask about the next intake instead");
+		}
+		else if(blockers.size() > 0)
 		{
 			row.put("next_action","Clear the blocker first: " + blockers.get(0));
+		}
+		else if(elig == "NOT_ELIGIBLE")
+		{
+			row.put("next_action","Not eligible on the published requirements. " + gaps.get(0));
 		}
 		else if(gaps.size() > 0)
 		{
@@ -247,7 +382,9 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		}
 		ranked.add(row);
 	}
-	/*  Simple selection sort — Deluge has no comparator sort and no while loop. */
+	/*  Selection sort. Deluge has no comparator sort and no while loop, and
+	 *  List.remove() takes an INDEX, not the element — learned at runtime in v1.
+	 */
 	sorted = List();
 	guard = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25};
 	for each g in guard
@@ -256,31 +393,41 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		{
 			continue;
 		}
-		/*  Deluge's List.remove() takes an INDEX, not the element — passing the
-		 *  map itself fails at runtime with "Data type of the argument of the
-		 *  function 'remove' did not match the required data type of '[BIGINT]'".
-		 *  Caught on the first live execution, so the index is tracked instead.
+		/*  CLOSED opportunities sort BELOW open ones, whatever their fit.
+		 *
+		 *  Found in V2 testing: a closed programme scored 100 on fit and sorted
+		 *  first, so the most prominent recommendation on the page was one the
+		 *  student cannot apply to. The FIT score is left untouched — it is
+		 *  true, and a counsellor needs it when discussing the next intake —
+		 *  but a shut door does not belong at the top of a list. Ordering is
+		 *  presentation; the score is the measurement.
 		 */
-		best_idx = 0;
-		best_score = -1;
-		idx = 0;
+		bi = 0;
+		bs = -1;
+		ix = 0;
 		for each r in ranked
 		{
-			if(r.get("match_score") > best_score)
+			eff = r.get("match_score");
+			if(r.get("deadline_status") == "CLOSED")
 			{
-				best_score = r.get("match_score");
-				best_idx = idx;
+				eff = eff - 1000;
 			}
-			idx = idx + 1;
+			if(eff > bs)
+			{
+				bs = eff;
+				bi = ix;
+			}
+			ix = ix + 1;
 		}
-		sorted.add(ranked.get(best_idx));
-		ranked.remove(best_idx);
+		sorted.add(ranked.get(bi));
+		ranked.remove(bi);
 	}
 	out.put("ranked",sorted);
 	out.put("rankable_count",sorted.size());
 	out.put("not_rankable",not_rankable);
 	out.put("not_rankable_count",not_rankable.size());
-	out.put("portfolio_health","Only opportunities with tuition, living cost, deadline, source URL and verification date are ranked. " + not_rankable.size() + " were excluded for missing data.");
+	out.put("weights","Financial fit 30 · Country 20 · Domain 20 · English 15 · Level 15 = 100. Timeline is NOT scored; reachability is a separate axis.");
+	out.put("portfolio_health","Only opportunities with tuition, living cost, deadline, source URL and verification date are scored. " + not_rankable.size() + " were excluded for missing data.");
 	out.put("computed_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
 	out.put("ok",true);
 	return out.toString();

@@ -18,7 +18,7 @@ string standalone.studentRoadmap(string record_id, string module)
 	 *    so rather than inventing a schedule that looks reassuring.
 	 *
 	 *  DEPENDENCIES  studentIntelligence, matchOpportunities
-	 *  VERSION       1.0 (2026-08-23)
+	 *  VERSION       2.0 (2026-08-23) — profile-development actions from Intake V2
 	 */
 	out = Map();
 	mod = "Leads";
@@ -155,6 +155,58 @@ string standalone.studentRoadmap(string record_id, string module)
 		a7.put("dependency","none");
 		now_list.add(a7);
 	}
+	/*  PROFILE DEVELOPMENT — from the Intake V2 dimensions.
+	 *
+	 *  These improve the student's own standing rather than any single
+	 *  application, so they sit at 3 and 6 months where there is time for them
+	 *  to matter. They are raised only when the underlying dimension is
+	 *  genuinely weak, never as generic filler advice.
+	 */
+	dims = si.get("dimensions");
+	strength = si.get("profile_strength");
+	sk2 = dims.get("skills");
+	if(sk2 == null || sk2.size() == 0 || sk2.contains("None yet"))
+	{
+		sa = Map();
+		sa.put("action","Record the skills you already have, and pick one to certify");
+		sa.put("reason","No skills are on file. Skills are 20 of the 100 points of profile strength, and a certificate is the cheapest evidence to obtain");
+		sa.put("priority","MEDIUM");
+		sa.put("effort","10 minutes to record, weeks to certify");
+		sa.put("dependency","none");
+		d90.add(sa);
+	}
+	pc2 = dims.get("project_count");
+	if(pc2 == null || pc2 < 2)
+	{
+		pa = Map();
+		pa.put("action","Build or document one more project");
+		pa.put("reason","Projects are 20 of the 100 points of profile strength and are what a motivation letter is actually built from. A documented existing project counts as much as a new one");
+		pa.put("priority","MEDIUM");
+		pa.put("effort","A few weekends");
+		pa.put("dependency","none");
+		d90.add(pa);
+	}
+	al2 = dims.get("achievement_level");
+	if(al2 == null || al2 == "None yet" || al2 == "School / College")
+	{
+		aa = Map();
+		aa.put("action","Enter one competition at district level or above");
+		aa.put("reason","Achievements are 15 of the 100 points of profile strength, and level matters more than count");
+		aa.put("priority","LOW");
+		aa.put("effort","Varies");
+		aa.put("dependency","none");
+		d180.add(aa);
+	}
+	if(strength != null && strength < 40)
+	{
+		wa = Map();
+		wa.put("action","Work on profile strength before applying widely");
+		wa.put("reason","Profile strength is " + strength + "/100. Applying widely from a weak profile produces rejections, not options");
+		wa.put("priority","HIGH");
+		wa.put("effort","Ongoing");
+		wa.put("dependency","none");
+		d90.add(wa);
+	}
 	/*  3 MONTHS */
 	a8 = Map();
 	a8.put("action","Arrange proof of funds");
@@ -186,6 +238,7 @@ string standalone.studentRoadmap(string record_id, string module)
 		out.put("timeline_basis","Worked backwards from " + anchor + ", deadline " + anchor_deadline + " (verified).");
 	}
 	out.put("profile_completeness",si.get("profile_completeness"));
+	out.put("profile_strength",si.get("profile_strength"));
 	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
 	out.put("ok",true);
 	return out.toString();
