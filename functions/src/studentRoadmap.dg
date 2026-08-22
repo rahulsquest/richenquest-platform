@@ -94,9 +94,35 @@ string standalone.studentRoadmap(string record_id, string module)
 	anchor = "";
 	anchor_deadline = "";
 	anchor_days = -1;
+	/*  The anchor must be an opportunity that is still REACHABLE.
+	 *
+	 *  Found on the first live run: the top-ranked entry was an opportunity
+	 *  whose deadline had already passed, and the roadmap dutifully worked
+	 *  backwards from a date in the past — producing a confident plan toward a
+	 *  deadline nobody can meet. matchOpportunities correctly flags it as a
+	 *  blocker, but ranking is about fit, not reachability, so the roadmap has
+	 *  to make that distinction itself.
+	 */
 	if(mo.get("ok") == true && mo.get("rankable_count") > 0)
 	{
-		top = mo.get("ranked").get(0);
+		top = Map();
+		for each cand in mo.get("ranked")
+		{
+			if(top.size() == 0 && cand.get("days_to_deadline") >= 0)
+			{
+				top = cand;
+			}
+		}
+		if(top.size() == 0)
+		{
+			expired = Map();
+			expired.put("action","Tell the family plainly that every verified option for this intake has closed");
+			expired.put("reason","Every ranked opportunity has a deadline in the past. Continuing to work this intake sells a start date that cannot be reached");
+			expired.put("priority","CRITICAL");
+			expired.put("effort","One phone call");
+			expired.put("dependency","none");
+			now_list.add(expired);
+		}
 		anchor = top.get("opportunity");
 		anchor_deadline = top.get("deadline");
 		anchor_days = top.get("days_to_deadline");
@@ -107,13 +133,16 @@ string standalone.studentRoadmap(string record_id, string module)
 		a6.put("effort","2 hours once documents are complete");
 		a6.put("deadline",anchor_deadline);
 		a6.put("dependency","Documents complete; consent recorded");
-		if(anchor_days <= 45)
+		if(anchor != null && anchor != "")
 		{
-			d30.add(a6);
-		}
-		else
-		{
-			d90.add(a6);
+			if(anchor_days <= 45)
+			{
+				d30.add(a6);
+			}
+			else
+			{
+				d90.add(a6);
+			}
 		}
 	}
 	else
