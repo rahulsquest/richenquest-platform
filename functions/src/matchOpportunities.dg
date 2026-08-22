@@ -1,0 +1,320 @@
+string standalone.matchOpportunities(string lead_or_contact_id, string module)
+{
+	/*  RichenQuest Student Intelligence — Matching Engine v1.0
+	 *
+	 *  PURPOSE
+	 *    Rank Opportunities against one student's Intelligence Profile and
+	 *    explain every placement. Consumes the frozen Core Engine; it does not
+	 *    re-decide risk, band or next action — caseState owns those.
+	 *
+	 *  THE MATCH SCORE IS NOT A PROBABILITY.
+	 *    It is a FIT score: how well the student's stated profile lines up with
+	 *    the opportunity's PUBLISHED requirements. It says nothing about whether
+	 *    they will be admitted, funded or granted a visa, because those are
+	 *    decisions made by universities and governments and nobody can compute
+	 *    them. Every payload carries score_meaning saying exactly this, so no
+	 *    downstream surface can quietly relabel it as a chance of success.
+	 *
+	 *  VERIFIED DATA ONLY.
+	 *    An opportunity is only rankable when tuition, living cost and deadline
+	 *    are all present AND a Source_URL and Verified_On exist. Anything else
+	 *    is returned in `not_rankable` with the exact missing fields, never
+	 *    silently dropped and never shown as a recommendation. This is the same
+	 *    rule SOP-2 and QA-2 already enforce on counsellors.
+	 *
+	 *  DEPENDENCIES  none (read-only). Sibling of caseState, not a replacement.
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	mod = "Leads";
+	if(module != null && module.trim() != "")
+	{
+		mod = module;
+	}
+	s = zoho.crm.getRecordById(mod,lead_or_contact_id.toLong());
+	if(s.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","student not found in " + mod + ": " + lead_or_contact_id);
+		return out.toString();
+	}
+	/*  1. STUDENT INTELLIGENCE PROFILE — assembled from existing CRM fields.
+	 *  No field is duplicated; this is a read-model over what already exists.
+	 */
+	prof = Map();
+	prof.put("name",s.get("Last_Name"));
+	prof.put("level",s.get("Interested_Level"));
+	prof.put("course",s.get("Career_Goal"));
+	prof.put("intake",s.get("Intended_Intake"));
+	prof.put("budget_band",s.get("Budget_Range"));
+	prof.put("english",s.get("English_Status"));
+	prof.put("passport",s.get("Passport_Status"));
+	prof.put("percentage",s.get("Academic_Percentage"));
+	prof.put("backlogs",s.get("Backlogs"));
+	prof.put("gap_years",s.get("Study_Gap_Years"));
+	prof.put("work_years",s.get("Work_Experience_Years"));
+	prof.put("countries",s.get("Interested_Country"));
+	prof.put("funding",s.get("Funding_Source"));
+	prof.put("consent",s.get("Consent_Given"));
+	out.put("profile",prof);
+	/*  Budget band -> a comparable EUR ceiling. Lower bound of the band is used
+	 *  deliberately: recommending against the top of a band is how families end
+	 *  up short in November. 1 EUR ~ 92 INR is a planning rate, not a quote.
+	 */
+	budget_eur = 0;
+	bb = s.get("Budget_Range");
+	if(bb == "<10L")
+	{
+		budget_eur = 0;
+	}
+	else if(bb == "10-20L")
+	{
+		budget_eur = 10800;
+	}
+	else if(bb == "20-35L")
+	{
+		budget_eur = 21700;
+	}
+	else if(bb == "35L+")
+	{
+		budget_eur = 38000;
+	}
+	countries = List();
+	ic = s.get("Interested_Country");
+	if(ic != null)
+	{
+		countries = ic;
+	}
+	eng = s.get("English_Status");
+	ielts = 0.0;
+	if(eng == "5.5")
+	{
+		ielts = 5.5;
+	}
+	else if(eng == "6.0")
+	{
+		ielts = 6.0;
+	}
+	else if(eng == "6.5")
+	{
+		ielts = 6.5;
+	}
+	else if(eng == "7.0")
+	{
+		ielts = 7.0;
+	}
+	today = zoho.currentdate;
+	ranked = List();
+	not_rankable = List();
+	opps = zoho.crm.getRecords("Accounts",1,200);
+	for each o in opps
+	{
+		otype = o.get("Opportunity_Type");
+		if(otype == "Service Vendor")
+		{
+			continue;
+		}
+		nm = o.get("Account_Name");
+		/*  2. VERIFICATION GATE — before any scoring. */
+		missing = List();
+		if(o.get("Tuition_Min_EUR_Year") == null)
+		{
+			missing.add("tuition");
+		}
+		if(o.get("Living_Cost_EUR_Year") == null)
+		{
+			missing.add("living_cost");
+		}
+		if(o.get("Next_App_Deadline") == null)
+		{
+			missing.add("application_deadline");
+		}
+		if(o.get("Source_URL") == null || o.get("Source_URL") == "")
+		{
+			missing.add("source_url");
+		}
+		if(o.get("Verified_On") == null)
+		{
+			missing.add("verified_on");
+		}
+		if(missing.size() > 0)
+		{
+			nr = Map();
+			nr.put("opportunity",nm);
+			nr.put("country",o.get("University_Country"));
+			nr.put("missing",missing);
+			nr.put("why_excluded","Cannot be quoted to a family until these are verified against the institution's own published page. Not shown as a recommendation and not scored.");
+			not_rankable.add(nr);
+			continue;
+		}
+		/*  3. SCORING — additive, bounded, and every point is explained. */
+		score = 0;
+		reasons = List();
+		gaps = List();
+		blockers = List();
+		total_eur = o.get("Tuition_Min_EUR_Year") + o.get("Living_Cost_EUR_Year");
+		/*  Affordability, 40 points. The heaviest weight because budget is what
+		 *  actually decides whether a family proceeds.
+		 */
+		if(budget_eur == 0)
+		{
+			blockers.add("Budget band is under 10 lakh. No verified European option in this portfolio fits, and saying so early is the honest answer");
+		}
+		else if(total_eur <= budget_eur)
+		{
+			score = score + 40;
+			reasons.add("Affordable: verified total EUR " + total_eur + "/yr is within the stated budget of about EUR " + budget_eur);
+		}
+		else if(total_eur <= budget_eur * 1.15)
+		{
+			score = score + 20;
+			gaps.add("About EUR " + (total_eur - budget_eur) + " above the stated budget — reachable only with a loan or a top-up");
+		}
+		else
+		{
+			gaps.add("EUR " + (total_eur - budget_eur) + " above the stated budget. Not affordable on the numbers given");
+		}
+		/*  Country preference, 20 points. */
+		cn = o.get("University_Country");
+		if(countries.size() == 0)
+		{
+			score = score + 10;
+			reasons.add("No country preference stated, so no country was ruled out");
+		}
+		else if(countries.contains(cn))
+		{
+			score = score + 20;
+			reasons.add(cn + " is one of the countries the student named");
+		}
+		else
+		{
+			gaps.add(cn + " is not among the student's stated countries (" + countries.toString(", ") + ")");
+		}
+		/*  English, 20 points, from the opportunity's PUBLISHED minimum. */
+		req = o.get("IELTS_Min_PG");
+		if(s.get("Interested_Level") == "Bachelor's")
+		{
+			req = o.get("IELTS_Min_UG");
+		}
+		if(req == null)
+		{
+			gaps.add("This institution's published English requirement is not recorded — confirm before advising on IELTS");
+		}
+		else if(eng == "MOI")
+		{
+			if(o.get("English_Waiver_Route") == "MOI")
+			{
+				score = score + 20;
+				reasons.add("Accepts a Medium of Instruction letter, which the student already has — no test needed");
+			}
+			else
+			{
+				gaps.add("Student holds an MOI letter; this institution's acceptance of MOI is not confirmed");
+			}
+		}
+		else if(ielts >= req)
+		{
+			score = score + 20;
+			reasons.add("English meets the published minimum: student " + ielts + " against required " + req);
+		}
+		else if(eng == "None")
+		{
+			gaps.add("No English evidence yet. Published minimum is " + req + ". Ask the college for an MOI letter before booking a test");
+		}
+		else
+		{
+			gaps.add("English " + ielts + " is below the published minimum of " + req);
+		}
+		/*  Timeline, 20 points, computed against the real deadline. */
+		dl = o.get("Next_App_Deadline").toString().subString(0,10).toDate();
+		days = days360(today,dl);
+		if(days < 0)
+		{
+			blockers.add("Application deadline " + o.get("Next_App_Deadline") + " has already passed");
+		}
+		else if(days >= 45)
+		{
+			score = score + 20;
+			reasons.add(days + " days until the deadline — enough time to assemble documents without rushing");
+		}
+		else if(days >= 21)
+		{
+			score = score + 10;
+			gaps.add("Only " + days + " days to the deadline. Possible, but documents must move this week");
+		}
+		else
+		{
+			gaps.add("Only " + days + " days to the deadline — very tight");
+		}
+		/*  Passport is a hard blocker, consistent with caseState. */
+		pp = s.get("Passport_Status");
+		if(pp != "Valid")
+		{
+			blockers.add("Passport status is '" + pp + "'. Nothing downstream can proceed and a new Indian passport takes weeks");
+		}
+		if(s.get("Consent_Given") != true)
+		{
+			blockers.add("Consent is not recorded. Nothing may be submitted to this institution until it is");
+		}
+		row = Map();
+		row.put("opportunity",nm);
+		row.put("type",otype);
+		row.put("country",cn);
+		row.put("match_score",score);
+		row.put("score_meaning","FIT against published requirements, out of 100. NOT a probability of admission, scholarship or visa — those are decided by the institution and the government, and cannot be computed.");
+		row.put("matched_because",reasons);
+		row.put("missing_requirements",gaps);
+		row.put("blockers",blockers);
+		row.put("verified_total_eur_year",total_eur);
+		row.put("deadline",o.get("Next_App_Deadline"));
+		row.put("days_to_deadline",days);
+		ev = Map();
+		ev.put("source_url",o.get("Source_URL"));
+		ev.put("verified_on",o.get("Verified_On"));
+		ev.put("confidence",o.get("Confidence"));
+		ev.put("tuition_eur",o.get("Tuition_Min_EUR_Year"));
+		ev.put("living_eur",o.get("Living_Cost_EUR_Year"));
+		row.put("evidence",ev);
+		if(blockers.size() > 0)
+		{
+			row.put("next_action","Clear the blocker first: " + blockers.get(0));
+		}
+		else if(gaps.size() > 0)
+		{
+			row.put("next_action","Close the gap: " + gaps.get(0));
+		}
+		else
+		{
+			row.put("next_action","Ready to shortlist. Send the family the full-cost breakdown with its source before anything is submitted");
+		}
+		ranked.add(row);
+	}
+	/*  Simple selection sort — Deluge has no comparator sort and no while loop. */
+	sorted = List();
+	guard = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25};
+	for each g in guard
+	{
+		if(ranked.size() == 0)
+		{
+			continue;
+		}
+		best = ranked.get(0);
+		for each r in ranked
+		{
+			if(r.get("match_score") > best.get("match_score"))
+			{
+				best = r;
+			}
+		}
+		sorted.add(best);
+		ranked.remove(best);
+	}
+	out.put("ranked",sorted);
+	out.put("rankable_count",sorted.size());
+	out.put("not_rankable",not_rankable);
+	out.put("not_rankable_count",not_rankable.size());
+	out.put("portfolio_health","Only opportunities with tuition, living cost, deadline, source URL and verification date are ranked. " + not_rankable.size() + " were excluded for missing data.");
+	out.put("computed_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}
