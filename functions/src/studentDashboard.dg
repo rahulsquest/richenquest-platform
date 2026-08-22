@@ -1,0 +1,168 @@
+string standalone.studentDashboard(string record_id, string module)
+{
+	/*  RichenQuest Student Intelligence — Dashboard data contract v1.0
+	 *
+	 *  PURPOSE
+	 *    ONE call that returns everything a student-facing surface needs. The
+	 *    payload is deliberately frontend-independent: the same JSON serves the
+	 *    new website, a Zoho widget, a mobile view or a printed brief.
+	 *
+	 *  IT COMPOSES, IT DOES NOT COMPUTE
+	 *    Every section is delegated. This function owns no rules of its own, so
+	 *    a student surface can never disagree with a counsellor surface — both
+	 *    read the same functions.
+	 *      profile   -> studentIntelligence
+	 *      matches   -> matchOpportunities
+	 *      roadmap   -> studentRoadmap
+	 *      mentor    -> matchMentor
+	 *      case state-> caseState  (Contacts only; a Lead has no case yet)
+	 *
+	 *  WHAT IT DELIBERATELY OMITS
+	 *    No internal notes, no counsellor commentary, no commission or
+	 *    partnership data, no other student's data, and no field a student did
+	 *    not themselves provide or is not entitled to see. A student dashboard
+	 *    is not a CRM view with a different stylesheet.
+	 *
+	 *  PROVENANCE TRAVELS WITH THE PAYLOAD
+	 *    Every recommendation already carries its source URL and verification
+	 *    date. A surface that renders a recommendation without its provenance
+	 *    is misusing this contract.
+	 *
+	 *  DEPENDENCIES  studentIntelligence, matchOpportunities, studentRoadmap,
+	 *                matchMentor, caseState
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	mod = "Leads";
+	if(module != null && module.trim() != "")
+	{
+		mod = module;
+	}
+	si = standalone.studentIntelligence(record_id,mod).toMap();
+	if(si.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("error",si.get("error"));
+		return out.toString();
+	}
+	/*  CONSENT GATE. A student who has not consented has not agreed to us
+	 *  processing their data, so we do not assemble an intelligence payload
+	 *  about them. This mirrors caseState's CONSENT_MISSING hard block.
+	 */
+	if(si.get("readiness").get("consent_given") != true)
+	{
+		out.put("ok",false);
+		out.put("error","consent not recorded — no intelligence payload assembled");
+		out.put("remedy","Record consent before any profile, matching or roadmap is generated for this student.");
+		return out.toString();
+	}
+	/*  1. HEADER */
+	hdr = Map();
+	hdr.put("student",si.get("identity").get("name"));
+	hdr.put("case_number",si.get("identity").get("case_number"));
+	hdr.put("goal",si.get("goals").get("course_or_career"));
+	hdr.put("level",si.get("goals").get("level"));
+	hdr.put("intake",si.get("goals").get("intake"));
+	hdr.put("profile_completeness",si.get("profile_completeness"));
+	hdr.put("missing_fields",si.get("missing_fields"));
+	out.put("header",hdr);
+	/*  2. INTELLIGENCE SUMMARY — the student's own data, echoed back. */
+	summ = Map();
+	summ.put("academic",si.get("academic"));
+	summ.put("goals",si.get("goals"));
+	summ.put("budget_band",si.get("finance").get("budget_band"));
+	summ.put("readiness",si.get("readiness"));
+	out.put("intelligence",summ);
+	/*  3. MATCHED OPPORTUNITIES — top 5 only. A student presented with twenty
+	 *  options makes no decision; the rest stay available to the counsellor.
+	 */
+	mo = standalone.matchOpportunities(record_id,mod).toMap();
+	top5 = List();
+	if(mo.get("ok") == true)
+	{
+		n = 0;
+		for each r in mo.get("ranked")
+		{
+			if(n < 5)
+			{
+				top5.add(r);
+				n = n + 1;
+			}
+		}
+	}
+	out.put("top_opportunities",top5);
+	out.put("opportunity_count",top5.size());
+	out.put("portfolio_health",mo.get("portfolio_health"));
+	if(top5.size() == 0)
+	{
+		out.put("opportunity_note","No opportunity currently passes verification for this profile. We do not show unverified options. This is a gap on our side and we are closing it.");
+	}
+	/*  4. ROADMAP */
+	rm = standalone.studentRoadmap(record_id,mod).toMap();
+	road = Map();
+	road.put("now",rm.get("now"));
+	road.put("next_30_days",rm.get("next_30_days"));
+	road.put("next_3_months",rm.get("next_3_months"));
+	road.put("next_6_months",rm.get("next_6_months"));
+	road.put("basis",rm.get("timeline_basis"));
+	out.put("roadmap",road);
+	/*  5. MENTOR */
+	mm = standalone.matchMentor(record_id,mod).toMap();
+	out.put("recommended_mentor",mm.get("recommended_mentor"));
+	out.put("mentor_status",mm.get("status"));
+	/*  6. BLOCKERS AND NEXT ACTION — from caseState where a case exists, so the
+	 *  student and the counsellor are never told different things.
+	 */
+	blockers = List();
+	next_action = "";
+	if(mod == "Contacts")
+	{
+		cs = standalone.caseState(record_id).toMap();
+		if(cs.get("ok") == true)
+		{
+			for each b in cs.get("blockers")
+			{
+				sb = Map();
+				sb.put("what",b.get("blocking"));
+				sb.put("because",b.get("because"));
+				sb.put("if_we_do_nothing",b.get("consequence"));
+				blockers.add(sb);
+			}
+			out.put("case_state",cs.get("state"));
+			out.put("next_irreversible",cs.get("next_irreversible"));
+		}
+	}
+	else
+	{
+		if(si.get("readiness").get("passport_blocking") == true)
+		{
+			pb = Map();
+			pb.put("what","Passport");
+			pb.put("because",{"Passport status is '" + si.get("readiness").get("passport") + "'"});
+			pb.put("if_we_do_nothing","A new Indian passport takes weeks. Every day of delay comes off the intake");
+			blockers.add(pb);
+		}
+		out.put("case_state","ENQUIRY — no Student Case opened yet");
+	}
+	if(rm.get("ok") == true && rm.get("now").size() > 0)
+	{
+		next_action = rm.get("now").get(0).get("action");
+	}
+	else
+	{
+		next_action = "Nothing is blocked. Your counsellor will contact you with the next step.";
+	}
+	out.put("blockers",blockers);
+	out.put("next_action",next_action);
+	/*  7. PROGRESS AND OUTCOMES */
+	out.put("history",si.get("history"));
+	/*  8. PROVENANCE */
+	prov = Map();
+	prov.put("assembled_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	prov.put("engines",{"studentIntelligence 1.0","matchOpportunities 1.1","studentRoadmap 1.0","matchMentor 1.0","caseState 2.0"});
+	prov.put("scores_are","FIT against published requirements. Never a probability of admission, scholarship or visa — those are decided by institutions and governments and are not computable.");
+	prov.put("data_rule","Only opportunities and mentors with a source URL and a verification date are shown. Anything unverified is withheld, not estimated.");
+	out.put("provenance",prov);
+	out.put("ok",true);
+	return out.toString();
+}

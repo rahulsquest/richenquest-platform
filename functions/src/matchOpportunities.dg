@@ -22,8 +22,8 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 	 *    silently dropped and never shown as a recommendation. This is the same
 	 *    rule SOP-2 and QA-2 already enforce on counsellors.
 	 *
-	 *  DEPENDENCIES  none (read-only). Sibling of caseState, not a replacement.
-	 *  VERSION       1.0 (2026-08-23)
+	 *  DEPENDENCIES  studentIntelligence. Sibling of caseState, never a replacement.
+	 *  VERSION       1.1 (2026-08-23) — profile delegated to studentIntelligence
 	 */
 	out = Map();
 	mod = "Leads";
@@ -31,78 +31,37 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 	{
 		mod = module;
 	}
-	s = zoho.crm.getRecordById(mod,lead_or_contact_id.toLong());
-	if(s.get("id") == null)
+	/*  No direct fetch here: studentIntelligence performs the read and the
+	 *  existence check. Fetching again would be a second round-trip and a
+	 *  second place for the not-found message to drift.
+	 */
+	/*  1. PROFILE — from studentIntelligence, NOT re-read here.
+	 *
+	 *  v1.0 assembled the profile inline. That was a second copy of "what do we
+	 *  know about this student", and it would have drifted from
+	 *  studentIntelligence the first time one was edited and the other was not —
+	 *  the exact failure student360 v1 already paid for against caseState.
+	 */
+	si = standalone.studentIntelligence(lead_or_contact_id,mod).toMap();
+	if(si.get("ok") != true)
 	{
 		out.put("ok",false);
-		out.put("error","student not found in " + mod + ": " + lead_or_contact_id);
+		out.put("error",si.get("error"));
 		return out.toString();
 	}
-	/*  1. STUDENT INTELLIGENCE PROFILE — assembled from existing CRM fields.
-	 *  No field is duplicated; this is a read-model over what already exists.
-	 */
-	prof = Map();
-	prof.put("name",s.get("Last_Name"));
-	prof.put("level",s.get("Interested_Level"));
-	prof.put("course",s.get("Career_Goal"));
-	prof.put("intake",s.get("Intended_Intake"));
-	prof.put("budget_band",s.get("Budget_Range"));
-	prof.put("english",s.get("English_Status"));
-	prof.put("passport",s.get("Passport_Status"));
-	prof.put("percentage",s.get("Academic_Percentage"));
-	prof.put("backlogs",s.get("Backlogs"));
-	prof.put("gap_years",s.get("Study_Gap_Years"));
-	prof.put("work_years",s.get("Work_Experience_Years"));
-	prof.put("countries",s.get("Interested_Country"));
-	prof.put("funding",s.get("Funding_Source"));
-	prof.put("consent",s.get("Consent_Given"));
-	out.put("profile",prof);
-	/*  Budget band -> a comparable EUR ceiling. Lower bound of the band is used
-	 *  deliberately: recommending against the top of a band is how families end
-	 *  up short in November. 1 EUR ~ 92 INR is a planning rate, not a quote.
-	 */
-	budget_eur = 0;
-	bb = s.get("Budget_Range");
-	if(bb == "<10L")
-	{
-		budget_eur = 0;
-	}
-	else if(bb == "10-20L")
-	{
-		budget_eur = 10800;
-	}
-	else if(bb == "20-35L")
-	{
-		budget_eur = 21700;
-	}
-	else if(bb == "35L+")
-	{
-		budget_eur = 38000;
-	}
+	out.put("profile",si);
+	budget_eur = si.get("finance").get("budget_ceiling_eur");
 	countries = List();
-	ic = s.get("Interested_Country");
+	ic = si.get("goals").get("countries");
 	if(ic != null)
 	{
 		countries = ic;
 	}
-	eng = s.get("English_Status");
-	ielts = 0.0;
-	if(eng == "5.5")
-	{
-		ielts = 5.5;
-	}
-	else if(eng == "6.0")
-	{
-		ielts = 6.0;
-	}
-	else if(eng == "6.5")
-	{
-		ielts = 6.5;
-	}
-	else if(eng == "7.0")
-	{
-		ielts = 7.0;
-	}
+	ielts = si.get("ielts_numeric");
+	has_moi = si.get("has_moi");
+	level = si.get("goals").get("level");
+	passport_ok = !si.get("readiness").get("passport_blocking");
+	consent_ok = si.get("readiness").get("consent_given");
 	today = zoho.currentdate;
 	ranked = List();
 	not_rankable = List();
@@ -192,7 +151,7 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		}
 		/*  English, 20 points, from the opportunity's PUBLISHED minimum. */
 		req = o.get("IELTS_Min_PG");
-		if(s.get("Interested_Level") == "Bachelor's")
+		if(level == "Bachelor's")
 		{
 			req = o.get("IELTS_Min_UG");
 		}
@@ -200,7 +159,7 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		{
 			gaps.add("This institution's published English requirement is not recorded — confirm before advising on IELTS");
 		}
-		else if(eng == "MOI")
+		else if(has_moi)
 		{
 			if(o.get("English_Waiver_Route") == "MOI")
 			{
@@ -217,7 +176,7 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 			score = score + 20;
 			reasons.add("English meets the published minimum: student " + ielts + " against required " + req);
 		}
-		else if(eng == "None")
+		else if(ielts == 0.0)
 		{
 			gaps.add("No English evidence yet. Published minimum is " + req + ". Ask the college for an MOI letter before booking a test");
 		}
@@ -247,12 +206,11 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 			gaps.add("Only " + days + " days to the deadline — very tight");
 		}
 		/*  Passport is a hard blocker, consistent with caseState. */
-		pp = s.get("Passport_Status");
-		if(pp != "Valid")
+		if(!passport_ok)
 		{
-			blockers.add("Passport status is '" + pp + "'. Nothing downstream can proceed and a new Indian passport takes weeks");
+			blockers.add("Passport status is '" + si.get("readiness").get("passport") + "'. Nothing downstream can proceed and a new Indian passport takes weeks");
 		}
-		if(s.get("Consent_Given") != true)
+		if(!consent_ok)
 		{
 			blockers.add("Consent is not recorded. Nothing may be submitted to this institution until it is");
 		}

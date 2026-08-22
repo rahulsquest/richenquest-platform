@@ -1,0 +1,200 @@
+string standalone.matchMentor(string record_id, string module)
+{
+	/*  RichenQuest Student Intelligence — Mentor matching v1.0
+	 *
+	 *  PURPOSE
+	 *    Match one student's goals and profile to a mentor, deterministically
+	 *    and with the reasoning attached.
+	 *
+	 *  MENTORS LIVE ON THE Vendors MODULE
+	 *    Vendors already existed, was unused, and is Zoho's module for external
+	 *    parties. Twelve mentor fields were added to it rather than creating a
+	 *    parallel module — the same decision made for Opportunities on Accounts,
+	 *    for the same reason: one verification gate, not two.
+	 *    Record_Role = "Mentor" distinguishes them from suppliers.
+	 *
+	 *  UNVERIFIED CREDENTIALS ARE NEVER RECOMMENDED
+	 *    A mentor is only matchable when Credentials_Verified is true AND a
+	 *    Credential_Source_URL and Credential_Verified_On exist. Introducing a
+	 *    student to someone whose claimed expertise nobody checked is a trust
+	 *    failure that no matching quality compensates for. Unverified mentors
+	 *    are returned separately with their exact gaps.
+	 *
+	 *  NO MENTOR DATA IS INVENTED
+	 *    If the Vendors module holds no verified mentors, this function returns
+	 *    an empty recommendation and says so. It does not generate plausible
+	 *    people.
+	 *
+	 *  DEPENDENCIES  studentIntelligence
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	mod = "Leads";
+	if(module != null && module.trim() != "")
+	{
+		mod = module;
+	}
+	si = standalone.studentIntelligence(record_id,mod).toMap();
+	if(si.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("error",si.get("error"));
+		return out.toString();
+	}
+	goal = si.get("goals").get("course_or_career");
+	level = si.get("goals").get("level");
+	countries = List();
+	ic = si.get("goals").get("countries");
+	if(ic != null)
+	{
+		countries = ic;
+	}
+	gap = si.get("academic").get("study_gap_years");
+	budget = si.get("finance").get("budget_band");
+	matched = List();
+	unverified = List();
+	vendors = zoho.crm.getRecords("Vendors",1,200);
+	for each v in vendors
+	{
+		if(v.get("Record_Role") != "Mentor")
+		{
+			continue;
+		}
+		nm = v.get("Vendor_Name");
+		/*  VERIFICATION GATE — before any scoring. */
+		gaps = List();
+		if(v.get("Credentials_Verified") != true)
+		{
+			gaps.add("credentials_verified");
+		}
+		if(v.get("Credential_Source_URL") == null || v.get("Credential_Source_URL") == "")
+		{
+			gaps.add("credential_source_url");
+		}
+		if(v.get("Credential_Verified_On") == null)
+		{
+			gaps.add("credential_verified_on");
+		}
+		if(gaps.size() > 0)
+		{
+			u = Map();
+			u.put("mentor",nm);
+			u.put("missing",gaps);
+			u.put("why_excluded","Not recommended to a student until credentials are checked against a source. An unverified mentor is a trust failure no match quality compensates for.");
+			unverified.add(u);
+			continue;
+		}
+		if(v.get("Availability") == "Unavailable")
+		{
+			continue;
+		}
+		score = 0;
+		reasons = List();
+		/*  Expertise against the stated career goal, 40 points. */
+		exp = v.get("Expertise");
+		if(exp != null && goal != null)
+		{
+			for each e in exp
+			{
+				if(goal.containsIgnoreCase(e) || e.containsIgnoreCase(goal))
+				{
+					score = score + 40;
+					reasons.add("Expertise in " + e + " matches the stated goal '" + goal + "'");
+					break;
+				}
+			}
+		}
+		/*  Destination country, 25 points — lived experience of the country the
+		 *  student is actually going to is the most useful thing a mentor has.
+		 */
+		mc = v.get("Mentor_Countries");
+		if(mc != null)
+		{
+			for each c in mc
+			{
+				if(countries.contains(c))
+				{
+					score = score + 25;
+					reasons.add("Has lived or studied in " + c + ", which the student named");
+					break;
+				}
+			}
+		}
+		/*  Student segment, 20 points. */
+		seg = v.get("Student_Segments");
+		if(seg != null)
+		{
+			if(level != null && seg.contains(level))
+			{
+				score = score + 10;
+				reasons.add("Mentors " + level + " students specifically");
+			}
+			if(gap != null && gap > 1 && seg.contains("Gap Students"))
+			{
+				score = score + 10;
+				reasons.add("Experienced with students who have a study gap, which this student has (" + gap + " years)");
+			}
+			if((budget == "10-20L" || budget == "<10L") && seg.contains("Low Budget"))
+			{
+				score = score + 10;
+				reasons.add("Works with budget-constrained students");
+			}
+		}
+		/*  Shared language, 15 points. Being able to explain a visa refusal in
+		 *  the family's own language is worth more than another year of
+		 *  experience in English.
+		 */
+		lang = v.get("Mentor_Languages");
+		if(lang != null && (lang.contains("Hindi") || lang.contains("Bhojpuri") || lang.contains("Maithili") || lang.contains("Nepali")))
+		{
+			score = score + 15;
+			reasons.add("Speaks a language the family is likely to be comfortable in");
+		}
+		row = Map();
+		row.put("mentor",nm);
+		row.put("match_score",score);
+		row.put("score_meaning","FIT between the mentor's verified expertise and this student's stated goals. Not a prediction of outcome.");
+		row.put("matched_because",reasons);
+		row.put("availability",v.get("Availability"));
+		row.put("years_experience",v.get("Years_Experience"));
+		row.put("industry",v.get("Industry_Sector"));
+		ev = Map();
+		ev.put("credential_source",v.get("Credential_Source_URL"));
+		ev.put("verified_on",v.get("Credential_Verified_On"));
+		row.put("evidence",ev);
+		if(reasons.size() == 0)
+		{
+			row.put("caution","Verified mentor, but nothing in their profile specifically matches this student. Recommend only if no better match exists.");
+		}
+		matched.add(row);
+	}
+	/*  Pick the single best, and say plainly when there is none. */
+	best = Map();
+	if(matched.size() > 0)
+	{
+		b = matched.get(0);
+		for each m in matched
+		{
+			if(m.get("match_score") > b.get("match_score"))
+			{
+				b = m;
+			}
+		}
+		best = b;
+	}
+	out.put("recommended_mentor",best);
+	out.put("all_matches",matched);
+	out.put("verified_mentor_count",matched.size());
+	out.put("unverified_mentors",unverified);
+	if(matched.size() == 0)
+	{
+		out.put("status","NO VERIFIED MENTORS AVAILABLE. The Vendors module holds no records with Record_Role = Mentor and verified credentials. No mentor is recommended and none has been invented.");
+	}
+	else
+	{
+		out.put("status","OK");
+	}
+	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}

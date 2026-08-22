@@ -1,0 +1,163 @@
+string standalone.studentRoadmap(string record_id, string module)
+{
+	/*  RichenQuest Student Intelligence — Roadmap v1.0
+	 *
+	 *  PURPOSE
+	 *    Turn "where this student stands" into "what happens when", across four
+	 *    horizons: NOW, 30 days, 3 months, 6 months.
+	 *
+	 *  IT SCHEDULES, IT DOES NOT DECIDE
+	 *    Priority comes from the blockers studentIntelligence and
+	 *    matchOpportunities already found. This function places them on a
+	 *    timeline and names dependencies. It never invents a new blocker and
+	 *    never re-ranks one, because caseState owns operational priority.
+	 *
+	 *  HORIZONS ARE ANCHORED TO REAL DATES
+	 *    Where an opportunity has a verified deadline, the roadmap is worked
+	 *    BACKWARDS from it. Where no verified deadline exists, the roadmap says
+	 *    so rather than inventing a schedule that looks reassuring.
+	 *
+	 *  DEPENDENCIES  studentIntelligence, matchOpportunities
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	mod = "Leads";
+	if(module != null && module.trim() != "")
+	{
+		mod = module;
+	}
+	si = standalone.studentIntelligence(record_id,mod).toMap();
+	if(si.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("error",si.get("error"));
+		return out.toString();
+	}
+	mo = standalone.matchOpportunities(record_id,mod).toMap();
+	now_list = List();
+	d30 = List();
+	d90 = List();
+	d180 = List();
+	/*  NOW — anything that blocks everything else, in the order caseState would
+	 *  rank it. Consent first: without it we may not lawfully proceed at all.
+	 */
+	if(si.get("readiness").get("consent_given") != true)
+	{
+		a = Map();
+		a.put("action","Obtain and record the student's consent");
+		a.put("reason","DPDP requires demonstrable consent before personal data is processed or shared. Without it nothing may be submitted to any university");
+		a.put("priority","CRITICAL");
+		a.put("effort","5 minutes");
+		a.put("dependency","none — this blocks everything else");
+		now_list.add(a);
+	}
+	if(si.get("readiness").get("passport_blocking") == true)
+	{
+		a2 = Map();
+		a2.put("action","Apply for a passport this week");
+		a2.put("reason","Passport status is '" + si.get("readiness").get("passport") + "'. A new Indian passport takes weeks and no application or visa can proceed without it");
+		a2.put("priority","CRITICAL");
+		a2.put("effort","1 day for the student, then weeks of waiting");
+		a2.put("dependency","none — start immediately, everything else runs in parallel");
+		now_list.add(a2);
+	}
+	if(si.get("profile_completeness") < 70)
+	{
+		a3 = Map();
+		a3.put("action","Complete the profile: " + si.get("missing_fields").toString(", "));
+		a3.put("reason","Profile is " + si.get("profile_completeness") + "% complete. Matching quality is limited by what the student has told us");
+		a3.put("priority","HIGH");
+		a3.put("effort","10 minutes");
+		a3.put("dependency","none");
+		now_list.add(a3);
+	}
+	eng = si.get("academic").get("english_status");
+	if(eng == "None")
+	{
+		a4 = Map();
+		a4.put("action","Ask your college for a Medium of Instruction letter");
+		a4.put("reason","No English evidence yet. Many European universities accept an MOI letter, which is usually free and takes about a week. Do not book IELTS until we confirm whether your target universities accept it");
+		a4.put("priority","HIGH");
+		a4.put("effort","1 week of waiting");
+		a4.put("dependency","none");
+		d30.add(a4);
+	}
+	/*  30 DAYS — documents, and the first verified deadline if one exists. */
+	a5 = Map();
+	a5.put("action","Assemble marksheets, degree certificate and CV");
+	a5.put("reason","Document collection is the predicted failure point of this pipeline. Families that agree in September and cannot produce papers by October miss the intake");
+	a5.put("priority","HIGH");
+	a5.put("effort","2-3 hours of collecting");
+	a5.put("dependency","none");
+	d30.add(a5);
+	/*  Anchor to the top-ranked verified opportunity, if there is one. */
+	anchor = "";
+	anchor_deadline = "";
+	anchor_days = -1;
+	if(mo.get("ok") == true && mo.get("rankable_count") > 0)
+	{
+		top = mo.get("ranked").get(0);
+		anchor = top.get("opportunity");
+		anchor_deadline = top.get("deadline");
+		anchor_days = top.get("days_to_deadline");
+		a6 = Map();
+		a6.put("action","Decide on " + anchor + " and submit the application");
+		a6.put("reason","Highest-fit verified opportunity. Deadline " + anchor_deadline + ", which is " + anchor_days + " days away. SOP-4 requires submission at least 10 days before a deadline");
+		a6.put("priority","HIGH");
+		a6.put("effort","2 hours once documents are complete");
+		a6.put("deadline",anchor_deadline);
+		a6.put("dependency","Documents complete; consent recorded");
+		if(anchor_days <= 45)
+		{
+			d30.add(a6);
+		}
+		else
+		{
+			d90.add(a6);
+		}
+	}
+	else
+	{
+		a7 = Map();
+		a7.put("action","FOUNDER/OPS: verify tuition, living cost and deadline for at least four more opportunities");
+		a7.put("reason","No opportunity currently passes the verification gate for this student, so no dated plan can honestly be built. This is a data gap on our side, not the student's");
+		a7.put("priority","CRITICAL");
+		a7.put("effort","4 emails to international offices");
+		a7.put("dependency","none");
+		now_list.add(a7);
+	}
+	/*  3 MONTHS */
+	a8 = Map();
+	a8.put("action","Arrange proof of funds");
+	a8.put("reason","Visa applications require funds to exist and, in several countries, to have been held for a stated period. This is the step families most often start too late");
+	a8.put("priority","MEDIUM");
+	a8.put("effort","Depends on the family's arrangements");
+	a8.put("dependency","Offer received; country confirmed");
+	d90.add(a8);
+	/*  6 MONTHS */
+	a9 = Map();
+	a9.put("action","Build and check the visa file, then attend the appointment");
+	a9.put("reason","The file is checked against the mission's own published list before travel. The student signs every declaration themselves");
+	a9.put("priority","MEDIUM");
+	a9.put("effort","1 day to assemble, 1 appointment");
+	a9.put("dependency","Offer accepted; proof of funds in place; passport held");
+	d180.add(a9);
+	out.put("now",now_list);
+	out.put("next_30_days",d30);
+	out.put("next_3_months",d90);
+	out.put("next_6_months",d180);
+	out.put("anchor_opportunity",anchor);
+	out.put("anchor_deadline",anchor_deadline);
+	if(anchor == "")
+	{
+		out.put("timeline_basis","NO VERIFIED DEADLINE AVAILABLE. Horizons below are generic sequencing, not a dated plan. A dated plan requires at least one opportunity with a verified deadline.");
+	}
+	else
+	{
+		out.put("timeline_basis","Worked backwards from " + anchor + ", deadline " + anchor_deadline + " (verified).");
+	}
+	out.put("profile_completeness",si.get("profile_completeness"));
+	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}

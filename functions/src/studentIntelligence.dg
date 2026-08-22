@@ -1,0 +1,199 @@
+string standalone.studentIntelligence(string record_id, string module)
+{
+	/*  RichenQuest Student Intelligence — canonical profile v1.0
+	 *
+	 *  PURPOSE
+	 *    ONE read-model of a student, assembled from fields that already exist
+	 *    in the CRM. Every other Intelligence function consumes this instead of
+	 *    re-reading raw fields, so "what do we know about this student" has a
+	 *    single answer that cannot drift.
+	 *
+	 *  IT DUPLICATES NOTHING
+	 *    Not one field is created here. This is a projection over Leads or
+	 *    Contacts, exactly as student360 is a projection over a Student Case.
+	 *    If a value is missing it is reported missing — never defaulted,
+	 *    never inferred, never filled in with something plausible.
+	 *
+	 *  IT DECIDES NOTHING
+	 *    Operational state, risk, band and next action belong to caseState and
+	 *    are not recomputed here. This function answers "who is this student",
+	 *    caseState answers "what is happening to their case". Two questions,
+	 *    two owners, no overlap.
+	 *
+	 *  COMPLETENESS IS A MEASUREMENT, NOT A SCORE
+	 *    profile_completeness is the percentage of intelligence fields actually
+	 *    populated. It is used to tell a student what to fill in next. It is
+	 *    never used to rank them and never shown as a quality judgement.
+	 *
+	 *  DEPENDENCIES  none (read-only)
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	mod = "Leads";
+	if(module != null && module.trim() != "")
+	{
+		mod = module;
+	}
+	s = zoho.crm.getRecordById(mod,record_id.toLong());
+	if(s.get("id") == null)
+	{
+		out.put("ok",false);
+		out.put("error","student not found in " + mod + ": " + record_id);
+		return out.toString();
+	}
+	present = 0;
+	total = 0;
+	missing = List();
+	/*  IDENTITY */
+	identity = Map();
+	identity.put("name",s.get("Last_Name"));
+	identity.put("email",s.get("Email"));
+	identity.put("phone",s.get("Phone"));
+	identity.put("city",s.get("City"));
+	identity.put("case_number",s.get("Case_Number"));
+	identity.put("parent_name",s.get("Parent_Name"));
+	identity.put("parent_consent",s.get("Parent_Consent"));
+	out.put("identity",identity);
+	/*  ACADEMIC */
+	academic = Map();
+	academic.put("qualification",s.get("Current_Education"));
+	academic.put("percentage",s.get("Academic_Percentage"));
+	academic.put("backlogs",s.get("Backlogs"));
+	academic.put("study_gap_years",s.get("Study_Gap_Years"));
+	academic.put("work_experience_years",s.get("Work_Experience_Years"));
+	academic.put("english_status",s.get("English_Status"));
+	out.put("academic",academic);
+	/*  GOALS */
+	goals = Map();
+	goals.put("level",s.get("Interested_Level"));
+	goals.put("course_or_career",s.get("Career_Goal"));
+	goals.put("intake",s.get("Intended_Intake"));
+	goals.put("countries",s.get("Interested_Country"));
+	goals.put("accommodation",s.get("Accommodation_Preference"));
+	out.put("goals",goals);
+	/*  FINANCE */
+	finance = Map();
+	bb = s.get("Budget_Range");
+	finance.put("budget_band",bb);
+	finance.put("family_income_band",s.get("Parents_Annual_Income"));
+	finance.put("funding_sources",s.get("Funding_Source"));
+	/*  Band -> a comparable EUR ceiling using the LOWER bound of the band.
+	 *  Deliberate: recommending against the top of a band is how families end
+	 *  up short in November. 1 EUR ~ 92 INR is a planning rate, not a quote,
+	 *  and it is labelled as such so nobody quotes it to a family.
+	 */
+	budget_eur = 0;
+	if(bb == "10-20L")
+	{
+		budget_eur = 10800;
+	}
+	else if(bb == "20-35L")
+	{
+		budget_eur = 21700;
+	}
+	else if(bb == "35L+")
+	{
+		budget_eur = 38000;
+	}
+	finance.put("budget_ceiling_eur",budget_eur);
+	finance.put("budget_basis","Lower bound of the stated band, converted at a planning rate of 1 EUR = 92 INR. A planning figure for matching only — never quote it to a family.");
+	if(bb == "<10L")
+	{
+		finance.put("constraint","Under 10 lakh. No verified European option in this portfolio fits. Saying so early is the honest answer.");
+	}
+	out.put("finance",finance);
+	/*  READINESS — the four things that decide whether anything can proceed. */
+	readiness = Map();
+	pp = s.get("Passport_Status");
+	readiness.put("passport",pp);
+	readiness.put("passport_blocking",pp != "Valid");
+	readiness.put("consent_given",s.get("Consent_Given") == true);
+	readiness.put("consent_version",s.get("Consent_Policy_Version"));
+	readiness.put("english_evidence",s.get("English_Status"));
+	readiness.put("documents_declared",s.get("Description"));
+	out.put("readiness",readiness);
+	/*  ENGLISH as a comparable number, for the matching engine. */
+	eng = s.get("English_Status");
+	ielts = 0.0;
+	if(eng == "5.5")
+	{
+		ielts = 5.5;
+	}
+	else if(eng == "6.0")
+	{
+		ielts = 6.0;
+	}
+	else if(eng == "6.5")
+	{
+		ielts = 6.5;
+	}
+	else if(eng == "7.0")
+	{
+		ielts = 7.0;
+	}
+	out.put("ielts_numeric",ielts);
+	out.put("has_moi",eng == "MOI");
+	/*  ATTRIBUTION — who introduced this student. */
+	attr = Map();
+	attr.put("source",s.get("Lead_Source"));
+	attr.put("referred_by",s.get("Lead_Source_Detail"));
+	out.put("attribution",attr);
+	/*  OPPORTUNITY HISTORY / APPLICATIONS / OUTCOMES.
+	 *  Only meaningful once a Lead has been converted, so it is reported as
+	 *  not-applicable rather than as an empty list that looks like a finding.
+	 */
+	history = Map();
+	if(mod == "Contacts")
+	{
+		apps = zoho.crm.searchRecords("Applications","(Student_Case:equals:" + record_id + ")");
+		rows = List();
+		if(apps != null)
+		{
+			for each a in apps
+			{
+				r = Map();
+				r.put("university",a.get("University"));
+				r.put("status",a.get("Application_Status"));
+				r.put("deadline",a.get("Application_Deadline"));
+				r.put("submitted_on",a.get("Submitted_On"));
+				r.put("outcome",a.get("Scholarship_Outcome"));
+				rows.add(r);
+			}
+		}
+		history.put("applications",rows);
+		history.put("application_count",rows.size());
+	}
+	else
+	{
+		history.put("applications",List());
+		history.put("application_count",0);
+		history.put("note","This student is still a Lead. Applications and outcomes exist only after conversion to a Contact with a Student Case.");
+	}
+	out.put("history",history);
+	/*  COMPLETENESS — measured, with the exact gaps named. */
+	checks = {"Last_Name","Email","Phone","City","Current_Education","Academic_Percentage","English_Status","Passport_Status","Budget_Range","Interested_Level","Career_Goal","Intended_Intake","Interested_Country","Funding_Source","Parent_Name","Lead_Source_Detail"};
+	for each c in checks
+	{
+		total = total + 1;
+		v = s.get(c);
+		if(v != null && v != "")
+		{
+			present = present + 1;
+		}
+		else
+		{
+			missing.add(c);
+		}
+	}
+	pct = present * 100 / total;
+	out.put("profile_completeness",pct);
+	out.put("fields_present",present);
+	out.put("fields_total",total);
+	out.put("missing_fields",missing);
+	out.put("completeness_meaning","Percentage of intelligence fields populated. Used to tell a student what to complete next. NOT a quality or eligibility judgement and never used to rank students.");
+	out.put("record_id",record_id);
+	out.put("module",mod);
+	out.put("assembled_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}

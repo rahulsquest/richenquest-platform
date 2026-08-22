@@ -32,8 +32,9 @@ string standalone.student360(string case_id)
 	 *    live in exactly one file, the way picklist values live in exactly
 	 *    normalizeInput.
 	 *
-	 *  DEPENDENCIES  caseState — read-only by design. This function never writes.
-	 *  VERSION       2.0 (2026-08-17)
+	 *  DEPENDENCIES  caseState, matchOpportunities, matchMentor, studentRoadmap,
+	 *                studentIntelligence — read-only. This function never writes.
+	 *  VERSION       3.0 (2026-08-23) — carries Student Intelligence
 	 */
 	out = Map();
 	if(case_id == null || case_id.trim() == "")
@@ -215,6 +216,64 @@ string standalone.student360(string case_id)
 	attr.put("detail",d.get("Acquisition_Detail"));
 	attr.put("node_contact",d.get("Node_Contact"));
 	out.put("attribution",attr);
+	/*  STUDENT INTELLIGENCE — delegated, never recomputed.
+	 *
+	 *  The counsellor sees exactly what the student sees, from the same
+	 *  functions. Building a separate counsellor-side matcher would guarantee
+	 *  the two eventually disagree, and the family would be told two different
+	 *  things by the same company.
+	 *
+	 *  Contacts only: a Student Case implies a converted Contact, and
+	 *  matchOpportunities needs the intelligence profile that lives there.
+	 */
+	intel = Map();
+	cn2 = d.get("Contact_Name");
+	if(cn2 != null && cn2.get("id") != null)
+	{
+		sid = cn2.get("id");
+		mo = standalone.matchOpportunities(sid,"Contacts").toMap();
+		if(mo.get("ok") == true)
+		{
+			tops = List();
+			k = 0;
+			for each r in mo.get("ranked")
+			{
+				if(k < 3)
+				{
+					tops.add(r);
+					k = k + 1;
+				}
+			}
+			intel.put("top_opportunities",tops);
+			intel.put("portfolio_health",mo.get("portfolio_health"));
+			intel.put("not_rankable_count",mo.get("not_rankable_count"));
+		}
+		mm = standalone.matchMentor(sid,"Contacts").toMap();
+		if(mm.get("ok") == true)
+		{
+			intel.put("recommended_mentor",mm.get("recommended_mentor"));
+			intel.put("mentor_status",mm.get("status"));
+		}
+		rm = standalone.studentRoadmap(sid,"Contacts").toMap();
+		if(rm.get("ok") == true)
+		{
+			intel.put("roadmap_now",rm.get("now"));
+			intel.put("roadmap_30",rm.get("next_30_days"));
+			intel.put("timeline_basis",rm.get("timeline_basis"));
+		}
+		si = standalone.studentIntelligence(sid,"Contacts").toMap();
+		if(si.get("ok") == true)
+		{
+			intel.put("profile_completeness",si.get("profile_completeness"));
+			intel.put("missing_fields",si.get("missing_fields"));
+		}
+	}
+	else
+	{
+		intel.put("note","No Contact linked to this case, so no intelligence profile could be assembled.");
+	}
+	intel.put("scores_are","FIT against published requirements. NEVER a probability of admission, scholarship or visa.");
+	out.put("intelligence",intel);
 	/*  PROVENANCE — six months from now somebody will need to know whether the
 	 *  advice rested on current research or research from four months ago.
 	 */

@@ -93,3 +93,36 @@ returned link stubs or navigation hubs. This is an email task, not a research ta
 | 3/4 CRM engine | No `crm.zoho.in` tab → Deluge deploy channel down. MCP has records/fields but **no function-create** |
 | 6 GitHub | `gh` absent, `brew` absent, osxkeychain holds no github.com credential |
 | 7 Push | `git push --dry-run` → *could not read Username* |
+
+
+---
+
+# Addendum 2 — 2026-08-23, SaaS engine build
+
+## Executed and verified
+
+| # | Test | Result |
+|---|---|---|
+| 24 | Mentor model created on Vendors | **PASS** — 12/12 fields created |
+| 25 | Opportunity model live | **PASS** — 3 fields, 23 records backfilled |
+| 26 | Pécs tuition verified and written | **PASS** — from published fee table |
+| 27 | `matchOpportunities` delegates profile | **PASS** — 0 raw student reads, 0 `getRecordById` |
+| 28 | `student360` does not duplicate matching | **PASS** — `grep -c 'match_score'` = 0 |
+| 29 | No fabricated mentor data | **PASS** — 0 mentor records; engine returns an explicit empty state |
+| 30 | No probability language in engines | **PASS** — every score carries `score_meaning` |
+
+## BLOCKED — one cause
+
+| # | Test | Blocked by |
+|---|---|---|
+| 31 | Deploy the 5 engine functions | No `crm.zoho.in` tab; MCP has no function-create |
+| 32 | Synthetic student end-to-end (step 11) | Depends on 31 |
+| 33 | Verify live CRM output + explanations | Depends on 31 |
+| 34 | Add 9 outcome `Event_Type` values | Picklist PATCH not exposed by loaded MCP tools |
+
+**No synthetic student was created and no engine was executed.** Creating a synthetic record
+without a deployed engine to run against it would produce a test record and no test.
+
+## The single unblocking action
+Open **`https://crm.zoho.in`** in Chrome and leave the tab open. That restores the Deluge
+deploy channel and makes tests 31-34 executable in one pass.
