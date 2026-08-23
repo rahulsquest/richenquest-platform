@@ -199,6 +199,46 @@ string standalone.parseInquiry(string raw)
 			 */
 			rec.put("Lead_Source_Detail",v);
 		}
+		else if(k == "Domain")
+		{
+			rec.put("Preferred_Domain",v);
+		}
+		else if(k == "Skills")
+		{
+			rec.put("Skills",v.toList(","));
+		}
+		else if(k == "Interests")
+		{
+			rec.put("Interests",v.toList(","));
+		}
+		else if(k == "Projects")
+		{
+			/*  Routed through normalizeInput's integer path so "3 projects" or
+			 *  "none" cannot reject the whole Lead — Project_Count is an integer
+			 *  field and the same class of value already broke a submission once.
+			 */
+			rec.put("Project_Count",standalone.normalizeInput("Backlogs",v));
+		}
+		else if(k == "Project detail")
+		{
+			rec.put("Projects_Detail",v);
+		}
+		else if(k == "Achievement level")
+		{
+			rec.put("Achievement_Level",v);
+		}
+		else if(k == "Achievement detail")
+		{
+			rec.put("Achievements_Detail",v);
+		}
+		else if(k == "Activities")
+		{
+			rec.put("Extracurriculars",v.toList(","));
+		}
+		else if(k == "Languages")
+		{
+			rec.put("Languages_Spoken",v.toList(","));
+		}
 		else if(k == "Notes")
 		{
 			notes.add(v);
