@@ -36,3 +36,6 @@ Thumbs.db
 # git history is permanent, widely cloned, and cannot be selectively redacted.
 # See docs/31 for where they should live instead.
 backups/
+
+# Zoho OAuth credentials — write access to employee records. Never commit.
+.zoho-oauth.json
