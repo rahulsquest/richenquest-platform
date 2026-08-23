@@ -1,0 +1,215 @@
+string standalone.studentReport(string record_id, string module)
+{
+	/*  RichenQuest — student-facing report v1.0
+	 *
+	 *  PURPOSE
+	 *    The single artifact a student actually reads during the pilot. It is a
+	 *    RENDERER over studentDashboard: it computes nothing and decides
+	 *    nothing, so a student can never be told something a counsellor's
+	 *    screen would contradict.
+	 *
+	 *  THE COUNSELLOR GATE
+	 *    Returns approved=false and a review payload. Nothing here is sent to a
+	 *    student until a human has read it and a REPORT_APPROVED event exists.
+	 *    For the first ten students the counsellor is the ground truth, not the
+	 *    engine, and this function is deliberately unable to bypass them.
+	 *
+	 *  WHAT IT WILL NEVER SAY
+	 *    No probability of admission, scholarship or visa. No guarantee. No
+	 *    "you will get in". Where a figure is quoted it carries its source and
+	 *    the date it was checked, because a number without provenance is how
+	 *    families get misled.
+	 *
+	 *  DEPENDENCIES  studentDashboard (which composes the rest)
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	mod = "Leads";
+	if(module != null && module.trim() != "")
+	{
+		mod = module;
+	}
+	db = standalone.studentDashboard(record_id,mod).toMap();
+	if(db.get("ok") != true)
+	{
+		out.put("ok",false);
+		out.put("error",db.get("error"));
+		out.put("remedy",db.get("remedy"));
+		return out.toString();
+	}
+	hdr = db.get("header");
+	name = hdr.get("student");
+	first = name;
+	if(name != null && name.indexOf(" ") > 0)
+	{
+		first = name.subString(0,name.indexOf(" "));
+	}
+	L = List();
+	L.add("Hello " + first + ",");
+	L.add("");
+	L.add("This is what we know about you, what we think fits, and what happens next. Every figure below says where it came from and when we checked it. If anything looks wrong, tell your counsellor - we would rather fix it now than have you find out in November.");
+	L.add("");
+	/*  1. PROFILE SUMMARY */
+	L.add("YOUR PROFILE");
+	L.add("  Goal: " + hdr.get("goal") + " at " + hdr.get("level") + " level, starting " + hdr.get("intake"));
+	/*  Rounded for display. The raw value is a float and rendered as
+	 *  95.4545454545454555%, which reads as carelessness to a family.
+	 */
+	L.add("  Profile completeness: " + round(hdr.get("profile_completeness"),0) + "%");
+	mf = hdr.get("missing_fields");
+	if(mf != null && mf.size() > 0)
+	{
+		L.add("  Still to fill in: " + mf.toString(", "));
+	}
+	/*  2. STRENGTHS — from profile_strength, which is about the student, not
+	 *  about any opportunity. Shown as a list, never as a rank against others.
+	 */
+	L.add("");
+	L.add("YOUR STRENGTHS");
+	intel = db.get("intelligence");
+	tops = db.get("top_opportunities");
+	if(tops != null && tops.size() > 0)
+	{
+		st = tops.get(0).get("student_strengths");
+		if(st != null)
+		{
+			for each s in st
+			{
+				L.add("  - " + s);
+			}
+		}
+	}
+	L.add("  This describes you, not your chances anywhere. It is not a score against other students.");
+	/*  3. BEST-FIT OPPORTUNITIES */
+	L.add("");
+	L.add("WHAT FITS YOU");
+	if(tops == null || tops.size() == 0)
+	{
+		L.add("  Nothing yet. We only show options where we have verified the tuition, the living cost and the deadline against the university's own published pages. We do not show estimates.");
+		L.add("  That is a gap on our side and we are closing it. Your counsellor will tell you when an option is ready.");
+	}
+	else
+	{
+		for each t in tops
+		{
+			L.add("");
+			L.add("  " + t.get("recommendation_rank") + ". " + t.get("opportunity") + " (" + t.get("country") + ")");
+			L.add("     Fit: " + t.get("match_score") + " out of 100");
+			L.add("     What that means: how well your profile lines up with what this university publishes as its requirements. It is NOT a chance of admission, a scholarship or a visa - those are decided by the university and by a government, and nobody can calculate them.");
+			L.add("     Why it is ranked here: " + t.get("rank_reason"));
+			L.add("     Verified cost, first year: EUR " + t.get("verified_total_eur_year"));
+			pv = t.get("provenance");
+			L.add("     Source: " + pv.get("source_url") + " (checked " + pv.get("verified_on") + ")");
+			L.add("     Application deadline: " + t.get("deadline") + " - " + t.get("days_to_deadline") + " days away (" + t.get("deadline_status") + ")");
+			why = t.get("why_it_matches");
+			if(why != null && why.size() > 0)
+			{
+				L.add("     Why it matches:");
+				for each w in why
+				{
+					L.add("       + " + w);
+				}
+			}
+			gaps = t.get("missing_requirements");
+			if(gaps != null && gaps.size() > 0)
+			{
+				L.add("     What is missing or needs checking:");
+				for each g in gaps
+				{
+					L.add("       - " + g);
+				}
+			}
+			L.add("     Next step: " + t.get("next_action"));
+		}
+	}
+	/*  4. ROADMAP */
+	L.add("");
+	L.add("YOUR PLAN");
+	rm = db.get("roadmap");
+	L.add("  " + rm.get("basis"));
+	hz = {"now","next_30_days","next_3_months","next_6_months"};
+	lbl = {"RIGHT NOW","NEXT 30 DAYS","NEXT 3 MONTHS","NEXT 6 MONTHS"};
+	ix = 0;
+	for each h in hz
+	{
+		items = rm.get(h);
+		if(items != null && items.size() > 0)
+		{
+			L.add("");
+			L.add("  " + lbl.get(ix) + ":");
+			for each a in items
+			{
+				L.add("    [" + a.get("priority") + "] " + a.get("action"));
+				L.add("        Why: " + a.get("reason"));
+			}
+		}
+		ix = ix + 1;
+	}
+	/*  5. NEXT ACTION AND MENTOR */
+	L.add("");
+	L.add("THE ONE THING TO DO NEXT");
+	L.add("  " + db.get("next_action"));
+	ms = db.get("mentor_status");
+	if(ms != null && ms != "OK")
+	{
+		L.add("");
+		L.add("MENTOR");
+		L.add("  We do not have a verified mentor to introduce you to yet. We will not introduce you to someone whose background we have not checked ourselves.");
+	}
+	L.add("");
+	L.add("WHAT WE WILL NOT DO");
+	L.add("  We will not guarantee you admission or a visa - nobody can. We will not quote you a figure without telling you where it came from. And if the timing stops working for your intake, you will hear it from us early, while there is still a next intake to plan for.");
+	L.add("");
+	L.add("Your data: you can ask us at any time to show you what we hold about you, correct it, or delete it. Write to support@richenquest.com.");
+	/*  RETURNED AS LINES, NOT AS ONE STRING.
+	 *
+	 *  The first version joined with "\n" and Deluge emitted 75 literal
+	 *  backslash-n sequences and zero real newlines - an unreadable wall of
+	 *  text in a document a family is meant to read.
+	 *
+	 *  Joining was the wrong idea anyway: email, PDF and HTML each need a
+	 *  different separator, and a renderer that picks one is guessing about a
+	 *  medium it cannot see. The consumer joins.
+	 *
+	 *  SECOND PERSON. matchOpportunities writes its explanations for a
+	 *  counsellor, so they say "the student named Hungary". A family reading
+	 *  "the student" about themselves is being handed an internal document.
+	 *  The voice is converted here; the engine strings stay as they are for the
+	 *  counsellor surface.
+	 */
+	lines = List();
+	for each ln in L
+	{
+		v = ln;
+		v = v.replaceAll("the student's chosen domain","your chosen domain");
+		v = v.replaceAll("the student named","you named");
+		v = v.replaceAll("the student's stated countries","the countries you named");
+		v = v.replaceAll("the stated budget","your budget");
+		v = v.replaceAll("Send the family the full-cost breakdown","We will send you the full-cost breakdown");
+		v = v.replaceAll("The student","You");
+		v = v.replaceAll("the student","you");
+		lines.add(v);
+	}
+	out.put("report_lines",lines);
+	out.put("line_count",lines.size());
+	out.put("rendering_note","report_lines is an ordered array of plain-text lines. Join with whatever separator the medium needs - newline for email, <br> or <p> for HTML, a paragraph break for PDF. Blank strings are intentional spacing.");
+	/*  COUNSELLOR REVIEW PACKET — what a human checks before this is sent. */
+	rev = Map();
+	rev.put("student",name);
+	rev.put("profile_completeness",hdr.get("profile_completeness"));
+	rev.put("opportunity_count",db.get("opportunity_count"));
+	rev.put("blockers",db.get("blockers"));
+	checks = List();
+	checks.add("Every figure carries a source URL and a verification date");
+	checks.add("No opportunity shown has deadline_status CLOSED");
+	checks.add("Nothing reads as a guarantee or a probability");
+	checks.add("The ranking explanation matches what the student would expect");
+	checks.add("Nothing here contradicts what the student was told on the call");
+	rev.put("must_check",checks);
+	out.put("counsellor_review",rev);
+	out.put("approved",false);
+	out.put("approval_rule","NOT for sending. A counsellor must read this and record a REPORT_APPROVED event against the case before any part of it reaches the student. For the first ten students the counsellor is the ground truth, not the engine.");
+	out.put("generated_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}
