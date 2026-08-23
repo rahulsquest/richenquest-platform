@@ -35,7 +35,7 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 	 *    Timeline is NOT in the score. Reachability is its own axis.
 	 *
 	 *  DEPENDENCIES  studentIntelligence
-	 *  VERSION       2.1 (2026-08-23) — closed opportunities demoted in ordering
+	 *  VERSION       2.2 (2026-08-23) — explainable ranking layer, FIT unchanged
 	 */
 	out = Map();
 	mod = "Leads";
@@ -293,7 +293,16 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		conf = 0;
 		if(available > 0)
 		{
-			score = earned * 100 / available;
+			/*  ROUNDED DELIBERATELY.
+			 *
+			 *  earned*100/available produces a float, and 70*100/70 came out as
+			 *  100.0000000000000020 while an exactly-100 score stayed 100. The
+			 *  ranking layer then put the LESS verified opportunity first,
+			 *  because a representation artifact beat the confidence tie-break.
+			 *  Percentages do not need sub-integer precision; rounding removes
+			 *  a whole class of ordering bug and makes the number readable.
+			 */
+			score = round(earned * 100 / available,0);
 			conf = available;
 		}
 		/*  DEADLINE REACHABILITY — its own axis, deliberately not in the score. */
@@ -329,8 +338,52 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 			blockers.add("Passport status is '" + si.get("readiness").get("passport") + "'. Nothing downstream can proceed and a new Indian passport takes weeks");
 			risks.add("NO_PASSPORT");
 		}
+		/*  DATA COMPLETENESS — how much we know about this opportunity, out of
+		 *  9 fields. A ranking input only. It is NOT part of FIT: how well
+		 *  researched a programme is says nothing about whether it suits the
+		 *  student.
+		 */
+		dc = 0;
+		if(o.get("Tuition_Min_EUR_Year") != null)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Living_Cost_EUR_Year") != null)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Next_App_Deadline") != null)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Source_URL") != null && o.get("Source_URL") != "")
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Verified_On") != null)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Domains_Offered") != null && o.get("Domains_Offered").size() > 0)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("IELTS_Min_UG") != null || o.get("IELTS_Min_PG") != null)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Levels_Offered") != null && o.get("Levels_Offered").size() > 0)
+		{
+			dc = dc + 1;
+		}
+		if(o.get("Application_Fee_EUR") != null)
+		{
+			dc = dc + 1;
+		}
+		dc_pct = dc * 100 / 9;
 		row = Map();
 		row.put("opportunity",nm);
+		row.put("data_completeness",dc_pct);
 		row.put("type",o.get("Opportunity_Type"));
 		row.put("country",cn);
 		row.put("match_score",score);
@@ -382,8 +435,24 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		}
 		ranked.add(row);
 	}
-	/*  Selection sort. Deluge has no comparator sort and no while loop, and
-	 *  List.remove() takes an INDEX, not the element — learned at runtime in v1.
+	/*  RECOMMENDATION RANKING LAYER — separate from FIT, and deliberately so.
+	 *
+	 *  FIT answers "does this programme suit this student". It is not touched
+	 *  here and is not blended with anything.
+	 *
+	 *  Ranking answers a different question: "which of these should the student
+	 *  look at first". Two programmes can both score FIT 100 while one of them
+	 *  is far better evidenced — that one is the better thing to look at first,
+	 *  and a single number cannot say so.
+	 *
+	 *  Order is LEXICOGRAPHIC, not a weighted blend, so every position is
+	 *  explainable by naming the first factor that separated the pair:
+	 *      1. reachable before closed
+	 *      2. higher FIT
+	 *      3. higher confidence   (more of the model could actually be scored)
+	 *      4. higher data completeness
+	 *
+	 *  Deluge has no comparator sort and List.remove() takes an INDEX.
 	 */
 	sorted = List();
 	guard = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25};
@@ -393,28 +462,54 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		{
 			continue;
 		}
-		/*  CLOSED opportunities sort BELOW open ones, whatever their fit.
-		 *
-		 *  Found in V2 testing: a closed programme scored 100 on fit and sorted
-		 *  first, so the most prominent recommendation on the page was one the
-		 *  student cannot apply to. The FIT score is left untouched — it is
-		 *  true, and a counsellor needs it when discussing the next intake —
-		 *  but a shut door does not belong at the top of a list. Ordering is
-		 *  presentation; the score is the measurement.
-		 */
 		bi = 0;
-		bs = -1;
 		ix = 0;
+		best = Map();
 		for each r in ranked
 		{
-			eff = r.get("match_score");
-			if(r.get("deadline_status") == "CLOSED")
+			take = false;
+			if(best.size() == 0)
 			{
-				eff = eff - 1000;
+				take = true;
 			}
-			if(eff > bs)
+			else
 			{
-				bs = eff;
+				r_open = 1;
+				if(r.get("deadline_status") == "CLOSED")
+				{
+					r_open = 0;
+				}
+				b_open = 1;
+				if(best.get("deadline_status") == "CLOSED")
+				{
+					b_open = 0;
+				}
+				if(r_open > b_open)
+				{
+					take = true;
+				}
+				else if(r_open == b_open)
+				{
+					if(r.get("match_score") > best.get("match_score"))
+					{
+						take = true;
+					}
+					else if(r.get("match_score") == best.get("match_score"))
+					{
+						if(r.get("confidence") > best.get("confidence"))
+						{
+							take = true;
+						}
+						else if(r.get("confidence") == best.get("confidence") && r.get("data_completeness") > best.get("data_completeness"))
+						{
+							take = true;
+						}
+					}
+				}
+			}
+			if(take)
+			{
+				best = r;
 				bi = ix;
 			}
 			ix = ix + 1;
@@ -422,10 +517,66 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		sorted.add(ranked.get(bi));
 		ranked.remove(bi);
 	}
+	/*  Now say WHY each one sits where it does, by naming the first factor that
+	 *  separated it from the entry above.
+	 */
+	final = List();
+	pos = 0;
+	prev = Map();
+	for each r in sorted
+	{
+		pos = pos + 1;
+		r.put("recommendation_rank",pos);
+		reason = "";
+		if(pos == 1)
+		{
+			if(r.get("deadline_status") == "CLOSED")
+			{
+				reason = "Ranked first only because nothing here is still open. This deadline has passed — it is shown for reference, not to apply to";
+			}
+			else
+			{
+				reason = "Best available: highest fit among opportunities still open, scored on " + r.get("confidence") + " of 100 points of verified data";
+			}
+		}
+		else
+		{
+			p_open = "OPEN";
+			if(prev.get("deadline_status") == "CLOSED")
+			{
+				p_open = "CLOSED";
+			}
+			if(r.get("deadline_status") == "CLOSED" && p_open != "CLOSED")
+			{
+				reason = "Below " + prev.get("opportunity") + " because its deadline has passed. Fit is unchanged at " + r.get("match_score");
+			}
+			else if(r.get("match_score") < prev.get("match_score"))
+			{
+				reason = "Below " + prev.get("opportunity") + " on fit (" + r.get("match_score") + " against " + prev.get("match_score") + ")";
+			}
+			else if(r.get("confidence") < prev.get("confidence"))
+			{
+				reason = "Same fit as " + prev.get("opportunity") + ", but ranked below it because less of its data is verified (" + r.get("confidence") + " of 100 points against " + prev.get("confidence") + "). Fit is equal; the evidence behind it is not";
+			}
+			else if(r.get("data_completeness") < prev.get("data_completeness"))
+			{
+				reason = "Same fit and confidence as " + prev.get("opportunity") + ", ranked below on how completely the record is researched (" + r.get("data_completeness") + "% against " + prev.get("data_completeness") + "%)";
+			}
+			else
+			{
+				reason = "Equal to " + prev.get("opportunity") + " on every ranking factor";
+			}
+		}
+		r.put("rank_reason",reason);
+		final.add(r);
+		prev = r;
+	}
+	sorted = final;
 	out.put("ranked",sorted);
 	out.put("rankable_count",sorted.size());
 	out.put("not_rankable",not_rankable);
 	out.put("not_rankable_count",not_rankable.size());
+	out.put("ranking_factors","Lexicographic and separate from FIT: 1) still open, 2) fit, 3) confidence, 4) data completeness. FIT is never adjusted by ranking.");
 	out.put("weights","Financial fit 30 · Country 20 · Domain 20 · English 15 · Level 15 = 100. Timeline is NOT scored; reachability is a separate axis.");
 	out.put("portfolio_health","Only opportunities with tuition, living cost, deadline, source URL and verification date are scored. " + not_rankable.size() + " were excluded for missing data.");
 	out.put("computed_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
