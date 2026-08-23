@@ -1,0 +1,92 @@
+<meta charset="utf-8"><title>Employment Offer Letter</title><style>
+body{font-family:'Georgia','Times New Roman',serif;color:#16202e;line-height:1.6;font-size:11.5pt;margin:0;padding:0}
+.sheet{max-width:780px;margin:0 auto;padding:44px 52px}
+.hdr{border-bottom:2.5px solid #1d4ed8;padding-bottom:14px;margin-bottom:26px;display:flex;
+     justify-content:space-between;align-items:flex-end}
+.wm{font-family:'Helvetica Neue',Arial,sans-serif;font-size:19pt;font-weight:700;letter-spacing:.10em;
+    color:#1e3a8a;text-transform:uppercase;line-height:1}
+.wm small{display:block;font-size:6.8pt;letter-spacing:.22em;color:#b45309;font-weight:600;margin-top:5px}
+.co{font-family:'Helvetica Neue',Arial,sans-serif;font-size:7.6pt;color:#5b6675;text-align:right;line-height:1.65}
+h1{font-family:'Helvetica Neue',Arial,sans-serif;font-size:14.5pt;color:#1e3a8a;letter-spacing:.05em;
+   text-transform:uppercase;margin:0 0 4px}
+.ref{font-family:'Helvetica Neue',Arial,sans-serif;font-size:8.2pt;color:#5b6675;margin-bottom:24px}
+h2{font-family:'Helvetica Neue',Arial,sans-serif;font-size:9.4pt;color:#1d4ed8;letter-spacing:.11em;
+   text-transform:uppercase;margin:26px 0 9px;padding-bottom:5px;border-bottom:1px solid #d8dfeb}
+table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:10.4pt}
+th,td{text-align:left;padding:7px 11px;border:1px solid #d8dfeb;vertical-align:top}
+th{background:#dbe5fb;font-family:'Helvetica Neue',Arial,sans-serif;font-size:8.4pt;
+   letter-spacing:.06em;text-transform:uppercase;color:#1e3a8a;font-weight:600;width:34%}
+ol,ul{padding-left:20px;margin:9px 0} li{margin-bottom:6px}
+.sign{margin-top:40px;display:flex;justify-content:space-between;gap:44px}
+.sigbox{flex:1}
+.sigline{border-bottom:1px solid #16202e;height:46px;margin-bottom:7px}
+.sigcap{font-family:'Helvetica Neue',Arial,sans-serif;font-size:8pt;color:#5b6675;line-height:1.5}
+.ftr{margin-top:34px;padding-top:12px;border-top:1px solid #d8dfeb;
+     font-family:'Helvetica Neue',Arial,sans-serif;font-size:7.4pt;color:#77808f;text-align:center;line-height:1.7}
+.note{background:#fbfcfe;border-left:3px solid #b45309;padding:11px 15px;margin:16px 0;font-size:10pt}
+.seal{border:2px solid #b45309;border-radius:3px;padding:20px 26px;text-align:center;margin:26px 0}
+.seal .t{font-family:'Helvetica Neue',Arial,sans-serif;font-size:8pt;letter-spacing:.2em;
+        text-transform:uppercase;color:#b45309;font-weight:600}
+.nm{font-size:21pt;color:#1e3a8a;margin:11px 0 5px;font-weight:normal}
+</style>
+<div class="sheet">
+<div class="hdr">
+  <div class="wm">RichenQuest<small>Education Mobility</small></div>
+  <div class="co"><strong>RICHENQUEST PVT LTD</strong><br>Boring Road, Patna, Bihar, India<br>support@richenquest.com &middot; +91 76312 07948<br>www.richenquest.com</div>
+</div>
+<h1>Offer of Employment</h1>
+<div class="ref">Reference ${Employee_ID} &nbsp;&middot;&nbsp; Date ${Offer_Date}</div>
+
+<p>Dear <strong>${Employee_Name}</strong>,</p>
+<p>Following your discussions with us, we are pleased to offer you employment with
+RICHENQUEST PVT LTD on the terms set out below.</p>
+
+<h2>Appointment</h2>
+<table>
+<tr><th>Name</th><td>${Employee_Name}</td></tr>
+<tr><th>Designation</th><td>${Designation}</td></tr>
+<tr><th>Department</th><td>${Department}</td></tr>
+<tr><th>Reporting manager</th><td>${Reporting_Manager}</td></tr>
+<tr><th>Date of joining</th><td>${Joining_Date}</td></tr>
+<tr><th>Place of work</th><td>${Work_Location}</td></tr>
+<tr><th>Employment type</th><td>${Employment_Type}</td></tr>
+</table>
+
+<h2>Salary structure</h2>
+<table>
+<tr><th>Component</th><th style="width:auto;background:#dbe5fb">Amount per annum (INR)</th></tr>
+<tr><td>Basic</td><td>${Basic_Annual}</td></tr>
+<tr><td>House Rent Allowance</td><td>${HRA_Annual}</td></tr>
+<tr><td>Special allowance</td><td>${Special_Allowance_Annual}</td></tr>
+<tr><td>Other allowances</td><td>${Other_Allowance_Annual}</td></tr>
+<tr><td><strong>Gross annual salary</strong></td><td><strong>${CTC_Annual}</strong></td></tr>
+</table>
+<div class="note">Statutory contributions and deductions — including Provident Fund, ESI and
+Professional Tax — apply <strong>only to the extent the company is legally required to operate
+them</strong>, and are shown on your monthly statement once payroll is configured. This letter
+makes no representation about applicability.</div>
+
+<h2>Terms</h2>
+<ol>
+<li>Your appointment is subject to verification of the documents and references you have provided.</li>
+<li>A probation period of <strong>${Probation_Period}</strong> applies from your joining date.</li>
+<li>Either party may terminate this employment with <strong>${Notice_Period}</strong> written notice.</li>
+<li>You will comply with company policy, and with all applicable law, throughout your employment.</li>
+<li>You will not disclose confidential information — including student records, family financial
+information and university correspondence — during your employment or after it ends.</li>
+<li>Work produced in the course of your employment, and the intellectual property in it, belongs to
+RICHENQUEST PVT LTD.</li>
+<li>Detailed terms of service are set out in the appointment letter issued on joining.</li>
+</ol>
+
+<h2>Acceptance</h2>
+<p>Please confirm your acceptance by signing below and returning this letter by
+<strong>${Acceptance_Deadline}</strong>.</p>
+<div class="sign">
+  <div class="sigbox"><div class="sigline"></div><div class="sigcap"><strong>${Authorised_Signatory}</strong><br>${Signatory_Designation}<br>RICHENQUEST PVT LTD<br>Date: ${Offer_Date}</div></div>
+  <div class="sigbox"><div class="sigline"></div><div class="sigcap"><strong>${Employee_Name}</strong><br>Accepted and agreed<br>Date: ___________________</div></div>
+</div>
+<div class="ftr">RICHENQUEST PVT LTD &middot; Boring Road, Patna, Bihar, India<br>
+support@richenquest.com &middot; India +91 76312 07948 &middot; Italy +39 327 186 6329 &middot; www.richenquest.com<br>
+CIN ${Company_Registration_No} &middot; GSTIN ${Company_GSTIN}</div>
+</div>
