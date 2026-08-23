@@ -53,7 +53,7 @@ string standalone.parseInquiry(string raw)
 	 *  next one. Deterministic, and immune to however the transport represents
 	 *  a line break.
 	 */
-	labels = {"Name","WhatsApp","Email","City","Studying","Percentage/CGPA","Backlogs","Study gap (yrs)","Work experience (yrs)","English","Passport","Total budget","Family income","Funding","Level","Intake","Course","Countries","Accommodation","Referred by","Domain","Skills","Interests","Projects","Project detail","Achievement level","Achievement detail","Activities","Languages","Notes"};
+	labels = {"Name","WhatsApp","Email","City","Studying","Percentage/CGPA","Backlogs","Study gap (yrs)","Work experience (yrs)","English","Passport","Total budget","Family income","Funding","Level","Intake","Course","Countries","Accommodation","Referred by","Referrer type","Domain","Skills","Interests","Projects","Project detail","Achievement level","Achievement detail","Activities","Languages","Notes"};
 	kv = Map();
 	unmapped = List();
 	positions = Map();
@@ -99,7 +99,16 @@ string standalone.parseInquiry(string raw)
 	}
 	rec = Map();
 	rec.put("Last_Name",name);
-	rec.put("Lead_Source","Web Form");
+	/*  Both of these are PICKLISTS, and Zoho does not enforce picklists - a value
+	 *  that is not on the list saves without error and then matches no filter, no
+	 *  report and no workflow. "Web Form" was exactly such a value: it is not in
+	 *  the Lead_Source list, so every Lead this function has ever created carries
+	 *  a source that silently does not exist. Only listed values may be written
+	 *  to either field. The referral branch below overrides both when a referrer
+	 *  is named.
+	 */
+	rec.put("Lead_Source","Web Download");
+	rec.put("Lead_Source_Detail","Website Form");
 	notes = List();
 	for each k in kv.keys()
 	{
@@ -196,8 +205,35 @@ string standalone.parseInquiry(string raw)
 			/*  The trust node's name. The single field the whole growth model
 			 *  depends on - it is how a node is scored and how we know who to
 			 *  thank when their student succeeds.
+			 *
+			 *  It used to be written into Lead_Source_Detail, which is a picklist
+			 *  of CHANNELS. A person's name is not a channel: it saved silently,
+			 *  matched no filter, and the one field the growth model depends on
+			 *  held data that could not be counted. Identity and channel are two
+			 *  different things and now live in two different fields.
 			 */
-			rec.put("Lead_Source_Detail",v);
+			rec.put("Referred_By_Name",v);
+			rec.put("Lead_Source_Detail","Referral");
+			rec.put("Lead_Source","External Referral");
+		}
+		else if(k == "Referrer type")
+		{
+			/*  Not collected by the portal yet - the field exists so that when a
+			 *  question is added upstream there is somewhere valid to put it. The
+			 *  whitelist is the whole point: it is what stops an unlisted value
+			 *  from repeating the defect this block was written to fix. Anything
+			 *  unrecognised falls through to Description rather than being lost.
+			 */
+			referrer_types = {"Teacher","Student","Partner","Employee","Family / Friend","Other"};
+			if(referrer_types.contains(v))
+			{
+				rec.put("Referred_By_Type",v);
+			}
+			else
+			{
+				unmapped.add(k + ": " + v);
+				notes.add(k + ": " + v);
+			}
 		}
 		else if(k == "Domain")
 		{

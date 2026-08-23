@@ -285,7 +285,7 @@ string standalone.studentIntelligence(string record_id, string module)
 	/*  ATTRIBUTION — who introduced this student. */
 	attr = Map();
 	attr.put("source",s.get("Lead_Source"));
-	attr.put("referred_by",s.get("Lead_Source_Detail"));
+	attr.put("referred_by",s.get("Referred_By_Name"));
 	out.put("attribution",attr);
 	/*  OPPORTUNITY HISTORY / APPLICATIONS / OUTCOMES.
 	 *  Only meaningful once a Lead has been converted, so it is reported as
@@ -320,7 +320,7 @@ string standalone.studentIntelligence(string record_id, string module)
 	}
 	out.put("history",history);
 	/*  COMPLETENESS — measured, with the exact gaps named. */
-	checks = {"Last_Name","Email","Phone","City","Current_Education","Academic_Percentage","English_Status","Passport_Status","Budget_Range","Interested_Level","Career_Goal","Intended_Intake","Interested_Country","Funding_Source","Parent_Name","Lead_Source_Detail","Skills","Interests","Preferred_Domain","Project_Count","Achievement_Level","Extracurriculars"};
+	checks = {"Last_Name","Email","Phone","City","Current_Education","Academic_Percentage","English_Status","Passport_Status","Budget_Range","Interested_Level","Career_Goal","Intended_Intake","Interested_Country","Funding_Source","Parent_Name","Referred_By_Name","Skills","Interests","Preferred_Domain","Project_Count","Achievement_Level","Extracurriculars"};
 	for each c in checks
 	{
 		total = total + 1;

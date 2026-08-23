@@ -128,7 +128,7 @@ string standalone.buildWorkQueue(string owner_filter)
 			li.put("city",l.get("City"));
 			li.put("passport",l.get("Passport_Status"));
 			li.put("intake",l.get("Intended_Intake"));
-			li.put("referred_by",l.get("Lead_Source_Detail"));
+			li.put("referred_by",l.get("Referred_By_Name"));
 			li.put("task","CALL_WITHIN_48H");
 			li.put("consequence","A five-day-old enquiry is a cold enquiry. This is the cheapest loss in the business to prevent and the easiest to let happen");
 			uncalled.add(li);
