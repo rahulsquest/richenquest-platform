@@ -1,0 +1,95 @@
+string standalone.opportunityRefresh()
+{
+	/*  RichenQuest — Opportunity Graph refresh sweep v1.0
+	 *
+	 *  PURPOSE
+	 *    Keeps the verified opportunity graph honest over time. Facts decay:
+	 *    a deadline passes, a verification goes stale, a price changes.
+	 *
+	 *  IT NEVER INVENTS OR CORRECTS A FACT
+	 *    It changes exactly two things, both of which are statements about OUR
+	 *    RECORD rather than about the university:
+	 *      - Readiness_Status, when a deadline has passed or research is stale
+	 *      - Review_Date, so the next re-verification has a date
+	 *    Tuition, living cost and deadlines are only ever changed by a human
+	 *    holding an authoritative source. An automated sweep that edited facts
+	 *    would silently launder guesses into the graph.
+	 *
+	 *  THRESHOLDS
+	 *    EXPIRED  deadline is in the past
+	 *    DUE      deadline within 45 days — re-verify before advising on it
+	 *    STALE    verified more than 90 days ago
+	 *
+	 *  DEPENDENCIES  none
+	 *  VERSION       1.0 (2026-08-23)
+	 */
+	out = Map();
+	today = zoho.currentdate;
+	expired = List();
+	due = List();
+	stale = List();
+	fresh = 0;
+	updates = 0;
+	opps = zoho.crm.getRecords("Accounts",1,200);
+	for each o in opps
+	{
+		if(o.get("Opportunity_Type") == "Service Vendor")
+		{
+			continue;
+		}
+		nm = o.get("Account_Name");
+		id = o.get("id");
+		dl = o.get("Next_App_Deadline");
+		vo = o.get("Verified_On");
+		flagged = false;
+		if(dl != null && dl != "")
+		{
+			d = days360(today,dl.toString().subString(0,10).toDate());
+			if(d < 0)
+			{
+				expired.add(nm + " — deadline " + dl + " passed " + (0 - d) + " days ago");
+				u = Map();
+				u.put("Readiness_Status","NEEDS VERIFICATION");
+				u.put("Review_Date",today.toString("yyyy-MM-dd"));
+				zoho.crm.updateRecord("Accounts",id.toLong(),u);
+				updates = updates + 1;
+				flagged = true;
+			}
+			else if(d <= 45)
+			{
+				due.add(nm + " — deadline " + dl + " in " + d + " days");
+			}
+		}
+		if(vo != null && vo != "")
+		{
+			age = days360(vo.toString().subString(0,10).toDate(),today);
+			if(age > 90)
+			{
+				stale.add(nm + " — last verified " + vo + ", " + age + " days ago");
+				if(!flagged)
+				{
+					u2 = Map();
+					u2.put("Review_Date",today.toString("yyyy-MM-dd"));
+					zoho.crm.updateRecord("Accounts",id.toLong(),u2);
+					updates = updates + 1;
+				}
+			}
+			else
+			{
+				fresh = fresh + 1;
+			}
+		}
+	}
+	out.put("expired",expired);
+	out.put("expired_count",expired.size());
+	out.put("deadline_due_soon",due);
+	out.put("due_count",due.size());
+	out.put("stale_verification",stale);
+	out.put("stale_count",stale.size());
+	out.put("fresh_verifications",fresh);
+	out.put("records_flagged",updates);
+	out.put("rule","This sweep only ever changes Readiness_Status and Review_Date — statements about OUR record. It never edits tuition, living cost or a deadline, because those require an authoritative source and a human.");
+	out.put("run_at",zoho.currenttime.toString("yyyy-MM-dd HH:mm:ss"));
+	out.put("ok",true);
+	return out.toString();
+}
