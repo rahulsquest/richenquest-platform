@@ -112,9 +112,17 @@ RichenQuest, Patna
 
 ## Tracking
 
-Every referred enquiry must be created as a Lead with **`Lead_Source_Detail` = the referrer's name**.
-That single field turns this from goodwill into a measurable channel, and it is what tells you which
-of the four audiences above is actually worth repeating next cycle.
+**Corrected 2026-08-27 — this section named the wrong field.** `Lead_Source_Detail` is a
+channel picklist (`Referral` when referred); the referrer's identity goes in
+**`Referred_By_Name`** (text) and **`Referred_By_Type`** (picklist). Writing a name into
+`Lead_Source_Detail` is the exact defect fixed in `parseInquiry`/`buildWorkQueue`/
+`studentIntelligence` on 2026-08-24 (see `FOUNDING-50.md` and the commit
+`fix(crm): referral identity out of the channel picklist, into its own field`) — both fields
+are live on the Leads module, verified. Every referred enquiry must be created as a Lead with
+`Lead_Source_Detail = Referral`, `Referred_By_Name = <referrer's name>`, and
+`Lead_Source = External Referral`. That is what turns this from goodwill into a measurable
+channel, and what tells you which of the four audiences above is actually worth repeating
+next cycle.
 
 `qualifyLead` will then score readiness and flag duplicates automatically, and `leadToPlan` turns any
 of them into a counselling-ready plan in one call.
