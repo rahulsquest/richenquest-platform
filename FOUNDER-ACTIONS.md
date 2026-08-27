@@ -9,7 +9,7 @@ autonomously and does not appear here.
 |---|---|---|---|
 | 1 | **Reply-handling for 3 university emails** | The universities must answer. Sent 2026-08-23; nothing further can be done from here until they reply. | rankable 2 → 5 |
 | 2 | **Choose one canonical company email** | `official@`, `support@` and `info@` are all in circulation. Legal documents cite `support@`; universities were contacted from `official@`. A judgement call about business identity. | consistency, replies |
-| 3 | **Provide a git credential** | `git push` fails on missing username; osxkeychain holds no github.com entry. | 18 local commits |
+| 3 | **Provide a git credential** | `git push` fails on missing username; osxkeychain holds no github.com entry. | 40 local commits, checked 2026-08-27 |
 | 4 | **Advocate review of the legal pack** | Legal sign-off is a stop condition; cannot be self-certified. | accepting paying students |
 | 5 | **Confirm the four package fees** | A price the founder has not set is a price the company would be bound to. | quoting, invoicing |
 | 6 | **Take Zoho Books out of test mode** | Account-owner action. | invoicing |
