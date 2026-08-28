@@ -106,6 +106,22 @@ curl -s "https://rq-site-ugkizspd.onslate.in/$B" | grep -o 'apiBaseUrl:"[^"]*"'
 **Success:** prints the real HTTPS API origin. **Failure:** prints `"/api"` — the wrong artifact
 shipped; do not continue.
 
+> **Caution — this deploys to `rq-site`, which the customer domain does not currently serve.**
+> `www.richenquest.com` resolves through Slate resource `7264000000019003` (`rq-site-ysgqnszn`),
+> a different app; the domain and that app return a byte-identical object (same ETag, same
+> `Last-Modified`), while `scripts/deploy-production.sh` deploys to `rq-site-ugkizspd`
+> (`8769000000005006`). So this step makes the corrected bundle live **on the Slate app, not on
+> the customer domain**. Verify the domain separately:
+>
+> ```
+> curl -s https://www.richenquest.com/ | grep -o "assets/index-[A-Za-z0-9_-]*\.js"
+> ```
+>
+> If that still returns the old hash, the frontend is *not* live for customers regardless of what
+> this step reported, and Steps 6–10 are testing the API directly rather than through the real
+> site. That binding is an open decision — see `FOUNDER-ACTIONS.md` A2 and
+> `BACKEND-HANDOFF-FOR-WEBSITE-DEVELOPER.md` §3c. Do not change it here.
+
 ---
 
 ## Step 5a — Verify CORS from the real browser origin
