@@ -32,19 +32,18 @@ code exchange, not at runtime.
 | **Success condition** | `curl -s https://www.richenquest.com/ \| grep -o "assets/index-[A-Za-z0-9_-]*\.js"` no longer returns `index-CxODATZa.js` |
 | **Unlocks** | Six shipped website commits reaching customers · full production verification |
 
-### A3 — Choose one canonical company email
-| | |
-|---|---|
-| **Owner** | Founder |
-| **Exact action** | Pick one of `official@` / `support@` / `admissions@` / `info@` and state it. |
-| **Dependency** | none |
-| **Success condition** | One address used by site, legal pack and outreach |
-| **Unlocks** | Consistent identity · data-subject requests reaching the named channel |
+### ~~A3 — Choose one canonical company email~~ — resolved, was miscategorized
+Already decided by the founder 2026-08-23: see `EMAIL-IDENTITY-DECISION.md`. `support@` is
+student support and DPDP/legal communication — the address of record in the privacy policy,
+T&C, refund policy and every client template. `official@` is university partnerships. This
+was never a pending founder decision; three passes on 2026-08-27/28 wrongly re-flagged it as
+one. The only actual gap was that the website's default (`admissions@`, which predates the
+decision) had never been updated to match — fixed in code 2026-08-28
+(`client/src/config/environment.js`, `.env.example`).
 
-Current conflict, counted across code, legal and GTM: `official@` ×16 (universities were contacted
-from it) · `support@` ×8 (**legal pack names it as the data-fiduciary contact**) · `admissions@` ×3
-(**what the website displays**) · `rahul@` ×2 · `info@` ×1. A data-subject request sent to the
-published address may therefore never reach the contact the privacy policy names.
+**Still open, and genuinely a Zoho Mail admin action, not code:** `official@` should forward to
+`support@` so the four pending university-verification replies aren't missed by the grievance
+officer named in the privacy policy.
 
 ### A4 — Confirm the package prices
 | | |
@@ -57,6 +56,14 @@ published address may therefore never reach the contact the privacy policy names
 
 All five are deliberately `null`. The code refuses to invoice rather than guess, and ignores any
 client-supplied amount, currency or discount.
+
+**A naming mismatch to resolve at the same time, not before:** `pricing.js`'s five codes
+(`admission_support`, `visa_support`, `documentation_support`, `scholarship_support`,
+`full_service`) do not match the five package codes named in `revenue/00-PRICING-ASSUMPTION.md`
+and `gtm/BUSINESS-MODEL-V2.md` (`RQ-GUID`, `RQ-STD`, `RQ-COMP`, `RQ-VISA`, `RQ-ITALY`) — and those
+docs mark their own prices **ASSUMED**, not confirmed. Whichever set of codes and prices is
+actually confirmed should be what `pricing.js` carries; renaming the code to match an assumed
+figure would be its own invention.
 
 ### A5 — Take Zoho Books out of test mode
 | | |
