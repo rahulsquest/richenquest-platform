@@ -108,6 +108,42 @@ shipped; do not continue.
 
 ---
 
+## Step 5a — Verify CORS from the real browser origin
+
+Do not skip this because Steps 3–5 passed. **`curl` ignores CORS entirely**, so every check so far
+would succeed even with a completely wrong allowed origin — the failure appears only in a real
+browser, as a blocked request with no useful server-side log.
+
+The frontend sends an `Authorization` header, which makes every call a non-simple request, so the
+browser sends a preflight `OPTIONS` first. Simulate exactly that:
+
+```
+curl -s -i -X OPTIONS https://api.richenquest.com/api/home \
+  -H "Origin: https://www.richenquest.com" \
+  -H "Access-Control-Request-Method: GET" \
+  -H "Access-Control-Request-Headers: authorization" | head -20
+```
+
+**Success:** a 2xx carrying `access-control-allow-origin: https://www.richenquest.com` and
+`access-control-allow-credentials: true`.
+
+**Failure:** no `access-control-allow-origin` header, or one naming a different host. That means
+`CORS_ALLOWED_ORIGINS` does not match the origin the browser is actually on. The template shipped
+`https://app.richenquest.com` until 2026-08-29 — a host that does not exist — so anyone who copied
+it earlier will fail here. Fix the variable and restart; do not proceed to Step 6.
+
+Repeat with a hostile origin to confirm the gate is closed, not merely permissive:
+
+```
+curl -s -i -X OPTIONS https://api.richenquest.com/api/home \
+  -H "Origin: https://evil.example" \
+  -H "Access-Control-Request-Method: GET" | grep -i "access-control-allow-origin" || echo "correctly refused"
+```
+
+**Success:** no allow-origin header for `evil.example`.
+
+---
+
 ## Step 6 — One controlled signup
 
 Use an address that is unmistakably synthetic and that nobody can reach:
