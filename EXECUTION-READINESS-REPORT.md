@@ -105,12 +105,18 @@ surface, and the AI overclaim was avoided before it was ever written.
 | CORS / origin | ✅ pinned, fails closed |
 | **Legal pack reviewed by an advocate** | **🔴 NOT DONE — blocks accepting payment** |
 | **`{{REG_NO}}` and `{{GSTIN}}`** | **🔴 UNRESOLVED** in the legal pack |
-| **Referrer field corrupts silently** | **🔴 OPEN** — see below |
+| **Referrer field corrupts silently** | ✅ **RESOLVED** — see below |
 
-### 🔴 The one open data-integrity defect
-`parseInquiry` writes the referrer's **name** into `Lead_Source_Detail`, a **picklist**. Zoho
-saves it silently and it never matches a filter. **The referral programme cannot be measured
-until this is fixed** — one text field, `Referred_By_Name`. Flagged, not fixed: schema frozen.
+### ✅ Referrer field — fixed and verified 2026-09-01
+`parseInquiry` once wrote the referrer's **name** into `Lead_Source_Detail`, a **picklist**, which
+Zoho saved silently and which never matched a filter.
+
+Now corrected in `functions/src/parseInquiry.dg`: the name goes to `Referred_By_Name`,
+`Lead_Source_Detail` gets the channel value `"Referral"`, `Lead_Source` gets `"External Referral"`,
+and `Referred_By_Type` is validated against a fixed list before being written.
+
+`Referred_By_Name` **exists in the live CRM** — confirmed by COQL, which returns the column rather
+than an invalid-column error. The schema blocker this section described is closed.
 
 ---
 
@@ -122,7 +128,7 @@ until this is fixed** — one text field, `Referred_By_Name`. Flagged, not fixed
 | 2 | **Zoho Books in test mode** | Founder | invoicing |
 | 3 | **Legal pack not advocate-reviewed** | Founder + advocate | accepting payment |
 | 4 | `REG_NO` / `GSTIN` unresolved | Founder + CA | compliant invoices |
-| 5 | **`Referred_By_Name` field** | Founder approval | referral tracking |
+| ~~5~~ | ~~**`Referred_By_Name` field**~~ | ✅ resolved 2026-09-01 — field exists, ingestion corrected | — |
 | 6 | **6 university replies outstanding** | external | rankable 2 → 5 |
 | 7 | **0 student conversations** | Founder | everything |
 

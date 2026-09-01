@@ -334,7 +334,12 @@ string standalone.studentIntelligence(string record_id, string module)
 			missing.add(c);
 		}
 	}
-	pct = present * 100 / total;
+	/*  Rounded at the source. This is shown to the student to tell them what
+	 *  to complete next, so a repeating decimal reaches them verbatim.
+	 *  The Node port of this engine (codeKitchenScore.js) already rounds;
+	 *  leaving the original unrounded made the two disagree on the same
+	 *  number. Safe to round: completeness never ranks students. */
+	pct = round(present * 100 / total,0);
 	out.put("profile_completeness",pct);
 	out.put("fields_present",present);
 	out.put("fields_total",total);

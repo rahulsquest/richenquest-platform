@@ -380,7 +380,14 @@ string standalone.matchOpportunities(string lead_or_contact_id, string module)
 		{
 			dc = dc + 1;
 		}
-		dc_pct = dc * 100 / 9;
+		/*  Rounded at the source, like match_score above. Nine fields divide
+		 *  into repeating decimals — 8 of 9 is 88.88888888888889 — and this
+		 *  value is BOTH the tier-4 ranking comparator and rendered straight
+		 *  into the student's rank_reason, so an unrounded float here reaches
+		 *  a family as "88.88888888888889% against 100%".
+		 *  Ordering is unaffected: the ten possible values round to
+		 *  0/11/22/33/44/56/67/78/89/100, all still distinct. */
+		dc_pct = round(dc * 100 / 9,0);
 		row = Map();
 		row.put("opportunity",nm);
 		row.put("data_completeness",dc_pct);

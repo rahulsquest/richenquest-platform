@@ -121,7 +121,10 @@ string standalone.readinessSweep()
 			{
 				gaps.add("RESEARCH: country not set - breaks matching and visa timeline");
 			}
-			pct = (core * 100) / total;
+			/*  Rounded at the source, same reason as the other percentages:
+			 *  a repeating decimal in an ops report is noise, and this one
+			 *  feeds counsellor-facing readiness output. */
+			pct = round((core * 100) / total,0);
 			/*  COUNSELLING - could a counsellor answer a family today? */
 			counselling = true;
 			if(a.get("Tuition_Min_EUR_Year") == null)

@@ -181,9 +181,19 @@ string standalone.studentReport(string record_id, string module)
 	for each ln in L
 	{
 		v = ln;
+		/*  Specific forms first. The generic "the student" -> "you" at the end
+		 *  is a catch-all, and any possessive or third-person-verb phrase it
+		 *  reaches unhandled comes out ungrammatical. Confirmed against the
+		 *  strings matchOpportunities actually emits: "is on the student's
+		 *  list" became "is on you's list", and "which the student holds"
+		 *  became "which you holds". Both reached the student verbatim.
+		 *  Any new "the student's X" or "the student <verb>s" phrasing added
+		 *  to an engine needs its own line here, above the catch-all. */
 		v = v.replaceAll("the student's chosen domain","your chosen domain");
-		v = v.replaceAll("the student named","you named");
 		v = v.replaceAll("the student's stated countries","the countries you named");
+		v = v.replaceAll("the student's list","your list");
+		v = v.replaceAll("which the student holds","which you hold");
+		v = v.replaceAll("the student named","you named");
 		v = v.replaceAll("the stated budget","your budget");
 		v = v.replaceAll("Send the family the full-cost breakdown","We will send you the full-cost breakdown");
 		v = v.replaceAll("The student","You");
