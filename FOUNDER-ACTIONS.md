@@ -111,7 +111,7 @@ address is real and deliverable — evidence did not prove it synthetic.
 | | |
 |---|---|
 | **Owner** | Founder (Catalyst console — Data Store) |
-| **Exact action** | Create the tables the backend mirrors to: `Leads`, `Users`, `Students`, `Documents`, `Notifications`, `IntegrationEvents`. |
+| **Exact action** | Create **nine** tables to the exact column specification in `DATASTORE-SCHEMA.md`: `Leads`, `Users`, `Students`, `Documents`, `Notifications`, `IntegrationEvents`, `Counselors`, `Cases`, `Bookings`. Do **not** create `Payments` or `AuditLogs` — declared in code but never used. |
 | **Dependency** | AppSail incident resolved |
 | **Success condition** | A lead submitted before an instance restart is still readable after it |
 | **Unlocks** | Any durable record at all |
@@ -121,9 +121,20 @@ Found during the 2026-09-01 silent-failure audit. **No Data Store tables exist**
 a signup, or a document record therefore lives in process memory and is **destroyed by any
 restart, redeploy, or scale-down** — and AppSail restarts on every deploy.
 
-Until this is done, the only durable record of a student enquiry is the application log. The code
-now writes unsynced leads there deliberately for that reason, but a log is a recovery mechanism,
-not storage. **Do not run the pilot on it.**
+Three things found on 2026-09-01 that make this more than "create six tables":
+
+- It is **nine** tables, not six. `Counselors`, `Cases` and `Bookings` were missing from the
+  original list and are required by signup and booking.
+- Seven columns hold objects or arrays. Catalyst has no JSON column type, so creating the tables
+  as originally listed would still have failed every `Students` and `Cases` write — silently,
+  looking exactly like the in-memory fallback it was meant to fix. The code now serialises these;
+  the columns must be **Text** with the lengths in `DATASTORE-SCHEMA.md`.
+- Every timestamp column must be **Text**, never `DateTime`. The app writes ISO-8601, which
+  Catalyst's `DateTime` type rejects — again only as a log warning.
+
+`POST /api/leads` now returns **503** rather than a false success while nothing durable exists, so
+the public form is closed until either this or A1 (CRM credentials) is done. That is deliberate:
+a student is no longer told their inquiry reached the team when it did not.
 
 ### A10 — Configure WorkDrive and the Flow webhook, or accept two features are off
 | | |
