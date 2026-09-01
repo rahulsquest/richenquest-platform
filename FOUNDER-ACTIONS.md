@@ -1,7 +1,7 @@
 # FOUNDER-ACTIONS.md
 
 **Only genuinely unavoidable human actions.** Routine technical work has been executed
-autonomously and does not appear here. Last verified against live systems 2026-08-27.
+autonomously and does not appear here. Last verified against live systems 2026-09-01.
 
 Each row states what unlocks the moment it is done, so nothing here needs interpreting.
 
@@ -106,6 +106,39 @@ available to this product.
 
 Two unambiguous synthetic leads were deleted 2026-08-27. This one was preserved because its
 address is real and deliverable — evidence did not prove it synthetic.
+
+### A9 — Create the Catalyst Data Store tables — HARD BLOCKER, before the first real student
+| | |
+|---|---|
+| **Owner** | Founder (Catalyst console — Data Store) |
+| **Exact action** | Create the tables the backend mirrors to: `Leads`, `Users`, `Students`, `Documents`, `Notifications`, `IntegrationEvents`. |
+| **Dependency** | AppSail incident resolved |
+| **Success condition** | A lead submitted before an instance restart is still readable after it |
+| **Unlocks** | Any durable record at all |
+
+Found during the 2026-09-01 silent-failure audit. **No Data Store tables exist**, so
+`catalystTable()` fails its existence probe and every write degrades to in-memory only. A lead,
+a signup, or a document record therefore lives in process memory and is **destroyed by any
+restart, redeploy, or scale-down** — and AppSail restarts on every deploy.
+
+Until this is done, the only durable record of a student enquiry is the application log. The code
+now writes unsynced leads there deliberately for that reason, but a log is a recovery mechanism,
+not storage. **Do not run the pilot on it.**
+
+### A10 — Configure WorkDrive and the Flow webhook, or accept two features are off
+| | |
+|---|---|
+| **Owner** | Founder |
+| **Exact action** | Set `ZOHO_WORKDRIVE_ROOT_FOLDER_ID` for document upload, and the Flow webhook URL for `PASSWORD_RESET_REQUESTED`. |
+| **Dependency** | A1 |
+| **Success condition** | A document upload returns 201, and a reset request logs `DISPATCHED` |
+| **Unlocks** | Document upload · self-service password reset |
+
+Both are currently unconfigured, and both used to report success while doing nothing — fixed
+2026-09-01. Document upload now returns **503** rather than pretending, so with WorkDrive unset
+the feature is **visibly off, not silently broken**. Password reset likewise sends no mail; a
+student who forgets their password today has **no self-service route back in** and must be helped
+by hand. Watch the log line `PASSWORD RESET EMAIL NOT DELIVERED` until this is configured.
 
 ---
 
